@@ -115,7 +115,14 @@ const rawConfig = {
  */
 function paketVersion(): string {
   try {
-    const hier = dirname(fileURLToPath(import.meta.url));
+    // NINJO: Im gebuendelten Stand, den das Installationsprogramm ablegt, ist
+    // import.meta.url auf die Zeichenkette "bundled" gesetzt (esbuild-define).
+    // fileURLToPath wirft darauf, und die Version meldete sich als "unbekannt" -
+    // genau dort, wo sie am meisten zaehlt, naemlich bei einem fremden Nutzer,
+    // der einen Fehler meldet. __dirname gibt es im CJS-Buendel, im ESM-Stand
+    // nicht; startBackend geht denselben Weg.
+    const hier =
+      typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
     for (const kandidat of ['../package.json', '../../package.json']) {
       const pfad = resolve(hier, kandidat);
       if (existsSync(pfad)) {

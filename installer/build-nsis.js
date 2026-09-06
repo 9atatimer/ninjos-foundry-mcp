@@ -285,6 +285,14 @@ function copyFoundryModuleFiles() {
     console.log('   ✓ Style files copied');
   }
 
+  // NINJO: Bilder des Moduls. Ohne sie zeigt das Willkommensfenster beim ersten
+  // Start einen leeren Kasten statt des Logos - genau dort, wo der erste Eindruck
+  // entsteht. Das Release-Zip hatte assets/ von Anfang an, der Installer nicht.
+  if (fs.existsSync(path.join(moduleSource, 'assets'))) {
+    copyRecursive(path.join(moduleSource, 'assets'), path.join(moduleDest, 'assets'));
+    console.log('   ✓ Asset files copied');
+  }
+
   // Copy language files
   if (fs.existsSync(path.join(moduleSource, 'lang'))) {
     copyRecursive(path.join(moduleSource, 'lang'), path.join(moduleDest, 'lang'));
@@ -309,6 +317,20 @@ function copyFoundryModuleFiles() {
     ensureDir(path.join(moduleDest, 'generated-maps'));
     console.log('   ✓ Generated maps directory created');
   }
+
+  // NINJO: Die Lizenz gehoert in jede ausgelieferte Kopie, nicht nur ins
+  // Release-Zip. Die MIT-Lizenz des Ursprungsprojekts verlangt, dass der
+  // Urhebervermerk mitgeht - ein ueber den Installer verteiltes Modul ohne
+  // LICENSE erfuellt das nicht. Deshalb Abbruch statt Warnung.
+  const modulLizenz = path.join(moduleSource, 'LICENSE');
+  if (!fs.existsSync(modulLizenz)) {
+    console.error(
+      '   ❌ LICENSE fehlt in packages/foundry-module - ohne sie darf das Modul nicht ausgeliefert werden'
+    );
+    process.exit(1);
+  }
+  fs.copyFileSync(modulLizenz, path.join(moduleDest, 'LICENSE'));
+  console.log('   ✓ LICENSE copied');
 
   // Copy module.json (required)
   const moduleJsonPath = path.join(moduleSource, 'module.json');
