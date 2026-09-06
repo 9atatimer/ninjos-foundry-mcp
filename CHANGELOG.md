@@ -1,3 +1,53 @@
+## v14.2609.1 (2026-09-06)
+
+### The compendium allowlist actually saves now
+
+Ticking individual compendiums under _Release compendiums_ and pressing save
+stored nothing. The checkboxes are named `pack.<id>` and a pack id contains a dot
+itself, so Foundry expanded the field names into nested objects before the save
+handler saw them; the handler looked for top-level keys starting with `pack.` and
+never matched. An empty list means "every unlocked compendium is writable", so
+restricting access through the dialog silently did the opposite of what it said.
+
+Leaving "release every unlocked compendium" ticked at the top discarded the
+selection too — that check ran first and returned before reading the ticks. The
+two now exclude each other in the form, and a selection wins over "allow all".
+
+The dialog also groups by module instead of putting every module's compendiums in
+one pot, and its text now describes what the module actually does: a tick means
+work on this one is allowed, and a lock is lifted for the single operation and
+restored afterwards.
+
+### Map generation is off unless you switch it on
+
+`COMFYUI_ENABLED=true` now gates the whole thing. Without it nothing is created —
+no job queue, no client, no auto-start — and the three tools that need ComfyUI are
+not offered at all. Before, the client was built regardless and retried a failing
+connection every five seconds forever; one log had grown to 19 MB of nothing else.
+
+### The bridge no longer drops out with two sessions open
+
+The MCP server is a wrapper per session plus one shared backend. Only the wrapper
+that spawned the backend held a reference to it, and killed it on its own exit —
+even with another wrapper still connected. Closing one session tore down the
+shared backend and the other lost its connection, which the Foundry module only
+recovers from on the next world load. The backend now counts its wrappers and
+shuts down a grace period after the last one leaves.
+
+### Also
+
+- **A welcome window on first start**, GM only, respecting "do not show again".
+- **`list-compendium-entries`** shows what is actually inside a pack — ids, names,
+  types, folders — reading the index only and paging through large packs.
+- **`delete-compendium-entries`** removes named entries, by id or exact name, with
+  a dry run. There is deliberately no "empty this pack"; if a selection happens to
+  cover every entry, the exact label is required as well.
+- **Exporting a scene with tokens into a compendium works again.** Overwriting an
+  existing entry failed inside Foundry on the token ActorDelta, so every such scene
+  was silently skipped and an archive could never be updated.
+- **The handshake reports the real name and version** instead of
+  `foundry-mcp-server 1.0.0`.
+
 ## v14.2608.1 (2026-08-30)
 
 Preparing this fork for submission to the Foundry package registry.
