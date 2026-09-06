@@ -48,6 +48,8 @@ export class FoundryConnector {
   private wss: WebSocketServer | null = null;
   private httpServer: any;
   private webrtcSignalingServer: any; // Separate HTTP server for WebRTC signaling
+  /** NINJO: false when port 31416 was taken. The bridge runs regardless. */
+  private webrtcSignalingAvailable = true;
   private logger: Logger;
   private config: Config['foundry'];
   private isStarted = false;
@@ -110,17 +112,41 @@ export class FoundryConnector {
       }
     });
 
-    // Start WebRTC signaling server
-    await new Promise<void>((resolve, reject) => {
+    // NINJO: The signaling server must never be able to stop the bridge.
+    //
+    // A failure here used to reject, and start() gave up before it ever reached
+    // the httpServer.listen() below — the WebSocket on the actual bridge port
+    // was never opened. That happened on 2026-09-06: a previous backend still
+    // held 31416 for a moment, the new one hit EADDRINUSE, and from then on a
+    // backend ran that offered all 79 tools and answered every one of them with
+    // "module not connected". Nothing in that state points at port 31416, so
+    // the cause is nowhere near the symptom.
+    //
+    // WebRTC is only the detour for the case where the browser refuses ws://
+    // (Foundry over HTTPS with a non-loopback host). Losing the detour costs
+    // that one case; losing the bridge costs everything.
+    await new Promise<void>(resolve => {
+      const done = () => resolve();
+
       this.webrtcSignalingServer.listen(WEBRTC_PORT, '0.0.0.0', () => {
         this.logger.info(`WebRTC signaling server listening on port ${WEBRTC_PORT}`);
-        console.error(`[WebRTC] Server started on 0.0.0.0:${WEBRTC_PORT}`);
-        resolve();
+        done();
       });
-      this.webrtcSignalingServer.on('error', (error: Error) => {
-        this.logger.error('Failed to start WebRTC signaling server', error);
-        console.error(`[WebRTC] Server error:`, error);
-        reject(error);
+
+      // Stays attached after startup: an 'error' event with no listener would
+      // take the whole process down.
+      this.webrtcSignalingServer.on('error', (error: NodeJS.ErrnoException) => {
+        this.webrtcSignalingAvailable = false;
+        if (error.code === 'EADDRINUSE') {
+          this.logger.warn(
+            `Port ${WEBRTC_PORT} is taken, so the WebRTC detour is unavailable. ` +
+              `The bridge itself runs on ${this.config.port}; only a browser that ` +
+              `refuses ws:// would have needed the detour.`
+          );
+        } else {
+          this.logger.warn('WebRTC signaling server failed, carrying on without it', error);
+        }
+        done();
       });
     });
 
@@ -193,7 +219,12 @@ export class FoundryConnector {
     await new Promise<void>((resolve, reject) => {
       this.httpServer.listen(this.config.port, () => {
         this.isStarted = true;
-        this.logger.info('Foundry connector listening', { port: this.config.port });
+        this.logger.info('Foundry connector listening', {
+          port: this.config.port,
+          // NINJO: stated on every start, so the log says plainly whether the
+          // detour is there. Its absence is not a fault of the bridge.
+          webrtcFallback: this.webrtcSignalingAvailable,
+        });
         resolve();
       });
 
