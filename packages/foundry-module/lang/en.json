@@ -195,5 +195,19 @@
     "migration": {
       "uebernommen": "Carried over {anzahl} settings from the previous module id."
     }
+  },
+  "MCP": {
+    "Willkommen": {
+      "Setting": "Welcome window",
+      "Untertitel": "Drive Foundry by talking to it",
+      "Einleitung": "The bridge between Foundry and a language model: build scenes, write quest chains, create NPCs, archive compendiums — by talking instead of filling in forms.",
+      "Punkt1": "<strong>Your world, not just text</strong> — create, change and recover scenes from a backup, write journals and quest chains, build actors and NPCs, set playlists and roll tables.",
+      "Punkt2": "<strong>Permissions per document type</strong> — you decide individually what the model may touch. Deleting is off everywhere by default, and players get no access at all.",
+      "Punkt3": "<strong>Stays in the house</strong> — the bridge runs between your Foundry and your own MCP client. There is no third-party service in between.",
+      "Start": "To begin: enable the bridge in the <strong>module settings</strong> and walk through the permissions. After that, just tell your client what should happen in the world.",
+      "ForgeZeile": "Every module, its documentation and the German translations in one place — open the module page",
+      "Nie": "Don't show again",
+      "Spaeter": "Later"
+    }
   }
 }

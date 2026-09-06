@@ -4,6 +4,7 @@ import { QueryHandlers } from './queries.js';
 import { ModuleSettings } from './settings.js';
 import { CampaignHooks } from './campaign-hooks.js';
 import { ComfyUIManager } from './comfyui-manager.js';
+import { willkommenEinrichten, willkommenZeigen } from './willkommen.js';
 // Connection control now handled through settings menu
 
 /**
@@ -508,6 +509,7 @@ const foundryMCPBridge = new FoundryMCPBridge();
 
 // Foundry VTT Hooks
 Hooks.once('init', async () => {
+  willkommenEinrichten();
   try {
     await foundryMCPBridge.initialize();
   } catch (error) {
@@ -591,6 +593,8 @@ Hooks.once('ready', async () => {
   } catch (error) {
     console.error(`[${MODULE_ID}] Ready failed:`, error);
   }
+
+  await willkommenZeigen();
 });
 
 // Handle settings menu close to check for changes

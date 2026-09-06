@@ -195,5 +195,19 @@
     "migration": {
       "uebernommen": "{anzahl} Einstellungen aus der bisherigen Modulkennung übernommen."
     }
+  },
+  "MCP": {
+    "Willkommen": {
+      "Setting": "Willkommensfenster",
+      "Untertitel": "Foundry im Gespräch bedienen",
+      "Einleitung": "Die Brücke zwischen Foundry und einem Sprachmodell: Szenen bauen, Questreihen schreiben, NSC anlegen, Kompendien archivieren — im Gespräch statt im Formular.",
+      "Punkt1": "<strong>Deine Welt, nicht nur Text</strong> — Szenen anlegen, ändern und aus einer Sicherung bergen, Journale und Questreihen schreiben, Figuren und NSC bauen, Wiedergabelisten und Zufallstabellen setzen.",
+      "Punkt2": "<strong>Rechte je Dokumentart</strong> — was das Modell anfassen darf, stellst du einzeln ein. Löschen ist ab Werk überall aus, und Spieler bekommen gar keinen Zugriff.",
+      "Punkt3": "<strong>Bleibt im Haus</strong> — die Brücke läuft zwischen deinem Foundry und deinem eigenen MCP-Client. Es gibt keinen fremden Dienst dazwischen.",
+      "Start": "Zum Anfangen: unter <strong>Moduleinstellungen</strong> die Brücke aktivieren und die Rechte durchgehen. Danach genügt es, deinem Client zu sagen, was in der Welt passieren soll.",
+      "ForgeZeile": "Alle Module, Anleitungen und deutschen Übersetzungen an einem Ort — Modulseite öffnen",
+      "Nie": "Nicht mehr anzeigen",
+      "Spaeter": "Später"
+    }
   }
 }
