@@ -21,7 +21,7 @@ export class SceneTools {
    */
   getToolDefinitions() {
     return [
-      /* NINJO-ERWEITERUNG: Szenen anlegen und pflegen */
+      /* NINJO EXTENSION: creating and maintaining scenes */
       {
         name: 'create-scene',
         description:
@@ -181,7 +181,7 @@ export class SceneTools {
   }
 
   /* =========================================================================
-   * NINJO-ERWEITERUNG: Szenen anlegen und pflegen
+   * NINJO EXTENSION: creating and maintaining scenes
    * ========================================================================= */
 
   async handleCreateScene(args: any): Promise<any> {
@@ -208,11 +208,11 @@ export class SceneTools {
       const result = await this.foundryClient.query('ninjos-foundry-mcp.createScene', params);
 
       const lines = [
-        `Szene angelegt: ${result.name}`,
+        `Scene created: ${result.name}`,
         `Id: ${result.id}`,
-        `Groesse: ${result.width}x${result.height}${result.probed ? ' (aus der Datei gemessen)' : ''}`,
-        result.template ? `Vorlage: ${result.template}` : 'Vorlage: keine',
-        result.folder ? `Ordner-Id: ${result.folder}` : 'Ordner: keiner',
+        `Size: ${result.width}x${result.height}${result.probed ? ' (measured from the file)' : ''}`,
+        result.template ? `Template: ${result.template}` : 'Template: none',
+        result.folder ? `Folder id: ${result.folder}` : 'Folder: none',
       ];
       if (result.journal) lines.push(`Journal: ${result.journal}`);
 
@@ -220,7 +220,7 @@ export class SceneTools {
     } catch (error) {
       this.logger.error('Failed to create scene', { error });
       throw new Error(
-        `Szene konnte nicht angelegt werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`
+        `Scene could not be created: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -249,14 +249,14 @@ export class SceneTools {
         content: [
           {
             type: 'text',
-            text: `Szene "${result.name}" geaendert (${result.changed.join(', ')})`,
+            text: `Scene "${result.name}" changed (${result.changed.join(', ')})`,
           },
         ],
       };
     } catch (error) {
       this.logger.error('Failed to update scene', { error });
       throw new Error(
-        `Szene konnte nicht geaendert werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`
+        `Scene could not be changed: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -280,10 +280,10 @@ export class SceneTools {
           {
             type: 'text',
             text: [
-              `Szene geborgen: ${r.name}`,
+              `Scene recovered: ${r.name}`,
               `Id: ${r.id}`,
-              `Groesse: ${r.width}x${r.height}`,
-              `Enthalten: ${r.enthalten}`,
+              `Size: ${r.width}x${r.height}`,
+              `Contains: ${r.contains}`,
             ].join('\n'),
           },
         ],
@@ -291,7 +291,7 @@ export class SceneTools {
     } catch (error) {
       this.logger.error('Failed to restore scene', { error });
       throw new Error(
-        `Szene konnte nicht geborgen werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`
+        `Scene could not be recovered: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -302,18 +302,18 @@ export class SceneTools {
       const folders = result?.folders || [];
 
       if (!folders.length) {
-        return { content: [{ type: 'text', text: 'Keine Szenenordner vorhanden.' }] };
+        return { content: [{ type: 'text', text: 'No scene folders present.' }] };
       }
 
       const text = folders
-        .map((f: any) => `${f.path}  (${f.scenes} Szenen, Id ${f.id})`)
+        .map((f: any) => `${f.path}  (${f.scenes} scenes, id ${f.id})`)
         .join('\n');
 
       return { content: [{ type: 'text', text }] };
     } catch (error) {
       this.logger.error('Failed to list scene folders', { error });
       throw new Error(
-        `Szenenordner konnten nicht gelesen werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`
+        `Scene folders could not be read: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
@@ -325,16 +325,16 @@ export class SceneTools {
 
     try {
       const result = await this.foundryClient.query('ninjos-foundry-mcp.deleteScene', params);
-      return { content: [{ type: 'text', text: `Szene "${result.name}" geloescht.` }] };
+      return { content: [{ type: 'text', text: `Scene "${result.name}" deleted.` }] };
     } catch (error) {
       this.logger.error('Failed to delete scene', { error });
       throw new Error(
-        `Szene konnte nicht geloescht werden: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}`
+        `Scene could not be deleted: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
     }
   }
 
-  /* ================= ENDE NINJO-ERWEITERUNG ================= */
+  /* ================= END OF NINJO EXTENSION ================= */
 
   async handleGetCurrentScene(args: any): Promise<any> {
     const schema = z.object({

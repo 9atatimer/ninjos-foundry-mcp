@@ -1,11 +1,11 @@
 /**
- * NINJO-ERWEITERUNG
+ * NINJO EXTENSION
  *
- * Werkzeuge fuer den Kampagnenaufbau, die es im Ursprungsprojekt nicht gibt:
- * Wiedergabelisten, Kompendium-Import, Zufallstabellen, Notizen auf Szenen.
+ * Tools for building a campaign that the upstream project does not have:
+ * playlists, compendium import, roll tables, notes on scenes.
  *
- * Bewusst in einer eigenen Datei, damit ein Abgleich mit dem Upstream nichts
- * davon anfasst.
+ * Deliberately in a file of its own, so that comparing against upstream never
+ * touches any of it.
  */
 
 import { z } from 'zod';
@@ -194,7 +194,7 @@ export class NinjoCampaignTools {
           properties: {
             label: {
               type: 'string',
-              description: 'Display name, e.g. "Geheimnisse der Abgruende, Akt 0"',
+              description: 'Display name, e.g. "Secrets of the Abyss, Act 0"',
             },
             type: {
               type: 'string',
@@ -368,12 +368,12 @@ export class NinjoCampaignTools {
     const result = await this.foundryClient.query('ninjos-foundry-mcp.listPlaylists', params);
 
     if (!result?.playlists?.length) {
-      return { content: [{ type: 'text', text: 'Keine Wiedergabelisten in der Welt.' }] };
+      return { content: [{ type: 'text', text: 'No playlists in this world.' }] };
     }
 
     const text = result.playlists
       .map((p: any) => {
-        const head = `${p.name}  (${p.soundCount} Stuecke, Id ${p.id})`;
+        const head = `${p.name}  (${p.soundCount} tracks, id ${p.id})`;
         if (!p.sounds?.length) return head;
         return head + '\n' + p.sounds.map((s: any) => `    ${s.name}  [${s.id}]`).join('\n');
       })
@@ -402,7 +402,7 @@ export class NinjoCampaignTools {
       content: [
         {
           type: 'text',
-          text: `${result.type} "${result.name}" aus ${result.pack} importiert.\nNeue Id: ${result.id}`,
+          text: `${result.type} "${result.name}" imported from ${result.pack}.\nNew id: ${result.id}`,
         },
       ],
     };
@@ -419,10 +419,10 @@ export class NinjoCampaignTools {
     const result = await this.foundryClient.query('ninjos-foundry-mcp.setScenePlaylist', params);
 
     const text = result.playlist
-      ? `Szene "${result.scene}": Wiedergabeliste "${result.playlist}"${
-          result.sound ? `, Stueck "${result.sound}"` : ''
+      ? `Scene "${result.scene}": playlist "${result.playlist}"${
+          result.sound ? `, track "${result.sound}"` : ''
         }`
-      : `Szene "${result.scene}": Verknuepfung entfernt`;
+      : `Scene "${result.scene}": link removed`;
 
     return { content: [{ type: 'text', text }] };
   }
@@ -431,11 +431,11 @@ export class NinjoCampaignTools {
     const result = await this.foundryClient.query('ninjos-foundry-mcp.listRollTables');
 
     if (!result?.tables?.length) {
-      return { content: [{ type: 'text', text: 'Keine Zufallstabellen in der Welt.' }] };
+      return { content: [{ type: 'text', text: 'No roll tables in this world.' }] };
     }
 
     const text = result.tables
-      .map((t: any) => `${t.name}  (${t.formula}, ${t.resultCount} Eintraege, Id ${t.id})`)
+      .map((t: any) => `${t.name}  (${t.formula}, ${t.resultCount} entries, id ${t.id})`)
       .join('\n');
 
     return { content: [{ type: 'text', text }] };
@@ -466,7 +466,7 @@ export class NinjoCampaignTools {
       content: [
         {
           type: 'text',
-          text: `Zufallstabelle "${result.name}" angelegt (${result.formula}, ${result.resultCount} Eintraege)\nId: ${result.id}`,
+          text: `Roll table "${result.name}" created (${result.formula}, ${result.resultCount} entries)\nId: ${result.id}`,
         },
       ],
     };
@@ -491,7 +491,7 @@ export class NinjoCampaignTools {
       content: [
         {
           type: 'text',
-          text: `Notiz auf "${result.scene}" gesetzt: "${result.journal}" bei ${result.x}/${result.y}`,
+          text: `Note placed on "${result.scene}": "${result.journal}" at ${result.x}/${result.y}`,
         },
       ],
     };
@@ -501,18 +501,18 @@ export class NinjoCampaignTools {
     const result = await this.foundryClient.query('ninjos-foundry-mcp.getPermissions');
 
     const head = result.writeOperationsEnabled
-      ? 'Schreiben ist grundsaetzlich erlaubt.'
-      : 'ACHTUNG: "Allow Write Operations" ist aus, die KI aendert gar nichts.';
+      ? 'Writing is permitted in principle.'
+      : 'CAUTION: "Allow Write Operations" is off, the AI changes nothing at all.';
 
     const rows = result.permissions
       .map((p: any) => {
-        const stufe =
+        const level =
           p.level === 'full'
-            ? 'anlegen, aendern, loeschen'
+            ? 'create, change, delete'
             : p.level === 'write'
-              ? 'anlegen, aendern'
-              : 'nur lesen';
-        return `${p.label.padEnd(18)} ${stufe}`;
+              ? 'create, change'
+              : 'read only';
+        return `${p.label.padEnd(18)} ${level}`;
       })
       .join('\n');
 
@@ -523,14 +523,14 @@ export class NinjoCampaignTools {
     const schema = z.object({ playlistId: z.string().min(1) });
     const params = schema.parse(args);
     const result = await this.foundryClient.query('ninjos-foundry-mcp.deletePlaylist', params);
-    return { content: [{ type: 'text', text: `Wiedergabeliste "${result.name}" geloescht.` }] };
+    return { content: [{ type: 'text', text: `Playlist "${result.name}" deleted.` }] };
   }
 
   async handleDeleteRollTable(args: any): Promise<any> {
     const schema = z.object({ tableId: z.string().min(1) });
     const params = schema.parse(args);
     const result = await this.foundryClient.query('ninjos-foundry-mcp.deleteRollTable', params);
-    return { content: [{ type: 'text', text: `Zufallstabelle "${result.name}" geloescht.` }] };
+    return { content: [{ type: 'text', text: `Roll table "${result.name}" deleted.` }] };
   }
 
   async handleListCompendiums(): Promise<any> {
@@ -538,26 +538,26 @@ export class NinjoCampaignTools {
     const packs = result?.compendiums ?? [];
 
     if (!packs.length) {
-      return { content: [{ type: 'text', text: 'Keine Kompendien vorhanden.' }] };
+      return { content: [{ type: 'text', text: 'No compendiums present.' }] };
     }
 
-    const offen = packs.filter((p: any) => p.writable);
-    const gesperrt = packs.filter((p: any) => !p.writable);
+    const open = packs.filter((p: any) => p.writable);
+    const locked = packs.filter((p: any) => !p.writable);
 
-    const zeile = (p: any) => `  ${p.label}  [${p.id}]  ${p.type}, ${p.entries} Eintraege`;
+    const line = (p: any) => `  ${p.label}  [${p.id}]  ${p.type}, ${p.entries} entries`;
 
-    const teile: string[] = [];
-    if (offen.length) {
-      teile.push(`Entsperrt, also bearbeitbar (${offen.length}):`);
-      teile.push(offen.map(zeile).join('\n'));
+    const parts: string[] = [];
+    if (open.length) {
+      parts.push(`Unlocked, so editable (${open.length}):`);
+      parts.push(open.map(line).join('\n'));
     }
-    if (gesperrt.length) {
-      teile.push('');
-      teile.push(`Gesperrt (${gesperrt.length}), zum Bearbeiten erst entsperren:`);
-      teile.push(gesperrt.map(zeile).join('\n'));
+    if (locked.length) {
+      parts.push('');
+      parts.push(`Locked (${locked.length}), unlock before editing:`);
+      parts.push(locked.map(line).join('\n'));
     }
 
-    return { content: [{ type: 'text', text: teile.join('\n') }] };
+    return { content: [{ type: 'text', text: parts.join('\n') }] };
   }
 
   async handleCreateCompendium(args: any): Promise<any> {
@@ -570,7 +570,7 @@ export class NinjoCampaignTools {
       content: [
         {
           type: 'text',
-          text: `Kompendium "${result.label}" angelegt (${result.type})\nId: ${result.id}`,
+          text: `Compendium "${result.label}" created (${result.type})\nId: ${result.id}`,
         },
       ],
     };
@@ -596,44 +596,44 @@ export class NinjoCampaignTools {
       params
     );
 
-    const teile: string[] = [];
+    const parts: string[] = [];
     if (result.dryRun) {
-      teile.push(
-        `Trockenlauf fuer "${result.label}": ${result.wouldDelete} von ${result.totalInPack} ` +
-          `Eintraegen wuerden entfernt. Es wurde nichts geaendert.`
+      parts.push(
+        `Dry run for "${result.label}": ${result.wouldDelete} of ${result.totalInPack} ` +
+          `entries would be removed. Nothing was changed.`
       );
     } else {
-      teile.push(
-        `Aus "${result.label}" entfernt: ${result.deleted} Eintraege. ` +
-          `Im Kompendium verbleiben ${result.totalInPack}.`
+      parts.push(
+        `Removed from "${result.label}": ${result.deleted} entries. ` +
+          `${result.totalInPack} remain in the compendium.`
       );
     }
 
     if (result.entries?.length) {
-      const zeigen = result.entries.slice(0, 25);
-      teile.push('\n' + zeigen.map((e: any) => `  ${e.name}  ${e.id}`).join('\n'));
-      if (result.entries.length > zeigen.length) {
-        teile.push(`  ... und ${result.entries.length - zeigen.length} weitere`);
+      const shown = result.entries.slice(0, 25);
+      parts.push('\n' + shown.map((e: any) => `  ${e.name}  ${e.id}`).join('\n'));
+      if (result.entries.length > shown.length) {
+        parts.push(`  ... and ${result.entries.length - shown.length} more`);
       }
     }
 
-    // Nicht Gefundenes und Mehrdeutiges gehoert deutlich in die Antwort. Wird es
-    // nur im Feld gemeldet, gilt der Vorgang leicht als vollstaendig erledigt,
-    // obwohl die Haelfte gar nicht getroffen wurde.
+    // What was not found and what was ambiguous belongs plainly in the answer.
+    // Reported only in a field, the operation easily counts as fully done even
+    // though half of it never matched anything.
     if (result.notFound?.length) {
-      teile.push(`\nNicht gefunden (${result.notFound.length}): ${result.notFound.join(', ')}`);
+      parts.push(`\nNot found (${result.notFound.length}): ${result.notFound.join(', ')}`);
     }
     if (result.ambiguous?.length) {
-      teile.push(
-        `\nMehrdeutig, deshalb uebergangen:\n` +
+      parts.push(
+        `\nAmbiguous, therefore skipped:\n` +
           result.ambiguous
-            .map((m: any) => `  "${m.name}" kommt ${m.ids.length}x vor: ${m.ids.join(', ')}`)
+            .map((m: any) => `  "${m.name}" occurs ${m.ids.length}x: ${m.ids.join(', ')}`)
             .join('\n') +
-          `\nHier ueber ids gehen statt ueber names.`
+          `\nUse ids here instead of names.`
       );
     }
 
-    return { content: [{ type: 'text', text: teile.join('\n') }] };
+    return { content: [{ type: 'text', text: parts.join('\n') }] };
   }
 
   async handleListCompendiumEntries(args: any): Promise<any> {
@@ -652,31 +652,31 @@ export class NinjoCampaignTools {
       params
     );
 
-    const kopf =
-      `Kompendium "${result.label}" (${result.documentType}, ${result.packageType}` +
-      `${result.locked ? ', gesperrt' : ''}): ${result.total} Eintraege` +
+    const head =
+      `Compendium "${result.label}" (${result.documentType}, ${result.packageType}` +
+      `${result.locked ? ', locked' : ''}): ${result.total} entries` +
       (result.total !== result.returned
-        ? `, davon ${result.returned} ab Position ${result.offset}`
+        ? `, showing ${result.returned} from position ${result.offset}`
         : '');
 
-    const zeilen = result.entries.map(
+    const lines = result.entries.map(
       (e: any) =>
-        `  ${e.name ?? '(ohne Namen)'}${e.type ? ` [${e.type}]` : ''}` +
-        `${e.folder ? ` — Ordner: ${e.folder}` : ''}  ${e.id}`
+        `  ${e.name ?? '(no name)'}${e.type ? ` [${e.type}]` : ''}` +
+        `${e.folder ? ` — folder: ${e.folder}` : ''}  ${e.id}`
     );
 
-    // Der Hinweis auf hasMore gehoert in den Text, nicht nur ins Feld: Sonst
-    // wird eine erste Seite fuer den ganzen Bestand gehalten - derselbe
-    // Fehlschluss, der beim Export schon einmal einen fertigen Stand verwarf.
-    const fuss = result.hasMore
-      ? `\n\nEs gibt weitere Eintraege. Naechste Seite mit offset: ${result.offset + result.returned}`
+    // The hasMore hint belongs in the text, not only in the field: otherwise a
+    // first page gets taken for the whole stock — the same wrong conclusion that
+    // once discarded a finished export.
+    const foot = result.hasMore
+      ? `\n\nThere are more entries. Next page with offset: ${result.offset + result.returned}`
       : '';
 
     return {
       content: [
         {
           type: 'text',
-          text: `${kopf}\n\n${zeilen.join('\n')}${fuss}`,
+          text: `${head}\n\n${lines.join('\n')}${foot}`,
         },
       ],
     };
@@ -695,7 +695,7 @@ export class NinjoCampaignTools {
       content: [
         {
           type: 'text',
-          text: `Kompendium "${result.label}" geloescht, mit ${result.entries} Eintraegen.`,
+          text: `Compendium "${result.label}" deleted, with ${result.entries} entries.`,
         },
       ],
     };
@@ -714,37 +714,37 @@ export class NinjoCampaignTools {
 
     const result = await this.foundryClient.query('ninjos-foundry-mcp.exportToCompendium', params);
 
-    const neu: string[] = result.exported ?? [];
-    const ersetzt: string[] = result.replaced ?? [];
+    const created: string[] = result.exported ?? [];
+    const replaced: string[] = result.replaced ?? [];
 
-    const zeilen = [`Nach "${result.pack}" gesichert: ${neu.length + ersetzt.length} Eintraege`];
-    if (neu.length) {
-      zeilen.push(`Neu angelegt (${neu.length}):`);
-      zeilen.push(neu.map((n: string) => `  ${n}`).join('\n'));
+    const lines = [`Saved to "${result.pack}": ${created.length + replaced.length} entries`];
+    if (created.length) {
+      lines.push(`Newly created (${created.length}):`);
+      lines.push(created.map((n: string) => `  ${n}`).join('\n'));
     }
-    // Beim Sichern bleibt die Kennung erhalten, ein vorhandener Eintrag wird also
-    // ueberschrieben. Ohne diesen Hinweis wundert man sich, warum die Anzahl im
-    // Kompendium gleich bleibt.
-    if (ersetzt.length) {
-      zeilen.push(`Vorhandenen Stand ueberschrieben (${ersetzt.length}):`);
-      zeilen.push(ersetzt.map((n: string) => `  ${n}`).join('\n'));
+    // Saving keeps the id, so an existing entry is overwritten rather than
+    // duplicated. Without this note one wonders why the count in the compendium
+    // stays the same.
+    if (replaced.length) {
+      lines.push(`Overwrote the existing version (${replaced.length}):`);
+      lines.push(replaced.map((n: string) => `  ${n}`).join('\n'));
     }
     if (result.skipped?.length) {
-      zeilen.push(`Uebersprungen: ${result.skipped.join(', ')}`);
+      lines.push(`Skipped: ${result.skipped.join(', ')}`);
     }
-    // Der ernste Fall: Beim Ersetzen war der alte Eintrag schon entfernt, das
-    // Neuschreiben schlug dann fehl. Das gehoert deutlich heraus und nicht unter
-    // "uebersprungen", denn hier fehlt womoeglich ein Stand.
-    if (result.verloren?.length) {
-      zeilen.push(
-        `\nACHTUNG - beim Ersetzen abgebrochen (${result.verloren.length}): ` +
-          `${result.verloren.join(', ')}\n` +
-          `Bei diesen Eintraegen wurde der bisherige Stand entfernt, der neue aber nicht ` +
-          `geschrieben. Mit list-compendium-entries nachsehen und gezielt erneut sichern.`
+    // The serious case: while replacing, the old entry was already removed and
+    // writing the new one then failed. That belongs plainly in the answer and
+    // not under "skipped", because here a version may be missing.
+    if (result.lost?.length) {
+      lines.push(
+        `\nCAUTION - aborted while replacing (${result.lost.length}): ` +
+          `${result.lost.join(', ')}\n` +
+          `For these entries the previous version was removed but the new one was not ` +
+          `written. Check with list-compendium-entries and save them again individually.`
       );
     }
 
-    return { content: [{ type: 'text', text: zeilen.join('\n') }] };
+    return { content: [{ type: 'text', text: lines.join('\n') }] };
   }
 
   async handleSetCompendiumLock(args: any): Promise<any> {
@@ -756,7 +756,7 @@ export class NinjoCampaignTools {
       content: [
         {
           type: 'text',
-          text: `"${result.pack}" ist jetzt ${result.locked ? 'gesperrt' : 'entsperrt'}.`,
+          text: `"${result.pack}" is now ${result.locked ? 'locked' : 'unlocked'}.`,
         },
       ],
     };
@@ -777,8 +777,8 @@ export class NinjoCampaignTools {
         {
           type: 'text',
           text:
-            `In "${result.pack}" nach "${result.folder}" verschoben: ` +
-            `${result.moved.length} Eintraege${result.moved.length ? '\n  ' + result.moved.join('\n  ') : ''}`,
+            `Moved in "${result.pack}" to "${result.folder}": ` +
+            `${result.moved.length} entries${result.moved.length ? '\n  ' + result.moved.join('\n  ') : ''}`,
         },
       ],
     };
@@ -795,8 +795,8 @@ export class NinjoCampaignTools {
         {
           type: 'text',
           text: result.updated
-            ? `Vorschaubild von "${result.scene}" erneuert.`
-            : `Vorschaubild von "${result.scene}" konnte nicht erzeugt werden.`,
+            ? `Thumbnail of "${result.scene}" renewed.`
+            : `Thumbnail of "${result.scene}" could not be generated.`,
         },
       ],
     };

@@ -97,19 +97,19 @@ export class SocketBridge {
   private async connectWebSocket(): Promise<void> {
     this.activeConnectionType = 'websocket';
 
-    // Protokollwahl nach den Mixed-Content-Regeln des Browsers:
-    //   - ws:// zu einem Loopback-Host (localhost / 127.0.0.1 / ::1) ist auch von
-    //     einer HTTPS-Seite aus erlaubt, weil Loopback als vertrauenswuerdig gilt.
-    //     Der lokale MCP-Server spricht nur einfaches ws, also MUSS Loopback
-    //     immer ws:// bekommen.
-    //   - ws:// zu einem entfernten Host wird von einer HTTPS-Seite blockiert,
-    //     dort ist wss:// noetig (Fall: TLS-Gegenstelle).
-    // Der Port kommt wie ueberall aus der Einstellung serverPort.
+    // Protocol choice follows the browser's mixed-content rules:
+    //   - ws:// to a loopback host (localhost / 127.0.0.1 / ::1) is allowed even
+    //     from an HTTPS page, because loopback counts as trustworthy.
+    //     The local MCP server only speaks plain ws, so loopback MUST always
+    //     get ws://.
+    //   - ws:// to a remote host is blocked by an HTTPS page; there wss:// is
+    //     needed (case: TLS counterpart).
+    // The port comes from the serverPort setting, as everywhere else.
     //
-    // Uebernommen aus dem Ursprungsprojekt (Commit 4840691). Vorher wurde das
-    // Protokoll allein aus der Seitenadresse abgeleitet: Bei Foundry ueber HTTPS
-    // und Server auf localhost ergab das wss://localhost:31415 und scheiterte mit
-    // ERR_SSL_PROTOCOL_ERROR. Deshalb blieb nur der Umweg ueber WebRTC.
+    // Taken over from the upstream project (commit 4840691). Before that the
+    // protocol was derived from the page address alone: with Foundry over HTTPS
+    // and the server on localhost that gave wss://localhost:31415 and failed with
+    // ERR_SSL_PROTOCOL_ERROR. The only way round it was the detour via WebRTC.
     const host = this.config.serverHost;
     const isLoopback = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(host);
     const useSecure = window.location.protocol === 'https:' && !isLoopback;

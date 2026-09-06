@@ -3799,16 +3799,16 @@ export class FoundryDataAccess {
   }
 
   /**
-   * NINJO: Liefert den Index eines einzelnen Kompendiums.
+   * NINJO: Returns the index of a single compendium.
    *
-   * Der Server rief diese Abfrage schon auf, das Modul hatte sie nie registriert —
-   * die DSA5-Archetypensuche lief deshalb in ihr eigenes try/catch und gab stumm
-   * eine leere Liste zurueck. Gefunden am 30.08.2026 durch scripts/abfragen-pruefen.mjs.
+   * The server was already calling this query, the module had never registered it —
+   * the DSA5 archetype search therefore ran into its own try/catch and silently
+   * returned an empty list. Found on 30/08/2026 by scripts/abfragen-pruefen.mjs.
    *
-   * Wichtig: Foundry nimmt in den Index nur auf, was in `fields` steht. Wer auf ein
-   * nicht angefordertes Feld filtert, bekommt kein leeres Feld, sondern gar nichts —
-   * genau die Falle, in der die Archetypensuche sass. Zusatzfelder muessen deshalb
-   * ausdruecklich angefordert werden, mit Punktschreibweise wie
+   * Important: Foundry only puts into the index what is listed in `fields`. Filtering
+   * on a field that was not requested yields not an empty field but nothing at all —
+   * exactly the trap the archetype search sat in. Extra fields must therefore be
+   * requested explicitly, in dot notation such as
    * `system.details.species.value`.
    */
   async getPackIndex(params: any) {
@@ -3819,39 +3819,39 @@ export class FoundryDataAccess {
 
     const pack = (game.packs as any).get(packId);
     if (!pack) {
-      throw new Error(`getPackIndex: Kompendium "${packId}" nicht gefunden`);
+      throw new Error(`getPackIndex: compendium "${packId}" not found`);
     }
 
-    const angefordert =
+    const requested =
       Array.isArray(fields) && fields.length
         ? Array.from(new Set(['name', 'img', 'type', ...fields]))
         : ['name', 'img', 'type'];
 
     let packIndex: any;
     try {
-      packIndex = await (pack as any).getIndex({ fields: angefordert });
+      packIndex = await (pack as any).getIndex({ fields: requested });
     } catch {
-      // Fallback: aeltere Foundry-API ohne Feldauswahl
+      // Fallback: older Foundry API without field selection
       packIndex = await (pack as any).getIndex();
     }
 
     const indexSource =
       packIndex && typeof packIndex.values === 'function' ? packIndex : (pack as any).index;
-    const eintraege = Array.from((indexSource as any).values());
+    const entries = Array.from((indexSource as any).values());
 
-    // Grosse Antworten reissen den Datenkanal (siehe restore-scene). Ein
-    // Kompendium mit tausenden Eintraegen wird deshalb gedeckelt.
-    const grenze = Number.isFinite(limit) ? Math.max(1, Math.min(Number(limit), 5000)) : 5000;
-    const gekuerzt = eintraege.slice(0, grenze);
+    // Large answers tear the data channel (see restore-scene). A compendium with
+    // thousands of entries is therefore capped.
+    const limitValue = Number.isFinite(limit) ? Math.max(1, Math.min(Number(limit), 5000)) : 5000;
+    const shown = entries.slice(0, limitValue);
 
-    if (eintraege.length > gekuerzt.length) {
+    if (entries.length > shown.length) {
       console.warn(
-        `[${this.moduleId}] getPackIndex: "${packId}" hat ${eintraege.length} Eintraege, ` +
-          `es werden ${gekuerzt.length} zurueckgegeben`
+        `[${this.moduleId}] getPackIndex: "${packId}" has ${entries.length} entries, ` +
+          `${shown.length} are returned`
       );
     }
 
-    return this.sanitizeData(gekuerzt);
+    return this.sanitizeData(shown);
   }
 
   /**
@@ -4266,10 +4266,10 @@ export class FoundryDataAccess {
    * Fills the token for actors that have none.
    */
   /**
-   * Ringfarbe nach Gesinnung des Tokens.
+   * Ring colour by the token's disposition.
    *
-   * Foundrys Vorgabe ist gelb fuer neutral und tuerkis fuer freundlich -- hier
-   * bewusst rot/blau/gruen, weil das am Tisch schneller lesbar ist.
+   * Foundry's default is yellow for neutral and turquoise for friendly -- here
+   * deliberately red/blue/green, because that reads faster at the table.
    */
   private static ringColorForDisposition(actor: any): string | null {
     const RED = '#e72124'; // feindlich
@@ -4285,7 +4285,7 @@ export class FoundryDataAccess {
       case 1:
         return GREEN;
       default:
-        return null; // -2 (geheim) o.ae.: Foundry entscheiden lassen
+        return null; // -2 (secret) and the like: let Foundry decide
     }
   }
 
@@ -4316,21 +4316,20 @@ export class FoundryDataAccess {
     const patch: any = { 'prototypeToken.texture.src': request.tokenImg };
     if (request.portraitImg) patch.img = request.portraitImg;
 
-    // Ohne das behalten platzierte Token den Namen aus dem Kompendium
-    // ("Bandit") statt den der Figur ("Ruprecht Saebelhand").
+    // Without this, placed tokens keep the name from the compendium ("Bandit")
+    // instead of the actor's ("Ruprecht Saebelhand").
     if (request.tokenName) patch['prototypeToken.name'] = request.tokenName;
 
-    // Dynamischer Token-Ring (Foundry v12+ / dnd5e). Wichtig: Es reicht NICHT,
-    // ring.enabled zu setzen -- ohne ring.subject.texture zeichnet Foundry den
-    // Ring um ein leeres Feld, weil texture.src dann als Hintergrund gilt.
+    // Dynamic token ring (Foundry v12+ / dnd5e). Important: it is NOT enough to
+    // set ring.enabled -- without ring.subject.texture Foundry draws the ring
+    // around an empty field, because texture.src then counts as the background.
     if (request.ring !== undefined) {
       patch['prototypeToken.ring.enabled'] = !!request.ring;
       if (request.ring) {
         patch['prototypeToken.ring.subject.texture'] = request.tokenImg;
 
-        // Skalierung NUR anfassen, wenn ausdruecklich mitgegeben -- sonst wuerde
-        // eine von Hand eingestellte Groessenkorrektur stillschweigend
-        // ueberschrieben.
+        // Only touch the scale when it was explicitly passed in -- otherwise a
+        // size correction set by hand would be silently overwritten.
         if (request.ringScale !== undefined) {
           patch['prototypeToken.ring.subject.scale'] = request.ringScale;
         }
@@ -8426,42 +8425,42 @@ export class FoundryDataAccess {
   }
 
   /* =========================================================================
-   * NINJO-ERWEITERUNG: Szenen anlegen und pflegen
+   * NINJO EXTENSION: creating and maintaining scenes
    *
-   * Nicht im Original enthalten. Bei einem Merge mit dem Upstream-Projekt
-   * bleibt dieser Block als Ganzes bestehen. Zugehoerige Handler stehen in
-   * queries.ts, die Werkzeuge in packages/mcp-server/src/tools/scene.ts.
+   * Not part of the original. When merging with the upstream project this block
+   * survives as a whole. The matching handlers live in queries.ts, the tools in
+   * packages/mcp-server/src/tools/scene.ts.
    * ========================================================================= */
 
   /**
-   * Recht je Dokumentart und Aktion pruefen.
+   * Check the permission for a document kind and an action.
    *
-   * Drei Stufen je Art, in den Moduleinstellungen einzeln waehlbar:
-   *   read  - nur lesen
-   *   write - anlegen und aendern (Werkseinstellung)
-   *   full  - zusaetzlich loeschen
+   * Three levels per kind, each selectable in the module settings:
+   *   read  - read only
+   *   write - create and change (factory setting)
+   *   full  - additionally delete
    *
-   * Loeschen ist ueberall ab Werk aus, weil es sich als einzige Aktion nicht
-   * rueckgaengig machen laesst. Die Fehlermeldung nennt den Schalter beim
-   * Namen, damit klar ist, was einzuschalten waere.
+   * Deleting is off everywhere by default, because it is the one action that
+   * cannot be undone. The error message names the switch, so that it is clear
+   * what would have to be turned on.
    */
   private assertAllowed(
     kind: 'Scenes' | 'Playlists' | 'Journals' | 'RollTables' | 'Actors' | 'Folders' | 'Compendiums',
     action: 'create' | 'update' | 'delete'
   ): void {
     const labels: Record<string, string> = {
-      Scenes: 'Szenen',
-      Playlists: 'Wiedergabelisten',
-      Journals: 'Journale',
-      RollTables: 'Zufallstabellen',
-      Actors: 'Akteure',
-      Folders: 'Ordner',
-      Compendiums: 'Kompendien',
+      Scenes: 'scenes',
+      Playlists: 'playlists',
+      Journals: 'journals',
+      RollTables: 'roll tables',
+      Actors: 'actors',
+      Folders: 'folders',
+      Compendiums: 'compendiums',
     };
     const actions: Record<string, string> = {
-      create: 'Anlegen',
-      update: 'Aendern',
-      delete: 'Loeschen',
+      create: 'Creating',
+      update: 'Changing',
+      delete: 'Deleting',
     };
 
     let level = 'write';
@@ -8474,21 +8473,18 @@ export class FoundryDataAccess {
     const ok = action === 'delete' ? level === 'full' : level === 'write' || level === 'full';
 
     if (!ok) {
-      const needed =
-        action === 'delete' ? '"Anlegen, aendern und loeschen"' : '"Anlegen und aendern"';
+      const needed = action === 'delete' ? '"Create, change and delete"' : '"Create and change"';
       throw new Error(
-        `${actions[action]} von ${labels[kind]} ist nicht freigegeben (aktuell: ${level}). ` +
-          `In den Moduleinstellungen unter "Rechte: ${labels[kind]}" auf ${needed} stellen.` +
-          (action === 'delete'
-            ? ' Loeschen ist ab Werk aus, weil es sich nicht rueckgaengig machen laesst.'
-            : '')
+        `${actions[action]} of ${labels[kind]} is not permitted (currently: ${level}). ` +
+          `In the module settings, set "Permissions: ${labels[kind]}" to ${needed}.` +
+          (action === 'delete' ? ' Deleting is off by default, because it cannot be undone.' : '')
       );
     }
   }
 
   /**
-   * Ordnerpfad wie "Orte/Neverwinter" aufloesen und fehlende Ebenen anlegen.
-   * Liefert die Id des untersten Ordners oder null, wenn kein Pfad angegeben war.
+   * Resolve a folder path such as "Orte/Neverwinter" and create missing levels.
+   * Returns the id of the lowest folder, or null when no path was given.
    */
   private async getOrCreateFolderPath(
     path: string | undefined,
@@ -8527,7 +8523,7 @@ export class FoundryDataAccess {
       });
 
       if (!created?.id) {
-        throw new Error(`Ordner "${name}" konnte nicht angelegt werden`);
+        throw new Error(`Folder "${name}" could not be created`);
       }
       parentId = created.id;
     }
@@ -8536,9 +8532,9 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Foundry speichert Medienpfade URL-kodiert ("Gefängnis" wird zu
-   * "Gef%C3%A4ngnis"). Ein Pfad mit rohen Umlauten wird still verworfen,
-   * die Szene bleibt dann ohne Hintergrund. Deshalb immer kodieren, nie doppelt.
+   * Foundry stores media paths URL-encoded ("Gefängnis" becomes "Gef%C3%A4ngnis").
+   * A path with raw umlauts is silently discarded, and the scene then stays
+   * without a background. So always encode, and never twice.
    */
   private encodeMediaPath(src: string): string {
     if (/%[0-9A-Fa-f]{2}/.test(src)) return src;
@@ -8546,20 +8542,20 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Anzeigename fuer die Navigationsleiste aus dem Szenennamen ableiten.
-   * Der Szenenname folgt der Ablage-Konvention (SC_ fuer Szenen, BM_ fuer
-   * Kampfkarten, Unterstriche statt Leerzeichen), damit er sich sortieren
-   * laesst. In der Leiste ueber dem Spieltisch soll aber Lesbares stehen.
+   * Derive the display name for the navigation bar from the scene name.
+   * The scene name follows the file convention (SC_ for scenes, BM_ for battle
+   * maps, underscores instead of spaces) so that it sorts. The bar above the
+   * table, though, should carry something readable.
    */
   /**
-   * Unterstriche gehoeren in den Dateinamen, nicht in den Szenennamen.
+   * Underscores belong in the file name, not in the scene name.
    *
-   * Die Ablage folgt der Konvention SC_/BM_ mit Unterstrichen, damit sich die
-   * Dateien sortieren lassen. In der Seitenleiste steht dieser Name aber
-   * ungefiltert und liest sich schlecht. Das Praefix bleibt als Sortierhilfe,
-   * die Unterstriche werden zu Leerzeichen.
+   * The file layout follows the SC_/BM_ convention with underscores so that the
+   * files sort. In the sidebar this name is shown unfiltered and reads badly.
+   * The prefix stays as a sorting aid, the underscores become spaces.
+   * A scene called "SC_Neverwinter_Hafen" thus becomes "SC Neverwinter Hafen".
    */
-  private lesbarerSzenenname(name: string): string {
+  private readableSceneName(name: string): string {
     return name.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
   }
 
@@ -8572,8 +8568,8 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Masse einer Bild- oder Videodatei im Browser ermitteln.
-   * Faellt auf null zurueck, wenn die Datei nicht geladen werden kann.
+   * Determine the dimensions of an image or video file in the browser.
+   * Falls back to null when the file cannot be loaded.
    */
   private async probeMediaSize(
     src: string
@@ -8606,7 +8602,7 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Szenenordner auflisten, mit vollem Pfad wie "Orte/Neverwinter".
+   * List the scene folders, with the full path such as "Orte/Neverwinter".
    */
   async listSceneFolders(): Promise<
     Array<{ id: string; name: string; path: string; scenes: number }>
@@ -8637,12 +8633,12 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Neue Szene aus einem vorhandenen Bild oder Video anlegen.
+   * Create a new scene from an existing image or video.
    *
-   * Wird templateName angegeben, werden die Einstellungen dieser Szene
-   * uebernommen (Gitter, Beleuchtung, Modul-Flags), aber niemals deren Id.
-   * So bleibt der Grundsatz erhalten, dass Szenen aus einer Vorlage entstehen,
-   * ohne dass ein Import eine bestehende Szene ueberschreiben kann.
+   * If templateName is given, that scene's settings are taken over (grid, lighting,
+   * module flags), but never its id. That keeps the principle intact that scenes
+   * grow out of a template, without an import being able to overwrite an existing
+   * scene.
    */
   async createScene(request: {
     name: string;
@@ -8672,12 +8668,12 @@ export class FoundryDataAccess {
     this.validateFoundryState();
     this.assertAllowed('Scenes', 'create');
 
-    if (!request.name?.trim()) throw new Error('name ist erforderlich');
-    if (!request.background?.trim()) throw new Error('background ist erforderlich');
+    if (!request.name?.trim()) throw new Error('name is required');
+    if (!request.background?.trim()) throw new Error('background is required');
 
     const src = this.encodeMediaPath(request.background.trim());
 
-    // Vorlage suchen, wenn gewuenscht
+    // Look for a template if one was asked for
     let template: any = null;
     if (request.templateName) {
       template =
@@ -8685,11 +8681,11 @@ export class FoundryDataAccess {
         game.scenes?.find((s: any) => s.name === request.templateName) ||
         null;
       if (!template) {
-        throw new Error(`Vorlage "${request.templateName}" nicht gefunden`);
+        throw new Error(`Template "${request.templateName}" not found`);
       }
     }
 
-    // Masse: Angabe schlaegt Messung schlaegt Vorlage
+    // Size: the given value beats the measurement beats the template
     let width = request.width;
     let height = request.height;
     let probed = false;
@@ -8727,7 +8723,7 @@ export class FoundryDataAccess {
       'regions',
       'levels',
       'initialLevel',
-      // Sonst erbt jede aus einer Vorlage gebaute Szene deren Journal
+      // Otherwise every scene built from a template inherits the template's journal
       'journal',
       'journalEntryPage',
     ]) {
@@ -8736,7 +8732,7 @@ export class FoundryDataAccess {
 
     const sceneData: any = {
       ...base,
-      name: this.lesbarerSzenenname(request.name),
+      name: this.readableSceneName(request.name),
       navName: request.navName?.trim() || this.deriveNavName(request.name.trim()),
       width: finalWidth,
       height: finalHeight,
@@ -8764,19 +8760,18 @@ export class FoundryDataAccess {
     }
 
     const scene: any = await Scene.create(sceneData);
-    if (!scene) throw new Error('Szene konnte nicht angelegt werden');
+    if (!scene) throw new Error('Scene could not be created');
 
-    /* Foundry v14: Der Hintergrund haengt nicht mehr an der Szene selbst,
-     * sondern an ihrer Ebene (levels). Wird er nur auf scene.background.src
-     * gesetzt, bleibt die Szene leer. Deshalb hier die Standard-Ebene
-     * nachziehen. Beides zu setzen schadet nicht und haelt aeltere
-     * Foundry-Staende kompatibel. */
+    /* Foundry v14: the background no longer hangs off the scene itself but off its
+     * level. If it is only set on scene.background.src, the scene stays empty. So
+     * pull the default level along here. Setting both does no harm and keeps older
+     * Foundry versions compatible. */
     let levelPatched = false;
     try {
-      /* Die Ebene der Vorlage mitkopieren, nicht nur den Bildpfad. Foundry legt
-       * neue Ebenen mit grauer Hintergrundfarbe (#999999) und Hoehe 0 bis 20 an;
-       * die Vorlage hat in aller Regel Schwarz und andere Werte. Ohne das hier
-       * sieht eine aus der Vorlage gebaute Szene anders aus als die Vorlage. */
+      /* Copy the template's level along, not just the image path. Foundry creates
+       * new levels with a grey background colour (#999999) and a height of 0 to 20;
+       * a template as a rule has black and other values. Without this here, a scene
+       * built from a template looks different from the template. */
       const levelPatch: any = { name: sceneData.name, 'background.src': src };
 
       const templateLevels: any[] = template
@@ -8808,7 +8803,7 @@ export class FoundryDataAccess {
         levelPatched = true;
       }
     } catch (error) {
-      console.warn(`[${this.moduleId}] Ebene konnte nicht angeglichen werden:`, error);
+      console.warn(`[${this.moduleId}] Level could not be aligned:`, error);
     }
 
     try {
@@ -8816,14 +8811,14 @@ export class FoundryDataAccess {
         .createThumbnail?.()
         .then((data: any) => (data?.thumb ? scene.update({ thumb: data.thumb }) : null));
     } catch {
-      // Vorschaubild ist Beiwerk, ein Fehlschlag darf die Szene nicht kippen
+      // The thumbnail is an extra, a failure must not topple the scene
     }
 
     if (request.activate) {
       try {
         await scene.activate();
       } catch {
-        /* nicht kritisch */
+        /* not critical */
       }
     }
 
@@ -8843,20 +8838,20 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Eine Szene aus einer JSON-Datei im Foundry-Datenverzeichnis anlegen.
+   * Create a scene from a JSON file in the Foundry data directory.
    *
-   * Gedacht fuer die Bergung: Wird eine Szene versehentlich geloescht, laesst
-   * sie sich aus einer Weltsicherung ziehen und hierueber zurueckholen -
-   * vollstaendig, mit Waenden, Kacheln, Lichtern, Klaengen und Token.
+   * Meant for recovery: if a scene is deleted by accident, it can be pulled out of
+   * a world backup and brought back through here — completely, with walls, tiles,
+   * lights, sounds and tokens.
    *
-   * Die Daten kommen bewusst ueber eine Datei und nicht ueber den Datenkanal
-   * zwischen Server und Browser: eine Szene mit Waenden hat schnell hunderttausend
-   * Zeichen, und der Kanal reisst bei grossen Antworten ab.
+   * The data deliberately travels through a file and not through the data channel
+   * between server and browser: a scene with walls quickly reaches a hundred
+   * thousand characters, and the channel tears on large answers.
    *
-   * Die urspruengliche Kennung wird nur mit keepId uebernommen. Ab Werk bekommt
-   * die Szene eine neue - so kann eine Bergung niemals eine vorhandene Szene
-   * ueberschreiben.
+   * The original id is only taken over with keepId. By default the scene gets a new
+   * one — that way a recovery can never overwrite an existing scene.
    */
+
   async restoreScene(request: {
     jsonPath: string;
     index?: number;
@@ -8864,80 +8859,80 @@ export class FoundryDataAccess {
     folderPath?: string;
     keepId?: boolean;
     navigation?: boolean;
-  }): Promise<{ id: string; name: string; width: number; height: number; enthalten: string }> {
+  }): Promise<{ id: string; name: string; width: number; height: number; contains: string }> {
     this.validateFoundryState();
     this.assertAllowed('Scenes', 'create');
 
-    if (!request.jsonPath?.trim()) throw new Error('jsonPath ist erforderlich');
+    if (!request.jsonPath?.trim()) throw new Error('jsonPath is required');
 
     const url = `/${request.jsonPath.trim().replace(/^\/+/, '')}`;
-    let roh: any;
+    let raw: any;
     try {
-      const antwort = await fetch(url);
-      if (!antwort.ok) throw new Error(`HTTP ${antwort.status}`);
-      roh = await antwort.json();
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      raw = await response.json();
     } catch (error) {
       throw new Error(
-        `"${request.jsonPath}" konnte nicht gelesen werden: ` +
-          `${error instanceof Error ? error.message : 'Unbekannter Fehler'}. ` +
-          `Der Pfad zaehlt vom Foundry-Datenverzeichnis aus, etwa "Bergung/szenen.json".`
+        `"${request.jsonPath}" could not be read: ` +
+          `${error instanceof Error ? error.message : 'Unknown error'}. ` +
+          `The path counts from the Foundry data directory, for example "Bergung/szenen.json".`
       );
     }
 
-    const liste: any[] = Array.isArray(roh) ? roh : [roh];
-    const eintrag: any = liste[request.index ?? 0];
-    if (!eintrag) {
+    const list: any[] = Array.isArray(raw) ? raw : [raw];
+    const entry: any = list[request.index ?? 0];
+    if (!entry) {
       throw new Error(
-        `Kein Eintrag ${request.index ?? 0} in der Datei. Enthalten sind ${liste.length}: ` +
-          liste.map((e: any, i: number) => `${i} = ${e?.name ?? '?'}`).join(', ')
+        `No entry ${request.index ?? 0} in the file. It contains ${list.length}: ` +
+          list.map((e: any, i: number) => `${i} = ${e?.name ?? '?'}`).join(', ')
       );
     }
 
-    const daten: any = foundry.utils.deepClone(eintrag);
-    if (!request.keepId) delete daten._id;
-    delete daten._stats;
-    delete daten.thumb;
-    daten.active = false;
+    const data: any = foundry.utils.deepClone(entry);
+    if (!request.keepId) delete data._id;
+    delete data._stats;
+    delete data.thumb;
+    data.active = false;
 
     if (request.name?.trim()) {
-      daten.name = this.lesbarerSzenenname(request.name);
-      daten.navName = this.deriveNavName(request.name.trim());
+      data.name = this.readableSceneName(request.name);
+      data.navName = this.deriveNavName(request.name.trim());
     }
-    if (request.navigation !== undefined) daten.navigation = request.navigation;
+    if (request.navigation !== undefined) data.navigation = request.navigation;
     if (request.folderPath !== undefined) {
-      daten.folder = await this.getOrCreateFolderPath(request.folderPath, 'Scene');
+      data.folder = await this.getOrCreateFolderPath(request.folderPath, 'Scene');
     }
 
-    const scene: any = await Scene.create(daten, { keepId: request.keepId === true });
-    if (!scene) throw new Error('Szene konnte nicht angelegt werden');
+    const scene: any = await Scene.create(data, { keepId: request.keepId === true });
+    if (!scene) throw new Error('Scene could not be created');
 
-    /* Szenen aus aelteren Staenden bringen keine Ebenen mit: dort hing der
-     * Hintergrund an der Szene selbst. Foundry v14 legt beim Anlegen eine leere
-     * Standardebene von 0 bis 20 an und verwirft den Hintergrund - die geborgene
-     * Szene bliebe schwarz, und Kacheln ausserhalb dieses Bereichs verschwaenden
-     * mit. Deshalb die Ebene nachziehen: Bild uebernehmen und den Hoehenbereich
-     * so weit fassen, dass alles Mitgebrachte hineinpasst. */
-    let ebeneAngepasst = false;
-    if (!daten.levels?.length) {
+    /* Scenes from older versions bring no levels with them: back then the background
+     * hung off the scene itself. On creation Foundry v14 adds an empty default level
+     * from 0 to 20 and discards the background — the recovered scene would stay
+     * black, and tiles outside that range would vanish along with it. So pull the
+     * level along: take over the image and make the height range wide enough for
+     * everything that came with it. */
+    let levelPatchedRestore = false;
+    if (!data.levels?.length) {
       try {
-        const hoehen: number[] = [
-          ...(daten.tiles ?? []),
-          ...(daten.tokens ?? []),
-          ...(daten.drawings ?? []),
-          ...(daten.lights ?? []),
+        const heights: number[] = [
+          ...(data.tiles ?? []),
+          ...(data.tokens ?? []),
+          ...(data.drawings ?? []),
+          ...(data.lights ?? []),
         ]
           .map((o: any) => Number(o?.elevation))
           .filter((h: number) => Number.isFinite(h));
 
         const levelPatch: any = {};
-        const src = daten.background?.src;
+        const src = data.background?.src;
         if (src) levelPatch['background.src'] = src;
-        if (daten.background?.color) levelPatch['background.color'] = daten.background.color;
+        if (data.background?.color) levelPatch['background.color'] = data.background.color;
 
-        if (hoehen.length) {
+        if (heights.length) {
           levelPatch.elevation = {
-            bottom: Math.min(0, ...hoehen),
-            top: Math.max(20, ...hoehen) + 1,
+            bottom: Math.min(0, ...heights),
+            top: Math.max(20, ...heights) + 1,
           };
         }
 
@@ -8946,11 +8941,11 @@ export class FoundryDataAccess {
           const level: any = levels[0];
           if (level?.update) {
             await level.update(levelPatch);
-            ebeneAngepasst = true;
+            levelPatchedRestore = true;
           }
         }
       } catch (error) {
-        console.warn(`[${this.moduleId}] Ebene konnte nicht angeglichen werden:`, error);
+        console.warn(`[${this.moduleId}] Level could not be aligned:`, error);
       }
     }
 
@@ -8959,26 +8954,26 @@ export class FoundryDataAccess {
         .createThumbnail?.()
         .then((d: any) => (d?.thumb ? scene.update({ thumb: d.thumb }) : null));
     } catch {
-      // Vorschaubild ist Beiwerk
+      // The thumbnail is an extra
     }
 
-    const zaehl = (n: string) => (Array.isArray(daten[n]) ? daten[n].length : 0);
-    const enthalten =
-      `${zaehl('walls')} Waende, ${zaehl('tiles')} Kacheln, ${zaehl('lights')} Lichter, ` +
-      `${zaehl('sounds')} Klaenge, ${zaehl('tokens')} Token, ${zaehl('levels')} Ebenen`;
+    const countOf = (n: string) => (Array.isArray(data[n]) ? data[n].length : 0);
+    const contains =
+      `${countOf('walls')} Waende, ${countOf('tiles')} Kacheln, ${countOf('lights')} Lichter, ` +
+      `${countOf('sounds')} Klaenge, ${countOf('tokens')} Token, ${countOf('levels')} Ebenen`;
 
     this.auditLog('restoreScene', request, 'success');
     return {
       id: scene.id,
       name: scene.name,
-      width: daten.width,
-      height: daten.height,
-      enthalten: ebeneAngepasst ? `${enthalten}; Ebene nachgezogen` : enthalten,
+      width: data.width,
+      height: data.height,
+      contains: levelPatchedRestore ? `${contains}; level pulled along` : contains,
     };
   }
 
   /**
-   * Vorhandene Szene aendern: Name, Hintergrund, Ordner, Masse, Navigation.
+   * Change an existing scene: name, background, folder, size, navigation.
    */
   async updateScene(request: {
     sceneIdentifier: string;
@@ -9000,13 +8995,13 @@ export class FoundryDataAccess {
       game.scenes?.get(request.sceneIdentifier) ||
       game.scenes?.find((s: any) => s.name === request.sceneIdentifier);
 
-    if (!scene) throw new Error(`Szene "${request.sceneIdentifier}" nicht gefunden`);
+    if (!scene) throw new Error(`Scene "${request.sceneIdentifier}" not found`);
 
     const update: any = {};
     const changed: string[] = [];
 
     if (request.name) {
-      update.name = this.lesbarerSzenenname(request.name);
+      update.name = this.readableSceneName(request.name);
       update.navName = request.navName?.trim() || this.deriveNavName(request.name);
       changed.push('name');
     } else if (request.navName !== undefined) {
@@ -9057,7 +9052,7 @@ export class FoundryDataAccess {
 
     await scene.update(update);
 
-    // Foundry v14: Hintergrund haengt an der Ebene, siehe createScene
+    // Foundry v14: the background hangs off the level, see createScene
     if (request.background || request.backgroundColor) {
       try {
         const levelPatch: any = {};
@@ -9073,7 +9068,7 @@ export class FoundryDataAccess {
         const level: any = levels[0];
         if (level?.update) await level.update(levelPatch);
       } catch (error) {
-        console.warn(`[${this.moduleId}] Ebene nicht angeglichen:`, error);
+        console.warn(`[${this.moduleId}] Level not aligned:`, error);
       }
     }
 
@@ -9083,18 +9078,18 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Szene loeschen. Bewusst nur ueber die Id ansprechbar, damit nicht
-   * versehentlich eine gleichnamige Szene erwischt wird.
+   * Delete a scene. Deliberately addressable only by id, so that a scene of the
+   * same name is not caught by accident.
    */
   async deleteScene(sceneId: string): Promise<{ id: string; name: string }> {
     this.validateFoundryState();
     this.assertAllowed('Scenes', 'delete');
 
     const scene: any = game.scenes?.get(sceneId);
-    if (!scene) throw new Error(`Szene mit der Id "${sceneId}" nicht gefunden`);
+    if (!scene) throw new Error(`Scene with the id "${sceneId}" not found`);
     if (scene.active) {
       throw new Error(
-        `"${scene.name}" ist gerade aktiv. Erst eine andere Szene aktivieren, dann loeschen.`
+        `"${scene.name}" is currently active. Activate another scene first, then delete.`
       );
     }
 
@@ -9104,10 +9099,10 @@ export class FoundryDataAccess {
     return { id: sceneId, name };
   }
 
-  /* ---------------------------- Wiedergabelisten ---------------------------- */
+  /* ------------------------------ Playlists ------------------------------ */
 
   /**
-   * Wiedergabelisten der Welt auflisten, mit ihren Stuecken.
+   * List the world's playlists, with their tracks.
    */
   async listPlaylists(includeSounds = true): Promise<any> {
     this.validateFoundryState();
@@ -9137,12 +9132,12 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Ein Dokument aus einem Kompendium in die Welt holen.
+   * Fetch a document out of a compendium into the world.
    *
-   * Vergibt bewusst IMMER eine neue Kennung. Wer stattdessen im Programm ein
-   * Kompendium-Dokument in die Welt zieht, behaelt dessen Kennung und
-   * ueberschreibt damit stillschweigend ein bestehendes Dokument gleicher
-   * Kennung. Genau so gehen Szenen und Wiedergabelisten verloren.
+   * Deliberately ALWAYS assigns a new id. Dragging a compendium document into the
+   * world inside the application instead keeps its id and thereby silently
+   * overwrites an existing document with the same id. That is exactly how scenes
+   * and playlists get lost.
    */
   async importFromCompendium(request: {
     packId: string;
@@ -9154,7 +9149,7 @@ export class FoundryDataAccess {
     this.validateFoundryState();
 
     const pack: any = game.packs?.get(request.packId);
-    if (!pack) throw new Error(`Kompendium "${request.packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
 
     const index = await pack.getIndex();
     let entry: any = null;
@@ -9170,7 +9165,7 @@ export class FoundryDataAccess {
     }
     if (!entry) {
       throw new Error(
-        `Eintrag nicht gefunden in "${request.packId}". Vorhanden: ${index
+        `Entry not found in "${request.packId}". Present: ${index
           .map((e: any) => e.name)
           .slice(0, 15)
           .join(', ')}`
@@ -9178,7 +9173,7 @@ export class FoundryDataAccess {
     }
 
     const source: any = await pack.getDocument(entry._id);
-    if (!source) throw new Error(`Eintrag "${entry.name}" konnte nicht geladen werden`);
+    if (!source) throw new Error(`Entry "${entry.name}" could not be loaded`);
 
     const data: any = source.toObject();
     delete data._id;
@@ -9187,7 +9182,7 @@ export class FoundryDataAccess {
 
     const docType: string = pack.documentName;
 
-    // Recht richtet sich nach der Art des importierten Dokuments
+    // The permission follows the kind of the imported document
     const kindByType: Record<string, any> = {
       Scene: 'Scenes',
       Playlist: 'Playlists',
@@ -9204,7 +9199,7 @@ export class FoundryDataAccess {
     }
 
     const cls: any = (globalThis as any).CONFIG?.[docType]?.documentClass;
-    if (!cls?.create) throw new Error(`Dokumenttyp "${docType}" kann nicht angelegt werden`);
+    if (!cls?.create) throw new Error(`Document type "${docType}" cannot be created`);
 
     const created: any = await cls.create(data);
     if (!created) throw new Error('Import fehlgeschlagen');
@@ -9214,7 +9209,7 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Einer Szene eine Wiedergabeliste und wahlweise ein Stueck zuordnen.
+   * Assign a playlist, and optionally one track, to a scene.
    */
   async setScenePlaylist(request: {
     sceneIdentifier: string;
@@ -9227,9 +9222,9 @@ export class FoundryDataAccess {
     const scene: any =
       game.scenes?.get(request.sceneIdentifier) ||
       game.scenes?.find((s: any) => s.name === request.sceneIdentifier);
-    if (!scene) throw new Error(`Szene "${request.sceneIdentifier}" nicht gefunden`);
+    if (!scene) throw new Error(`Scene "${request.sceneIdentifier}" not found`);
 
-    // Leerer Name loest die Verknuepfung
+    // An empty name removes the link
     if (!request.playlistName) {
       await scene.update({ playlist: null, playlistSound: null });
       return { scene: scene.name, playlist: null, sound: null };
@@ -9244,7 +9239,7 @@ export class FoundryDataAccess {
         .slice(0, 20)
         .join(', ');
       throw new Error(
-        `Wiedergabeliste "${request.playlistName}" nicht in der Welt. Vorhanden: ${available}`
+        `Playlist "${request.playlistName}" not in this world. Present: ${available}`
       );
     }
 
@@ -9258,7 +9253,7 @@ export class FoundryDataAccess {
         sounds.find((s: any) => s.name?.toLowerCase().includes(request.soundName!.toLowerCase()));
       if (!sound) {
         throw new Error(
-          `Stueck "${request.soundName}" nicht in "${playlist.name}". Vorhanden: ${sounds
+          `Track "${request.soundName}" not in "${playlist.name}". Present: ${sounds
             .map((s: any) => s.name)
             .join(', ')}`
         );
@@ -9272,10 +9267,10 @@ export class FoundryDataAccess {
     return { scene: scene.name, playlist: playlist.name, sound: soundName };
   }
 
-  /* ---------------------------- Zufallstabellen ---------------------------- */
+  /* ----------------------------- Roll tables ----------------------------- */
 
   /**
-   * Zufallstabellen der Welt auflisten.
+   * List the world's roll tables.
    */
   async listRollTables(): Promise<any> {
     this.validateFoundryState();
@@ -9294,9 +9289,9 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Zufallstabelle anlegen. Die Bereiche werden fortlaufend vergeben, wenn
-   * keine angegeben sind: Eintrag 1 bekommt die 1, Eintrag 2 die 2 und so fort.
-   * Die Wuerfelformel ergibt sich daraus, wenn sie nicht gesetzt wird.
+   * Create a roll table. The ranges are assigned consecutively when none are given:
+   * entry 1 gets the 1, entry 2 the 2 and so on. The dice formula follows from that
+   * when it is not set.
    */
   async createRollTable(request: {
     name: string;
@@ -9308,8 +9303,8 @@ export class FoundryDataAccess {
     this.validateFoundryState();
     this.assertAllowed('RollTables', 'create');
 
-    if (!request.name?.trim()) throw new Error('name ist erforderlich');
-    if (!request.results?.length) throw new Error('results darf nicht leer sein');
+    if (!request.name?.trim()) throw new Error('name is required');
+    if (!request.results?.length) throw new Error('results must not be empty');
 
     let cursor = 0;
     const results = request.results.map((r, i) => {
@@ -9348,7 +9343,7 @@ export class FoundryDataAccess {
     };
 
     const table: any = await RollTable.create(tableData);
-    if (!table) throw new Error('Zufallstabelle konnte nicht angelegt werden');
+    if (!table) throw new Error('Roll table could not be created');
 
     this.auditLog('createRollTable', request, 'success');
     return {
@@ -9359,18 +9354,18 @@ export class FoundryDataAccess {
     };
   }
 
-  /* -------------------- Notizen auf Szenen, Vorschaubilder ------------------- */
+  /* ------------------- Notes on scenes, thumbnails ------------------- */
 
   /**
-   * Eine Journalseite als Stecknadel auf einer Szene verankern.
-   * Koordinaten sind Bildpunkte auf der Szene.
+   * Anchor a journal page as a pin on a scene.
+   * The coordinates are pixels on the scene.
    */
   /**
-   * Journal und optional eine Seite daraus auf die Szeneneigenschaften
-   * abbilden. Foundry zeigt das verknuepfte Journal, sobald die Szene
-   * betrachtet wird - das ist etwas anderes als eine Notiz auf der Karte.
+   * Map a journal and optionally one of its pages onto the scene properties.
+   * Foundry shows the linked journal as soon as the scene is looked at — that is
+   * something different from a note on the map.
    *
-   * Ein leerer Bezeichner loest die Verknuepfung wieder.
+   * An empty identifier removes the link again.
    */
   private journalPatchFuerSzene(
     journalIdentifier: string,
@@ -9383,7 +9378,7 @@ export class FoundryDataAccess {
     const journal: any =
       game.journal?.get(journalIdentifier) ||
       game.journal?.find((j: any) => j.name === journalIdentifier);
-    if (!journal) throw new Error(`Journal "${journalIdentifier}" nicht gefunden`);
+    if (!journal) throw new Error(`Journal "${journalIdentifier}" not found`);
 
     let pageId: string | null = null;
     let beschreibung = journal.name;
@@ -9396,7 +9391,7 @@ export class FoundryDataAccess {
         pages.find((p: any) => p.name?.toLowerCase().includes(pageName.toLowerCase()));
       if (!page) {
         throw new Error(
-          `Seite "${pageName}" nicht in "${journal.name}". Vorhanden: ${pages
+          `Page "${pageName}" not in "${journal.name}". Present: ${pages
             .map((p: any) => p.name)
             .join(', ')}`
         );
@@ -9424,12 +9419,12 @@ export class FoundryDataAccess {
     const scene: any =
       game.scenes?.get(request.sceneIdentifier) ||
       game.scenes?.find((s: any) => s.name === request.sceneIdentifier);
-    if (!scene) throw new Error(`Szene "${request.sceneIdentifier}" nicht gefunden`);
+    if (!scene) throw new Error(`Scene "${request.sceneIdentifier}" not found`);
 
     const journal: any =
       game.journal?.get(request.journalName) ||
       game.journal?.find((j: any) => j.name === request.journalName);
-    if (!journal) throw new Error(`Journal "${request.journalName}" nicht gefunden`);
+    if (!journal) throw new Error(`Journal "${request.journalName}" not found`);
 
     let pageId: string | null = null;
     if (request.pageName) {
@@ -9440,7 +9435,7 @@ export class FoundryDataAccess {
         pages.find((p: any) => p.name?.toLowerCase().includes(request.pageName!.toLowerCase()));
       if (!page) {
         throw new Error(
-          `Seite "${request.pageName}" nicht in "${journal.name}". Vorhanden: ${pages
+          `Page "${request.pageName}" not in "${journal.name}". Present: ${pages
             .map((p: any) => p.name)
             .join(', ')}`
         );
@@ -9459,7 +9454,7 @@ export class FoundryDataAccess {
     };
 
     const created: any[] = await scene.createEmbeddedDocuments('Note', [noteData]);
-    if (!created?.length) throw new Error('Notiz konnte nicht gesetzt werden');
+    if (!created?.length) throw new Error('Note could not be placed');
 
     this.auditLog('createSceneNote', request, 'success');
     return {
@@ -9472,8 +9467,8 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Vorschaubild einer Szene neu erzeugen. Nach einem Bildtausch bleibt sonst
-   * das alte Bild in der Seitenleiste stehen.
+   * Regenerate a scene's thumbnail. After swapping the image, the old one
+   * otherwise stays in the sidebar.
    */
   async refreshSceneThumb(sceneIdentifier: string): Promise<{ scene: string; updated: boolean }> {
     this.validateFoundryState();
@@ -9482,7 +9477,7 @@ export class FoundryDataAccess {
     const scene: any =
       game.scenes?.get(sceneIdentifier) ||
       game.scenes?.find((s: any) => s.name === sceneIdentifier);
-    if (!scene) throw new Error(`Szene "${sceneIdentifier}" nicht gefunden`);
+    if (!scene) throw new Error(`Scene "${sceneIdentifier}" not found`);
 
     try {
       const data = await scene.createThumbnail();
@@ -9491,28 +9486,26 @@ export class FoundryDataAccess {
         return { scene: scene.name, updated: true };
       }
     } catch (error) {
-      throw new Error(
-        `Vorschaubild fehlgeschlagen: ${error instanceof Error ? error.message : 'Unbekannt'}`
-      );
+      throw new Error(`Thumbnail failed: ${error instanceof Error ? error.message : 'Unknown'}`);
     }
     return { scene: scene.name, updated: false };
   }
 
   /**
-   * Wiedergabeliste loeschen. Verlangt die Kennung, damit nicht versehentlich
-   * eine gleichnamige Liste erwischt wird.
+   * Delete a playlist. Requires the id, so that a list of the same name is not
+   * caught by accident.
    */
   async deletePlaylist(playlistId: string): Promise<{ id: string; name: string }> {
     this.validateFoundryState();
     this.assertAllowed('Playlists', 'delete');
 
     const playlist: any = game.playlists?.get(playlistId);
-    if (!playlist) throw new Error(`Wiedergabeliste mit der Id "${playlistId}" nicht gefunden`);
+    if (!playlist) throw new Error(`Playlist with the id "${playlistId}" not found`);
 
     const inUse = (game.scenes?.contents ?? []).filter((sc: any) => sc.playlist?.id === playlistId);
     if (inUse.length) {
       throw new Error(
-        `"${playlist.name}" ist noch mit ${inUse.length} Szene(n) verknuepft: ` +
+        `"${playlist.name}" is still linked to ${inUse.length} scene(s): ` +
           `${inUse.map((sc: any) => sc.name).join(', ')}. Erst dort loesen.`
       );
     }
@@ -9524,14 +9517,14 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Zufallstabelle loeschen.
+   * Delete a roll table.
    */
   async deleteRollTable(tableId: string): Promise<{ id: string; name: string }> {
     this.validateFoundryState();
     this.assertAllowed('RollTables', 'delete');
 
     const table: any = game.tables?.get(tableId);
-    if (!table) throw new Error(`Zufallstabelle mit der Id "${tableId}" nicht gefunden`);
+    if (!table) throw new Error(`Roll table with the id "${tableId}" not found`);
 
     const name = table.name;
     await table.delete();
@@ -9540,8 +9533,8 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Die geltenden Rechte je Dokumentart ausgeben, damit man vor einer Aktion
-   * nachsehen kann, ob sie ueberhaupt erlaubt ist.
+   * Report the permissions in force per document kind, so that one can check
+   * before an action whether it is allowed at all.
    */
   async getPermissions(): Promise<any> {
     this.validateFoundryState();
@@ -9556,13 +9549,13 @@ export class FoundryDataAccess {
       'Compendiums',
     ];
     const labels: Record<string, string> = {
-      Scenes: 'Szenen',
-      Playlists: 'Wiedergabelisten',
-      Journals: 'Journale',
-      RollTables: 'Zufallstabellen',
-      Actors: 'Akteure',
-      Folders: 'Ordner',
-      Compendiums: 'Kompendien',
+      Scenes: 'scenes',
+      Playlists: 'playlists',
+      Journals: 'journals',
+      RollTables: 'roll tables',
+      Actors: 'actors',
+      Folders: 'folders',
+      Compendiums: 'compendiums',
     };
 
     let writeMaster = true;
@@ -9593,78 +9586,78 @@ export class FoundryDataAccess {
     };
   }
 
-  /* ---------------------------- Kompendien ---------------------------- */
+  /* --------------------------- Compendiums --------------------------- */
 
   /**
-   * Pruefen, ob ein Kompendium bearbeitet werden darf.
+   * Check whether a compendium may be edited.
    *
-   * Massgeblich ist Foundrys eigene Sperre, nicht die Herkunft: Viele pflegen
-   * ihre Sammlungen als eigenes Modul, nicht als Weltkompendium. Wer nach der
-   * Herkunft filtert, sperrt ausgerechnet die selbst gebauten aus.
+   * What counts is Foundry's own lock, not the origin: many people keep their
+   * collections as a module of their own rather than as a world compendium.
+   * Filtering by origin locks out precisely the self-built ones.
    *
-   * Zusaetzlich laesst sich in den Einstellungen eine Liste von Kompendien
-   * hinterlegen. Ist sie gefuellt, gilt nur, was darin steht. Ist sie leer,
-   * zaehlt allein die Sperre.
+   * In addition, a list of compendiums can be stored in the settings. If it is
+   * filled, only what stands in it counts. If it is empty, the lock alone
+   * decides.
    */
-  private assertCompendiumFreigegeben(
+  private assertCompendiumReleased(
     pack: any,
     packId: string,
-    optionen: { entsperrenErlaubt?: boolean } = {}
+    options: { unlockAllowed?: boolean } = {}
   ): void {
-    let liste = '';
+    let list = '';
     try {
-      liste = (game.settings?.get(this.moduleId, 'writableCompendiums') as string) || '';
+      list = (game.settings?.get(this.moduleId, 'writableCompendiums') as string) || '';
     } catch {
-      liste = '';
+      list = '';
     }
 
-    const freigegeben = liste
+    const released = list
       .split(/[,\n;]/)
       .map(e => e.trim())
       .filter(Boolean);
 
-    if (freigegeben.length) {
-      const passt = freigegeben.some(
+    if (released.length) {
+      const matches = released.some(
         e => e === packId || e === pack.metadata?.packageName || packId.startsWith(e + '.')
       );
-      if (!passt) {
+      if (!matches) {
         throw new Error(
-          `"${packId}" steht nicht in der Freigabeliste. In den Moduleinstellungen unter ` +
-            `"Kompendien zum Bearbeiten" ergaenzen, oder die Liste leeren, damit jedes ` +
-            `entsperrte Kompendium bearbeitet werden darf.`
+          `"${packId}" is not on the release list. Add it in the module settings ` +
+            `under "Compendiums to edit", or empty the list so that every unlocked ` +
+            `compendium may be edited.`
         );
       }
-      // NINJO: Steht das Pack auf der Liste, ist die Sperre kein Hindernis mehr -
-      // die Pruefung unten wird bewusst uebersprungen. Ein Haken im Fenster
-      // "Kompendien freigeben" heisst: an diesem Kompendium darf gearbeitet
-      // werden. Die Sperre loesen die Aufrufer dann fuer den einzelnen Vorgang
-      // und setzen sie im finally wieder.
+      // NINJO: if the pack is on the list, the lock is no longer an obstacle -
+      // the check below is deliberately skipped. A tick in the window
+      // "Release compendiums" means: work may be done on this compendium.
+      // The callers then release the lock for the single operation and set it
+      // again in the finally block.
       //
-      // Der Fenstertext behauptete bis zum 30.08.2026 das Gegenteil ("Gesperrte
-      // Kompendien bleiben auch dann geschuetzt, wenn sie angehakt sind"). Das
-      // war nie das Verhalten und ist berichtigt: Wer freigibt, will damit
-      // arbeiten.
+      // Until 30/08/2026 the window text claimed the opposite ("Locked
+      // compendiums stay protected even when they are ticked"). That was never
+      // the behaviour and has been corrected: whoever releases a compendium
+      // wants to work with it.
       return;
     }
 
-    // NINJO: Ruft der Aufrufer mit entsperrenErlaubt, hat er das Loesen der Sperre
-    // ausdruecklich verlangt (unlockIfNeeded) und stellt sie danach wieder her.
-    // Dann ist die Sperre kein Hindernis mehr - die Freigabeliste oben aber sehr wohl.
-    if (!optionen.entsperrenErlaubt && pack.locked === true) {
+    // NINJO: if the caller passes unlockAllowed, it has explicitly asked for the
+    // lock to be released (unlockIfNeeded) and restores it afterwards. Then the lock
+    // is no longer an obstacle — the release list above very much is.
+    if (!options.unlockAllowed && pack.locked === true) {
       throw new Error(
-        `"${packId}" ist gesperrt. Entweder in Foundry entsperren, oder unlockIfNeeded ` +
-          `setzen, damit die Sperre nur fuer diesen Vorgang geloest und danach ` +
-          `wiederhergestellt wird.`
+        `"${packId}" is locked. Either unlock it in Foundry, or set unlockIfNeeded ` +
+          `so that the lock is released for this operation only and restored ` +
+          `afterwards.`
       );
     }
   }
 
   /**
-   * Kompendien auflisten, mit Sperrstatus und Herkunft.
+   * List the compendiums, with lock status and origin.
    *
-   * Die Unterscheidung ist wichtig: Kompendien aus einem Modul oder System
-   * gehoeren nicht uns und werden nur gelesen. Nur Weltkompendien sind eigene
-   * und duerfen beschrieben werden.
+   * The distinction matters: compendiums from a module or a system are not ours
+   * and are only read. Only world compendiums are our own and may be written
+   * to.
    */
   async listCompendiums(): Promise<any> {
     this.validateFoundryState();
@@ -9696,9 +9689,9 @@ export class FoundryDataAccess {
     this.validateFoundryState();
     this.assertAllowed('Compendiums', 'create');
 
-    if (!request.label?.trim()) throw new Error('label ist erforderlich');
+    if (!request.label?.trim()) throw new Error('label is required');
 
-    const erlaubt = [
+    const allowed = [
       'Actor',
       'Item',
       'Scene',
@@ -9709,20 +9702,20 @@ export class FoundryDataAccess {
       'Cards',
       'Adventure',
     ];
-    if (!erlaubt.includes(request.type)) {
-      throw new Error(`type muss einer von: ${erlaubt.join(', ')}`);
+    if (!allowed.includes(request.type)) {
+      throw new Error(`type has to be one of: ${allowed.join(', ')}`);
     }
 
     const cls: any = (globalThis as any).CompendiumCollection;
     if (!cls?.createCompendium) {
-      throw new Error('CompendiumCollection.createCompendium steht nicht zur Verfuegung');
+      throw new Error('CompendiumCollection.createCompendium is not available');
     }
 
     const pack: any = await cls.createCompendium({
       label: request.label.trim(),
       type: request.type,
     });
-    if (!pack) throw new Error('Kompendium konnte nicht angelegt werden');
+    if (!pack) throw new Error('Compendium could not be created');
 
     this.auditLog('createCompendium', request, 'success');
     return {
@@ -9733,14 +9726,14 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Ein Kompendium der Welt samt Inhalt entfernen.
+   * Remove a compendium of this world together with its contents.
    *
-   * Loeschen ist der einzige Schritt, der sich nicht zuruecknehmen laesst, und
-   * steht deshalb ab Werk aus: die Einstellung "Kompendien" muss ausdruecklich
-   * auf "Anlegen, aendern und loeschen" stehen. Zusaetzlich muss der Name
-   * mitgeschickt werden, damit eine verwechselte Kennung nicht das falsche
-   * Kompendium trifft. Kompendien aus Modulen und aus dem Spielsystem liegen
-   * nicht in der Welt und lassen sich hierueber nicht entfernen.
+   * Deleting is the one step that cannot be taken back, and is therefore off
+   * by default: the "Compendiums" setting has to be explicitly on "Create,
+   * change and delete". In addition the label has to be sent along, so that a
+   * confused id does not hit the wrong compendium. Compendiums from modules
+   * and from the game system do not live in the world and cannot be removed
+   * through here.
    */
   async deleteCompendium(request: {
     packId: string;
@@ -9750,57 +9743,53 @@ export class FoundryDataAccess {
     this.assertAllowed('Compendiums', 'delete');
 
     const pack: any = game.packs?.get(request.packId);
-    if (!pack) throw new Error(`Kompendium "${request.packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
 
-    const art = (pack.metadata?.packageType as string) || 'module';
-    if (art !== 'world') {
+    const packageKind = (pack.metadata?.packageType as string) || 'module';
+    if (packageKind !== 'world') {
       throw new Error(
-        `"${request.packId}" gehoert zu ${art === 'system' ? 'dem Spielsystem' : 'einem Modul'} ` +
-          `und liegt nicht in dieser Welt. Solche Kompendien werden ueber die Verwaltung der ` +
-          `Module entfernt, nicht hierueber.`
+        `"${request.packId}" belongs to ${packageKind === 'system' ? 'the game system' : 'a module'} ` +
+          `and does not live in this world. Such compendiums are removed through the ` +
+          `module management, not through here.`
       );
     }
 
-    this.assertCompendiumFreigegeben(pack, request.packId);
+    this.assertCompendiumReleased(pack, request.packId);
 
     const label = pack.metadata?.label ?? request.packId;
     if ((request.confirmLabel ?? '').trim() !== label) {
       throw new Error(
-        `Zum Loeschen muss confirmLabel genau "${label}" lauten. So kann eine verwechselte ` +
-          `Kennung nicht das falsche Kompendium treffen.`
+        `To delete, confirmLabel has to read exactly "${label}". That way a confused ` +
+          `id cannot hit the wrong compendium.`
       );
     }
 
-    const anzahl = pack.index?.size ?? 0;
+    const count = pack.index?.size ?? 0;
 
     if (typeof pack.deleteCompendium !== 'function') {
-      throw new Error('Dieses Kompendium laesst sich nicht ueber die Schnittstelle entfernen');
+      throw new Error('This compendium cannot be removed through the interface');
     }
     await pack.deleteCompendium();
 
-    this.auditLog(
-      'deleteCompendium',
-      { packId: request.packId, label, entries: anzahl },
-      'success'
-    );
-    return { id: request.packId, label, entries: anzahl };
+    this.auditLog('deleteCompendium', { packId: request.packId, label, entries: count }, 'success');
+    return { id: request.packId, label, entries: count };
   }
 
   /**
-   * NINJO: Einzelne, ausdruecklich benannte Eintraege aus einem Kompendium entfernen.
+   * NINJO: Remove single, explicitly named entries from a compendium.
    *
-   * Bewusst gezielt: Es wird geloescht, was per Id oder exaktem Namen benannt ist,
-   * sonst nichts. Ein "leere das Pack" gibt es nicht und soll es nicht geben - ein
-   * gewachsenes Archiv auf einen Schlag zu leeren ist nicht umkehrbar, und ein
-   * verwechselter Bezeichner haette das falsche Archiv getroffen.
+   * Deliberately targeted: what is named by id or by exact name is deleted, and
+   * nothing else. There is no "empty this pack" and there should not be one —
+   * emptying a grown archive in one go cannot be undone, and a confused
+   * identifier would have hit the wrong archive.
    *
-   * Der Riegel dazu steht unten: Trifft die Auswahl zufaellig **alle** Eintraege,
-   * wird zusaetzlich confirmLabel verlangt. Damit laesst sich der Weg nicht ueber
-   * eine vollstaendige Id-Liste doch noch als Leeren benutzen.
+   * The guard for that stands below: if the selection happens to hit **all**
+   * entries, confirmLabel is required on top. That keeps this route from being
+   * used as an emptying after all, via a complete list of ids.
    *
-   * Nicht gefundene Namen werden gemeldet, nicht uebergangen. Mehrdeutige Namen
-   * werden gemeldet, nicht geraten - bei zwei Szenen "Marktplatz" waere jede Wahl
-   * falsch.
+   * Names that are not found are reported, not passed over. Ambiguous names are
+   * reported, not guessed — with two scenes called "Marktplatz" every choice
+   * would be wrong.
    */
   async deleteCompendiumEntries(request: {
     packId: string;
@@ -9814,20 +9803,20 @@ export class FoundryDataAccess {
     this.assertAllowed('Compendiums', 'delete');
 
     const pack: any = game.packs?.get(request.packId);
-    if (!pack) throw new Error(`Kompendium "${request.packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
 
     const label = pack.metadata?.label ?? request.packId;
     const ids = request.ids ?? [];
     const names = request.names ?? [];
     if (!ids.length && !names.length) {
       throw new Error(
-        'Es muss angegeben werden, was entfernt werden soll - ids oder names. ' +
-          'Ein Aufruf ohne Auswahl loescht bewusst nichts.'
+        'It has to be stated what should be removed - ids or names. ' +
+          'A call without a selection deliberately deletes nothing.'
       );
     }
 
-    this.assertCompendiumFreigegeben(pack, request.packId, {
-      entsperrenErlaubt: request.unlockIfNeeded === true,
+    this.assertCompendiumReleased(pack, request.packId, {
+      unlockAllowed: request.unlockIfNeeded === true,
     });
 
     let packIndex: any;
@@ -9836,45 +9825,45 @@ export class FoundryDataAccess {
     } catch {
       packIndex = await pack.getIndex();
     }
-    const quelle = packIndex && typeof packIndex.values === 'function' ? packIndex : pack.index;
-    const alle = Array.from((quelle as any).values()) as any[];
-    const kennung = (e: any) => e._id ?? e.id;
+    const source = packIndex && typeof packIndex.values === 'function' ? packIndex : pack.index;
+    const all = Array.from((source as any).values()) as any[];
+    const idOf = (e: any) => e._id ?? e.id;
 
-    const gefunden = new Map<string, string>(); // Id -> Name
-    const nichtGefunden: string[] = [];
-    const mehrdeutig: Array<{ name: string; ids: string[] }> = [];
+    const found = new Map<string, string>(); // id -> name
+    const notFound: string[] = [];
+    const ambiguous: Array<{ name: string; ids: string[] }> = [];
 
     for (const id of ids) {
-      const treffer = alle.find(e => kennung(e) === id);
-      if (treffer) gefunden.set(id, treffer.name ?? '(ohne Namen)');
-      else nichtGefunden.push(id);
+      const hits = all.find(e => idOf(e) === id);
+      if (hits) found.set(id, hits.name ?? '(no name)');
+      else notFound.push(id);
     }
 
     for (const name of names) {
-      // Exakter Vergleich. Ein Teiltext waere hier gefaehrlich: "Wald" traefe
-      // auch "Waldrand" und "Waldsee".
-      const treffer = alle.filter(e => e.name === name);
-      if (!treffer.length) {
-        nichtGefunden.push(name);
-      } else if (treffer.length > 1) {
-        mehrdeutig.push({ name, ids: treffer.map(kennung) });
+      // Exact comparison. A substring would be dangerous here: "Wald" would
+      // also hit "Waldrand" and "Waldsee".
+      const hits = all.filter(e => e.name === name);
+      if (!hits.length) {
+        notFound.push(name);
+      } else if (hits.length > 1) {
+        ambiguous.push({ name, ids: hits.map(idOf) });
       } else {
-        gefunden.set(kennung(treffer[0]), treffer[0].name ?? '(ohne Namen)');
+        found.set(idOf(hits[0]), hits[0].name ?? '(no name)');
       }
     }
 
-    // Der Riegel gegen das Leeren durch die Hintertuer
-    if (alle.length > 0 && gefunden.size === alle.length) {
+    // The guard against emptying the pack through the back door
+    if (all.length > 0 && found.size === all.length) {
       if ((request.confirmLabel ?? '').trim() !== label) {
         throw new Error(
-          `Die Auswahl trifft alle ${alle.length} Eintraege von "${label}". Das leert das ` +
-            `Kompendium vollstaendig. Wenn das wirklich gewollt ist, muss confirmLabel genau ` +
-            `"${label}" lauten. Sonst die Auswahl einschraenken.`
+          `The selection hits all ${all.length} entries of "${label}". That empties the ` +
+            `compendium completely. If that is really wanted, confirmLabel has to read ` +
+            `exactly "${label}". Otherwise narrow the selection.`
         );
       }
     }
 
-    const zuLoeschen = [...gefunden.entries()].map(([id, name]) => ({ id, name }));
+    const toDelete = [...found.entries()].map(([id, name]) => ({ id, name }));
 
     if (request.dryRun) {
       return {
@@ -9882,43 +9871,43 @@ export class FoundryDataAccess {
         label,
         dryRun: true,
         deleted: 0,
-        wouldDelete: zuLoeschen.length,
-        entries: zuLoeschen,
-        notFound: nichtGefunden,
-        ambiguous: mehrdeutig,
-        totalInPack: alle.length,
+        wouldDelete: toDelete.length,
+        entries: toDelete,
+        notFound: notFound,
+        ambiguous: ambiguous,
+        totalInPack: all.length,
       };
     }
 
-    const warLocked = pack.locked === true;
-    if (warLocked) {
+    const wasLocked = pack.locked === true;
+    if (wasLocked) {
       await pack.configure({ locked: false });
     }
 
-    let geloescht = 0;
+    let deletedCount = 0;
     try {
-      // In Bloecken loeschen. Eine Liste mit hunderten Ids auf einmal laesst die
-      // Antwort zu gross werden (siehe restore-scene).
-      const blockGroesse = 200;
-      const alleIds = zuLoeschen.map(e => e.id);
-      for (let i = 0; i < alleIds.length; i += blockGroesse) {
-        const block = alleIds.slice(i, i + blockGroesse);
+      // Delete in chunks. A list of hundreds of ids at once makes the answer too
+      // large (see restore-scene).
+      const chunkSize = 200;
+      const allIds = toDelete.map(e => e.id);
+      for (let i = 0; i < allIds.length; i += chunkSize) {
+        const block = allIds.slice(i, i + chunkSize);
         await (pack as any).documentClass.deleteDocuments(block, { pack: pack.collection });
-        geloescht += block.length;
+        deletedCount += block.length;
       }
     } finally {
-      if (warLocked) {
+      if (wasLocked) {
         try {
           await pack.configure({ locked: true });
         } catch (error) {
-          console.warn(`[${this.moduleId}] Sperre nicht wiederhergestellt:`, error);
+          console.warn(`[${this.moduleId}] Lock not restored:`, error);
         }
       }
     }
 
     this.auditLog(
       'deleteCompendiumEntries',
-      { packId: request.packId, label, deleted: geloescht, entries: zuLoeschen.map(e => e.name) },
+      { packId: request.packId, label, deleted: deletedCount, entries: toDelete.map(e => e.name) },
       'success'
     );
 
@@ -9926,27 +9915,27 @@ export class FoundryDataAccess {
       packId: request.packId,
       label,
       dryRun: false,
-      deleted: geloescht,
-      entries: zuLoeschen,
-      notFound: nichtGefunden,
-      ambiguous: mehrdeutig,
-      totalInPack: alle.length - geloescht,
+      deleted: deletedCount,
+      entries: toDelete,
+      notFound: notFound,
+      ambiguous: ambiguous,
+      totalInPack: all.length - deletedCount,
     };
   }
 
   /**
-   * NINJO: Die Eintraege eines Kompendiums auflisten.
+   * NINJO: List the entries of a compendium.
    *
-   * listCompendiums liefert nur Zaehlwerte. Wer wissen will, was in einem Pack
-   * liegt - etwa um zu pruefen, ob ein Archiv den erwarteten Stand hat -, hatte
-   * bisher keinen Weg dorthin.
+   * listCompendiums only returns counts. Anyone wanting to know what lies in a
+   * pack — say to check whether an archive holds the expected state — had no way
+   * to get there until now.
    *
-   * Gelesen wird nur der Index, nie die vollen Dokumente. Ein Pack mit 1857
-   * Journalen wuerde den Datenkanal sonst sprengen (siehe restore-scene).
-   * Zusaetzlich wird geblaettert: hoechstens 1000 Eintraege je Aufruf.
+   * Only the index is read, never the full documents. A pack with 1857 journals
+   * would otherwise burst the data channel (see restore-scene). On top of that it
+   * pages: at most 1000 entries per call.
    *
-   * Reines Lesen, deshalb keine Pruefung ueber assertAllowed - Lesen ist auf
-   * jeder Rechtestufe erlaubt, und die Freigabeliste regelt das Schreiben.
+   * Pure reading, hence no check through assertAllowed — reading is allowed at
+   * every permission level, and the release list governs writing.
    */
   async listCompendiumEntries(request: {
     packId: string;
@@ -9958,43 +9947,41 @@ export class FoundryDataAccess {
     this.validateFoundryState();
 
     const pack: any = game.packs?.get(request.packId);
-    if (!pack) throw new Error(`Kompendium "${request.packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
 
     let packIndex: any;
     try {
       packIndex = await pack.getIndex({ fields: ['name', 'type', 'folder'] });
     } catch {
-      // Fallback: aeltere Foundry-API ohne Feldauswahl
+      // Fallback: older Foundry API without field selection
       packIndex = await pack.getIndex();
     }
-    const quelle = packIndex && typeof packIndex.values === 'function' ? packIndex : pack.index;
-    let eintraege = Array.from((quelle as any).values()) as any[];
+    const source = packIndex && typeof packIndex.values === 'function' ? packIndex : pack.index;
+    let entries = Array.from((source as any).values()) as any[];
 
-    // Ordner liegen im Index nur als Kennung. Fuer die Anzeige und den Filter
-    // wird der Name gebraucht.
-    const ordnerNamen = new Map<string, string>();
-    for (const ordner of (pack.folders ?? []) as any[]) {
-      ordnerNamen.set(ordner.id, ordner.name);
+    // Folders sit in the index only as ids. The name is needed for display and
+    // for the filter.
+    const folderNames = new Map<string, string>();
+    for (const folder of (pack.folders ?? []) as any[]) {
+      folderNames.set(folder.id, folder.name);
     }
 
     if (request.folderName) {
-      const gesucht = request.folderName.trim().toLowerCase();
-      eintraege = eintraege.filter(
-        e => (ordnerNamen.get(e.folder) ?? '').toLowerCase() === gesucht
-      );
+      const wanted = request.folderName.trim().toLowerCase();
+      entries = entries.filter(e => (folderNames.get(e.folder) ?? '').toLowerCase() === wanted);
     }
 
     if (request.namePattern) {
-      const teil = request.namePattern.trim().toLowerCase();
-      eintraege = eintraege.filter(e => (e.name ?? '').toLowerCase().includes(teil));
+      const needle = request.namePattern.trim().toLowerCase();
+      entries = entries.filter(e => (e.name ?? '').toLowerCase().includes(needle));
     }
 
-    eintraege.sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
+    entries.sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')));
 
-    const gesamt = eintraege.length;
-    const versatz = Math.max(0, Number(request.offset) || 0);
-    const grenze = Math.min(Math.max(1, Number(request.limit) || 200), 1000);
-    const ausschnitt = eintraege.slice(versatz, versatz + grenze);
+    const total = entries.length;
+    const offset = Math.max(0, Number(request.offset) || 0);
+    const limitValue = Math.min(Math.max(1, Number(request.limit) || 200), 1000);
+    const page = entries.slice(offset, offset + limitValue);
 
     return {
       packId: request.packId,
@@ -10002,23 +9989,23 @@ export class FoundryDataAccess {
       documentType: pack.documentName,
       packageType: pack.metadata?.packageType ?? 'module',
       locked: pack.locked === true,
-      total: gesamt,
-      returned: ausschnitt.length,
-      offset: versatz,
-      hasMore: versatz + ausschnitt.length < gesamt,
-      entries: ausschnitt.map(e => ({
+      total: total,
+      returned: page.length,
+      offset: offset,
+      hasMore: offset + page.length < total,
+      entries: page.map(e => ({
         id: e._id ?? e.id,
         name: e.name ?? null,
         type: e.type ?? null,
-        folder: ordnerNamen.get(e.folder) ?? null,
+        folder: folderNames.get(e.folder) ?? null,
       })),
     };
   }
 
   /**
-   * Sammlung der Welt zu einer Dokumentart holen.
+   * Fetch the world's collection for a document kind.
    */
-  private weltSammlung(documentType: string): any {
+  private worldCollection(documentType: string): any {
     const zuordnung: Record<string, any> = {
       JournalEntry: game.journal,
       Scene: game.scenes,
@@ -10032,13 +10019,13 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Dokumente aus der Welt in ein Kompendium sichern.
+   * Save documents from the world into a compendium.
    *
-   * Gesperrte Kompendien werden nicht angefasst. Entsperrt wird nur auf
-   * ausdrueckliches Verlangen, und der vorherige Zustand wird danach
-   * wiederhergestellt: Die Sperre ist eine Schutzmassnahme und darf nicht
-   * stillschweigend verschwinden.
+   * Locked compendiums are not touched. Unlocking happens only on explicit
+   * request, and the previous state is restored afterwards: the lock is a
+   * safeguard and must not disappear silently.
    */
+
   async exportToCompendium(request: {
     packId: string;
     documentType: string;
@@ -10050,90 +10037,90 @@ export class FoundryDataAccess {
     exported: string[];
     replaced: string[];
     skipped: string[];
-    verloren: string[];
+    lost: string[];
   }> {
     this.validateFoundryState();
     this.assertAllowed('Compendiums', 'update');
 
     const pack: any = game.packs?.get(request.packId);
-    if (!pack) throw new Error(`Kompendium "${request.packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
 
     if (pack.documentName !== request.documentType) {
       throw new Error(
-        `"${request.packId}" nimmt ${pack.documentName} auf, nicht ${request.documentType}`
+        `"${request.packId}" takes ${pack.documentName}, not ${request.documentType}`
       );
     }
 
-    const warLocked = pack.locked === true;
+    const wasLocked = pack.locked === true;
 
-    // NINJO: Die Freigabeliste gilt immer, nicht nur bei gesperrten Kompendien.
-    // Vorher stand die Pruefung in einem `if (warLocked && !unlockIfNeeded)` - ein
-    // entsperrtes Pack wurde damit nie gegen die Liste gehalten, und wer unter
-    // "Kompendien freigeben" den Schreibzugriff einschraenkte, wurde hier
-    // uebergangen. deleteCompendium prueft bedingungslos, diese beiden nicht.
-    this.assertCompendiumFreigegeben(pack, request.packId, {
-      entsperrenErlaubt: request.unlockIfNeeded === true,
+    // NINJO: the release list always applies, not only for locked compendiums.
+    // The check used to sit inside an `if (wasLocked && !unlockIfNeeded)` — an
+    // unlocked pack was thereby never held against the list, and whoever narrowed
+    // write access under "Release compendiums" was passed over here.
+    // deleteCompendium checks unconditionally, these two did not.
+    this.assertCompendiumReleased(pack, request.packId, {
+      unlockAllowed: request.unlockIfNeeded === true,
     });
 
-    if (warLocked) {
+    if (wasLocked) {
       await pack.configure({ locked: false });
     }
 
     try {
-      const sammlung = this.weltSammlung(request.documentType);
-      if (!sammlung) throw new Error(`Art "${request.documentType}" wird nicht unterstuetzt`);
+      const collection = this.worldCollection(request.documentType);
+      if (!collection) throw new Error(`Kind "${request.documentType}" is not supported`);
 
-      let kandidaten: any[] = Array.from(sammlung as any);
+      let candidates: any[] = Array.from(collection as any);
 
       if (request.folderName) {
-        kandidaten = kandidaten.filter((d: any) => d.folder?.name === request.folderName);
-        if (!kandidaten.length) {
-          throw new Error(`Kein ${request.documentType} im Ordner "${request.folderName}"`);
+        candidates = candidates.filter((d: any) => d.folder?.name === request.folderName);
+        if (!candidates.length) {
+          throw new Error(`No ${request.documentType} in the folder "${request.folderName}"`);
         }
       }
 
       if (request.names?.length) {
-        const gesucht = request.names.map(n => n.toLowerCase());
-        kandidaten = kandidaten.filter(
-          (d: any) => gesucht.includes((d.name ?? '').toLowerCase()) || gesucht.includes(d.id)
+        const wanted = request.names.map(n => n.toLowerCase());
+        candidates = candidates.filter(
+          (d: any) => wanted.includes((d.name ?? '').toLowerCase()) || wanted.includes(d.id)
         );
       }
 
-      if (!kandidaten.length) throw new Error('Nichts zum Sichern gefunden');
+      if (!candidates.length) throw new Error('Nothing found to save');
 
       const exported: string[] = [];
       const replaced: string[] = [];
       const skipped: string[] = [];
-      // NINJO: Eintraege, bei denen das Ersetzen mittendrin scheiterte. Die
-      // gehoeren getrennt gemeldet - dort ist womoeglich der alte Stand weg.
-      const verloren: string[] = [];
+      // NINJO: entries where replacing failed halfway. Those belong in a report of
+      // their own — there the old version may be gone.
+      const lost: string[] = [];
 
-      for (const doc of kandidaten) {
-        // Die Kennung bleibt beim Sichern erhalten. Lag der Eintrag schon im
-        // Kompendium, wird er ueberschrieben statt verdoppelt - das gehoert in
-        // die Rueckmeldung, sonst wundert man sich, warum die Anzahl gleich bleibt.
-        const warSchonDa = pack.index?.has?.(doc.id) === true;
+      for (const doc of candidates) {
+        // The id is kept when saving. If the entry was already in the compendium,
+        // it is overwritten rather than duplicated — that belongs in the answer,
+        // otherwise one wonders why the count stays the same.
+        const wasAlreadyThere = pack.index?.has?.(doc.id) === true;
         try {
           await pack.importDocument(doc);
-          if (warSchonDa) replaced.push(doc.name);
+          if (wasAlreadyThere) replaced.push(doc.name);
           else exported.push(doc.name);
         } catch (error) {
-          // NINJO: Ist der Eintrag schon da, aktualisiert Foundry ihn ueber einen
-          // Abgleich der eingebetteten Dokumente. Bei Szenen mit Tokens scheitert
-          // das an ActorDelta:
+          // NINJO: if the entry is already there, Foundry updates it through a diff
+          // of the embedded documents. For scenes with tokens that fails on
+          // ActorDelta:
           //
           //   TypeError: Cannot read properties of undefined (reading 'createDocument')
           //     at ActorDeltaField._updateDiff -> TokenDocument._updateDiff -> Scene._updateDiff
           //
-          // Die verknuepfte Figur existiert im Kompendium nicht, also bricht der
-          // Abgleich ab. Ein Archiv liess sich dadurch nie aktualisieren - jede
-          // Szene mit Tokens landete stumm unter "uebersprungen".
+          // The linked actor does not exist in the compendium, so the diff breaks
+          // off. An archive could therefore never be updated — every scene with
+          // tokens landed silently under "skipped".
           //
-          // Ausweg: den alten Eintrag entfernen und frisch schreiben. Damit
-          // entfaellt der Abgleich ganz. Bewusst erst im Fehlerfall, nicht immer:
-          // Fuer alle anderen Dokumentarten funktioniert der normale Weg, und ein
-          // Loeschen waere dort ein unnoetiges Risiko.
-          if (warSchonDa) {
+          // Way out: remove the old entry and write it fresh. That drops the diff
+          // entirely. Deliberately only in the error case, not always: for every
+          // other document kind the normal route works, and a delete would be an
+          // unnecessary risk there.
+          if (wasAlreadyThere) {
             try {
               await (pack as any).documentClass.deleteDocuments([doc.id], {
                 pack: pack.collection,
@@ -10141,19 +10128,19 @@ export class FoundryDataAccess {
               await pack.importDocument(doc);
               replaced.push(doc.name);
               continue;
-            } catch (zweiterFehler) {
-              // Jetzt ist der alte Eintrag womoeglich weg und der neue nicht da.
-              // Das muss deutlich gemeldet werden, nicht nur als "uebersprungen".
+            } catch (secondError) {
+              // Now the old entry may be gone and the new one not there. That has to
+              // be reported plainly, not merely as "skipped".
               console.error(
-                `[${this.moduleId}] "${doc.name}": Ersetzen fehlgeschlagen, der bisherige ` +
-                  `Eintrag wurde dabei moeglicherweise entfernt.`,
-                zweiterFehler
+                `[${this.moduleId}] "${doc.name}": replacing failed, the previous ` +
+                  `entry may have been removed in the process.`,
+                secondError
               );
-              verloren.push(doc.name);
+              lost.push(doc.name);
               continue;
             }
           }
-          console.warn(`[${this.moduleId}] "${doc.name}" nicht gesichert:`, error);
+          console.warn(`[${this.moduleId}] "${doc.name}" not saved:`, error);
           skipped.push(doc.name);
         }
       }
@@ -10164,21 +10151,21 @@ export class FoundryDataAccess {
         exported,
         replaced,
         skipped,
-        verloren,
+        lost,
       };
     } finally {
-      if (warLocked) {
+      if (wasLocked) {
         try {
           await pack.configure({ locked: true });
         } catch (error) {
-          console.warn(`[${this.moduleId}] Sperre nicht wiederhergestellt:`, error);
+          console.warn(`[${this.moduleId}] Lock not restored:`, error);
         }
       }
     }
   }
 
   /**
-   * Sperre eines eigenen Weltkompendiums setzen oder loesen.
+   * Set or release the lock on one of the world's own compendiums.
    */
   async setCompendiumLock(
     packId: string,
@@ -10188,9 +10175,9 @@ export class FoundryDataAccess {
     this.assertAllowed('Compendiums', 'update');
 
     const pack: any = game.packs?.get(packId);
-    if (!pack) throw new Error(`Kompendium "${packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${packId}" not found`);
 
-    this.assertCompendiumFreigegeben(pack, packId);
+    this.assertCompendiumReleased(pack, packId);
 
     await pack.configure({ locked });
     this.auditLog('setCompendiumLock', { packId, locked }, 'success');
@@ -10198,7 +10185,7 @@ export class FoundryDataAccess {
   }
 
   /**
-   * Eintraege eines Kompendiums in einen Ordner einsortieren.
+   * Sort the entries of a compendium into a folder.
    */
   async organizeCompendium(request: {
     packId: string;
@@ -10210,45 +10197,45 @@ export class FoundryDataAccess {
     this.assertAllowed('Compendiums', 'update');
 
     const pack: any = game.packs?.get(request.packId);
-    if (!pack) throw new Error(`Kompendium "${request.packId}" nicht gefunden`);
+    if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
 
-    const warLocked = pack.locked === true;
+    const wasLocked = pack.locked === true;
 
-    // NINJO: Die Freigabeliste gilt immer, nicht nur bei gesperrten Kompendien.
-    // Vorher stand die Pruefung in einem `if (warLocked && !unlockIfNeeded)` - ein
-    // entsperrtes Pack wurde damit nie gegen die Liste gehalten, und wer unter
-    // "Kompendien freigeben" den Schreibzugriff einschraenkte, wurde hier
-    // uebergangen. deleteCompendium prueft bedingungslos, diese beiden nicht.
-    this.assertCompendiumFreigegeben(pack, request.packId, {
-      entsperrenErlaubt: request.unlockIfNeeded === true,
+    // NINJO: the release list always applies, not only for locked compendiums.
+    // The check used to sit inside an `if (wasLocked && !unlockIfNeeded)` — an
+    // unlocked pack was thereby never held against the list, and whoever narrowed
+    // write access under "Release compendiums" was passed over here.
+    // deleteCompendium checks unconditionally, these two did not.
+    this.assertCompendiumReleased(pack, request.packId, {
+      unlockAllowed: request.unlockIfNeeded === true,
     });
 
-    if (warLocked) {
+    if (wasLocked) {
       await pack.configure({ locked: false });
     }
 
     try {
-      let ordner: any = pack.folders?.find((f: any) => f.name === request.folderName);
-      if (!ordner) {
-        ordner = await Folder.create(
+      let folder: any = pack.folders?.find((f: any) => f.name === request.folderName);
+      if (!folder) {
+        folder = await Folder.create(
           { name: request.folderName, type: pack.documentName, color: '#8b0000' } as any,
           { pack: request.packId } as any
         );
       }
-      if (!ordner?.id) throw new Error('Ordner konnte nicht angelegt werden');
+      if (!folder?.id) throw new Error('Folder could not be created');
 
       const index = await pack.getIndex();
       const moved: string[] = [];
 
       for (const name of request.entryNames) {
-        const treffer: any =
+        const hits: any =
           index.find((e: any) => (e.name ?? '').toLowerCase() === name.toLowerCase()) ??
           index.find((e: any) => (e.name ?? '').toLowerCase().includes(name.toLowerCase()));
-        if (!treffer) continue;
+        if (!hits) continue;
 
-        const doc: any = await pack.getDocument(treffer._id);
+        const doc: any = await pack.getDocument(hits._id);
         if (doc?.update) {
-          await doc.update({ folder: ordner.id });
+          await doc.update({ folder: folder.id });
           moved.push(doc.name);
         }
       }
@@ -10256,17 +10243,17 @@ export class FoundryDataAccess {
       this.auditLog('organizeCompendium', request, 'success');
       return { pack: pack.metadata?.label ?? request.packId, folder: request.folderName, moved };
     } finally {
-      if (warLocked) {
+      if (wasLocked) {
         try {
           await pack.configure({ locked: true });
         } catch {
-          /* wird oben protokolliert */
+          /* logged above */
         }
       }
     }
   }
 
-  /* ================= ENDE NINJO-ERWEITERUNG ================= */
+  /* ================= END OF NINJO EXTENSION ================= */
 
   /**
    * List all scenes with filtering options

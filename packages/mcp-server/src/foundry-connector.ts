@@ -5,32 +5,32 @@ import { Config } from './config.js';
 import { WebRTCPeer } from './webrtc-peer.js';
 
 /**
- * NINJO: Wie lange auf eine Antwort des Moduls gewartet wird.
+ * NINJO: How long to wait for the module to answer.
  *
- * Die meisten Abfragen sind in Millisekunden durch. Einige arbeiten aber ueber
- * hunderte Dokumente und brauchen Minuten - fuer die war die alte Frist von zehn
- * Sekunden schlicht falsch gewaehlt. Sie stehen hier namentlich, damit nicht
- * pauschal jede Abfrage minutenlang haengen kann, wenn das Modul wirklich
- * abgestuerzt ist.
+ * Most queries return in milliseconds. A few work through hundreds of documents
+ * and take minutes, and for those the old ten-second limit was simply the wrong
+ * number: it gave up long before the work was done while the module kept going.
+ * They are listed by name so that a genuinely crashed module still fails fast
+ * instead of hanging for minutes on every call.
  */
-const LANGE_ABFRAGEN: Record<string, number> = {
-  exportToCompendium: 600000, // 902 Szenen gemessen: rund 135 s
+const LONG_QUERIES: Record<string, number> = {
+  exportToCompendium: 600000, // measured with 902 scenes: about 135 s
   deleteCompendiumEntries: 300000,
   restoreScene: 300000,
   worldRewritePaths: 300000,
   rebuildEnhancedCreatureIndex: 600000,
   getEnhancedCreatureIndex: 120000,
-  listCompendiumEntries: 60000, // ein Pack mit 1857 Eintraegen braucht spuerbar
+  listCompendiumEntries: 60000, // a pack with 1857 entries takes noticeable time
   createActors: 120000,
   importFromCompendium: 120000,
 };
 
-const STANDARD_FRIST = Number(process.env.FOUNDRY_QUERY_TIMEOUT || 30000);
+const DEFAULT_TIMEOUT = Number(process.env.FOUNDRY_QUERY_TIMEOUT || 30000);
 
-function zeitgrenzeFuer(method: string): number {
-  // Der Name kommt als "ninjos-foundry-mcp.exportToCompendium" herein
-  const kurz = method.includes('.') ? method.slice(method.lastIndexOf('.') + 1) : method;
-  return LANGE_ABFRAGEN[kurz] ?? STANDARD_FRIST;
+function timeoutFor(method: string): number {
+  // The name arrives as "ninjos-foundry-mcp.exportToCompendium"
+  const short = method.includes('.') ? method.slice(method.lastIndexOf('.') + 1) : method;
+  return LONG_QUERIES[short] ?? DEFAULT_TIMEOUT;
 }
 
 export interface FoundryConnectorOptions {
@@ -404,24 +404,23 @@ export class FoundryConnector {
       connectionType: this.activeConnectionType,
     });
 
-    // NINJO: Die Frist war fest auf 10 Sekunden verdrahtet. Ein Export von 902
-    // Szenen dauert rund 135 Sekunden - der Aufruf gab also nach 10 Sekunden auf,
-    // waehrend das Modul im Browser weiterarbeitete. Der Vorgang wurde fertig,
-    // nur wusste das niemand mehr. Genau daraus entstand am 30.08.2026 der
-    // Fehlschluss, ein fertiger Export sei fehlgeschlagen.
-    const frist = zeitgrenzeFuer(method);
+    // NINJO: This was hardwired to 10 seconds. Exporting 902 scenes takes about
+    // 135, so the call gave up long before the module in the browser had
+    // finished. The work completed and nobody knew — which is how a finished
+    // export came to be thrown away on 2026-08-30.
+    const timeoutMs = timeoutFor(method);
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingQueries.delete(queryId);
         reject(
           new Error(
-            `Query timeout: ${method} (nach ${Math.round(frist / 1000)}s). ` +
-              `Der Vorgang laeuft im Modul weiter und wird womoeglich fertig - das Ergebnis ` +
-              `deshalb nachzaehlen, nicht aus dieser Meldung schliessen.`
+            `Query timeout: ${method} (after ${Math.round(timeoutMs / 1000)}s). ` +
+              `The work continues in the module and may well finish, so count the result ` +
+              `rather than concluding anything from this message.`
           )
         );
-      }, frist);
+      }, timeoutMs);
 
       this.pendingQueries.set(queryId, { resolve, reject, timeout });
 

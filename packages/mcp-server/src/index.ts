@@ -22,8 +22,8 @@ import * as path from 'path';
 
 const CONTROL_HOST = '127.0.0.1';
 
-// NINJO: Einstellbar, damit sich der Lebenszyklus des Backends pruefen laesst,
-// ohne die laufende Bruecke abzuschiessen. Ohne die Variable bleibt es bei 31414.
+// NINJO: Configurable so the backend lifecycle can be exercised without shooting
+// down the running bridge. Without the variable it stays at 31414.
 const CONTROL_PORT = Number(process.env.FOUNDRY_MCP_CONTROL_PORT || 31414);
 
 type BackendReq = { id: string; method: string; params?: any };
@@ -157,9 +157,9 @@ class BackendClient {
 
       this.log('startBackend(): spawning', { path: backendPath });
 
-      // NINJO: detached, damit das Backend den Wrapper ueberlebt. Es soll
-      // weiterlaufen, wenn diese Sitzung geht und eine andere noch daran haengt.
-      // Ohne Wrapper beendet es sich nach einer Schonfrist von selbst.
+      // NINJO: detached so the backend outlives the wrapper. It should keep
+      // running when this session goes and another is still attached. With no
+      // wrapper left it shuts itself down after a grace period.
       const child = spawn(process.execPath, [backendPath!], {
         detached: true,
 
@@ -184,8 +184,8 @@ class BackendClient {
         }
       });
 
-      // Der Wrapper darf nicht auf das Kind warten - sonst haelt ihn das
-      // losgeloeste Backend am Leben, obwohl er laengst fertig ist.
+      // The wrapper must not wait on the child, or the detached backend would
+      // keep it alive long after it is done.
       child.unref();
 
       resolve();
@@ -272,19 +272,18 @@ class BackendClient {
   }
 
   cleanup() {
-    // NINJO: Hier wurde bis zum 04.09.2026 das Backend gekillt. Das war falsch,
-    // sobald mehr als eine Sitzung lief: Nur der Wrapper, der das Backend
-    // gestartet hat, haelt eine Referenz darauf - und beendete es beim eigenen
-    // Ende auch dann, wenn ein zweiter Wrapper noch daran hing. Dessen
-    // Verbindung riss mit, und das Modul im Browser verbindet sich erst beim
-    // naechsten Laden der Welt wieder. Das war die Ursache des Flatterns.
+    // NINJO: Until 2026-09-04 this killed the backend, which was wrong as soon
+    // as more than one session ran. Only the wrapper that spawned the backend
+    // holds a reference to it, and it used to end the backend on its own exit
+    // even with a second wrapper still attached. That wrapper lost its
+    // connection, and the module in the browser only reconnects on the next
+    // world load — which is where the flapping bridge came from.
     //
-    // Der Wrapper legt jetzt nur noch seine Verbindung nieder. Wann das Backend
-    // geht, entscheidet es selbst: eine Schonfrist nach dem letzten Wrapper
-    // (siehe pruefeAbschaltung in backend.ts). Damit bleibt niemand als
-    // Waisenprozess zurueck, und niemandem wird die Verbindung unter den
-    // Fuessen weggezogen.
-    this.log('cleanup(): Verbindung wird geschlossen, das Backend entscheidet selbst');
+    // The wrapper now only closes its own socket. When the backend goes is its
+    // own decision: a grace period after the last wrapper (see
+    // checkIdleShutdown in backend.ts). Nothing is orphaned, and nobody has the
+    // connection pulled out from under them.
+    this.log('cleanup(): closing the socket, the backend decides for itself');
 
     if (this.socket && !this.socket.destroyed) {
       this.socket.destroy();

@@ -197,7 +197,7 @@
       "savedSome": "{count} compendiums allowed."
     },
     "migration": {
-      "uebernommen": "Carried over {anzahl} settings from the previous module id."
+      "carriedOver": "Carried over {count} settings from the previous module id."
     }
   },
   "MCP": {

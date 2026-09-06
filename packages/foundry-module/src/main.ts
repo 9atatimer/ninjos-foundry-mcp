@@ -91,14 +91,14 @@ class FoundryMCPBridge {
 
       console.log(`[${MODULE_ID}] Foundry ready, checking bridge status...`);
 
-      // Einstellungen aus der alten Modulkennung uebernehmen, bevor irgendein
-      // Wert gelesen wird — sonst startet eine bestehende Welt mit Standardwerten
-      // und verbindet sich womoeglich gar nicht erst.
-      await this.settings.uebernehmeAlteEinstellungen();
+      // Carry the settings over from the old module id before any value is read
+      // — otherwise an existing world starts on defaults and may not connect at
+      // all.
+      await this.settings.carryOldSettingsOver();
 
-      // NINJO: Die Freigabeliste hiess in 14.2609.2 noch werkzeugModule. Ohne
-      // diesen Schritt stuende sie nach dem Umbenennen leer da, und ein bereits
-      // freigegebenes Modul koennte nichts mehr anmelden.
+      // NINJO: In 14.2609.2 the release list was still called werkzeugModule.
+      // Without this step it would stand empty after the rename, and a module that
+      // was already released could no longer register anything.
       await migrateToolProvidersSetting();
 
       // Connection control now handled through settings menu

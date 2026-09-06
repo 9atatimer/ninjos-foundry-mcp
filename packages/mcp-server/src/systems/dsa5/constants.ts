@@ -7,10 +7,10 @@
 
 /**
  * Erfahrungsgrad-Definitionen (DSA5 "Levels")
- * Quelle: https://dsa.ulisses-regelwiki.de/Heldenerschaffung.html
+ * Source: https://dsa.ulisses-regelwiki.de/Heldenerschaffung.html
  *
- * WICHTIG: Level 1-7, nicht 0-6!
- * DSA5 startet bei Level 1 (Unerfahren), genau wie D&D5e bei Level 1
+ * IMPORTANT: levels 1-7, not 0-6!
+ * DSA5 starts at level 1 (Unerfahren), just as D&D5e starts at level 1
  */
 export const EXPERIENCE_LEVELS = [
   { name: 'Unerfahren', nameEn: 'Inexperienced', min: 0, max: 900, level: 1 },

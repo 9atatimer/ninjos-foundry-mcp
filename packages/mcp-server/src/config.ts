@@ -42,11 +42,10 @@ const ConfigSchema = z.object({
       }),
   }),
   comfyui: z.object({
-    // NINJO: Ab Werk aus. Der Client oeffnete seine Verbindung frueher schon im
-    // Konstruktor und versuchte es nach jedem Fehlschlag alle fuenf Sekunden neu -
-    // endlos. Wer ComfyUI nicht installiert hat, und das ist der Normalfall, bekam
-    // damit im Sekundentakt Fehler ins Protokoll. Eine Protokolldatei war so auf
-    // 18 MB angewachsen.
+    // NINJO: Off by default. The client used to open its connection in the
+    // constructor and retry every five seconds after each failure, forever.
+    // Anyone without ComfyUI installed — the normal case — got an error in the
+    // log every five seconds; one log had grown to 18 MB that way.
     enabled: z.boolean().default(false),
     // ComfyUI always runs locally on the same machine as the MCP server
     port: z.number().min(1024).max(65535).default(31411),
@@ -90,7 +89,7 @@ const rawConfig = {
     },
   },
   comfyui: {
-    // Nur ein ausdrueckliches "true" schaltet den Kartengenerator ein.
+    // Only an explicit "true" switches map generation on.
     enabled: process.env.COMFYUI_ENABLED === 'true',
     // ComfyUI always runs locally on the same machine as the MCP server (localhost:31411)
     port: parseInt(process.env.COMFYUI_PORT || '31411', 10),
@@ -101,39 +100,39 @@ const rawConfig = {
   toolResponseMaxChars: parseInt(process.env.TOOL_RESPONSE_MAX_CHARS || '20000', 10),
   server: {
     name: process.env.SERVER_NAME || 'ninjos-foundry-mcp',
-    // NINJO: Die Version stand fest auf 1.0.0 und meldete sich so auch beim
-    // MCP-Handschlag, waehrend das Paket bei 14.2608.1 stand. Wer eine
-    // Fehlermeldung schickt, nennt dann eine Version, die es nie gab.
-    version: process.env.SERVER_VERSION || paketVersion(),
+    // NINJO: This was hardwired to 1.0.0 and answered the MCP handshake that
+    // way while the package stood at 14.2608.1. Anyone reporting a problem
+    // would have named a version that never existed.
+    version: process.env.SERVER_VERSION || packageVersion(),
   },
 };
 
 /**
- * NINJO: Die Version aus der package.json des Servers lesen, statt sie zu
- * verdoppeln. Schlaegt das fehl - etwa in einem gebuendelten Stand ohne
- * package.json daneben -, bleibt "unbekannt" statt einer erfundenen Nummer.
+ * NINJO: Read the version from the server's package.json rather than writing it
+ * out a second time, so the two cannot drift. If that fails — a bundled build
+ * with no package.json beside it — say "unknown" instead of inventing a number.
  */
-function paketVersion(): string {
+function packageVersion(): string {
   try {
-    // NINJO: Im gebuendelten Stand, den das Installationsprogramm ablegt, ist
-    // import.meta.url auf die Zeichenkette "bundled" gesetzt (esbuild-define).
-    // fileURLToPath wirft darauf, und die Version meldete sich als "unbekannt" -
-    // genau dort, wo sie am meisten zaehlt, naemlich bei einem fremden Nutzer,
-    // der einen Fehler meldet. __dirname gibt es im CJS-Buendel, im ESM-Stand
-    // nicht; startBackend geht denselben Weg.
-    const hier =
+    // NINJO: In the bundled build the installer ships, import.meta.url is
+    // defined as the literal string "bundled" (an esbuild define).
+    // fileURLToPath throws on that, and the version reported itself as unknown —
+    // exactly where it matters most, in a bug report from someone else.
+    // __dirname exists in the CJS bundle but not in the ESM build; startBackend
+    // takes the same route.
+    const here =
       typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
-    for (const kandidat of ['../package.json', '../../package.json']) {
-      const pfad = resolve(hier, kandidat);
-      if (existsSync(pfad)) {
-        const { version } = JSON.parse(readFileSync(pfad, 'utf8'));
+    for (const candidate of ['../package.json', '../../package.json']) {
+      const path = resolve(here, candidate);
+      if (existsSync(path)) {
+        const { version } = JSON.parse(readFileSync(path, 'utf8'));
         if (version) return version;
       }
     }
   } catch {
-    // absichtlich still: eine fehlende Versionsangabe darf den Start nicht verhindern
+    // deliberately silent: a missing version must not stop the server starting
   }
-  return 'unbekannt';
+  return 'unknown';
 }
 
 export const config = ConfigSchema.parse(rawConfig);

@@ -33,7 +33,7 @@ export interface ComfyUIConfig {
   port: number;
   pythonCommand: string;
   autoStart: boolean;
-  /** NINJO: Ab Werk aus. Ohne dies wird gar keine Verbindung aufgebaut. */
+  /** NINJO: Off by default. Without it no connection is opened at all. */
   enabled: boolean;
 }
 
@@ -56,9 +56,9 @@ export class ComfyUIClient {
   private process?: ChildProcess | undefined;
   private baseUrl: string;
   private clientId: string;
-  /** NINJO: Wie oft die WebSocket-Verbindung erfolglos versucht wurde. */
-  private wsVersuche = 0;
-  private static readonly WS_VERSUCHE_MAX = 5;
+  /** NINJO: How often the WebSocket connection has failed in a row. */
+  private wsAttempts = 0;
+  private static readonly WS_MAX_ATTEMPTS = 5;
   private logStream?: fss.WriteStream | undefined;
   private ws?: WebSocket;
   private progressCallbacks: Map<
@@ -95,43 +95,42 @@ export class ComfyUIClient {
       clientId: this.clientId,
     });
 
-    // NINJO: Nur verbinden, wenn der Kartengenerator ausdruecklich eingeschaltet
-    // ist. Vorher lief das immer, auch ohne installiertes ComfyUI - mit einem
-    // Fehler alle fuenf Sekunden, endlos.
+    // NINJO: Only connect when map generation is explicitly switched on. This
+    // used to run always, even without ComfyUI installed — with an error every
+    // five seconds, forever.
     if (this.config.enabled) {
       this.connectWebSocket();
     } else {
       this.logger.info(
-        'Kartengenerator ist abgeschaltet, es wird nicht zu ComfyUI verbunden. ' +
-          'Zum Einschalten COMFYUI_ENABLED=true setzen.'
+        'Map generation is off, not connecting to ComfyUI. ' +
+          'Set COMFYUI_ENABLED=true to switch it on.'
       );
     }
   }
 
   /**
-   * NINJO: Verbindung auf Verlangen aufbauen.
+   * NINJO: Connect on demand.
    *
-   * Wird aufgerufen, bevor ein Kartenwerkzeug arbeitet. Ist der Generator
-   * abgeschaltet, sagt das eine klare Meldung statt eines stillen Fehlschlags.
-   * Wurde die Verbindung nach zu vielen Versuchen aufgegeben, faengt der Zaehler
-   * hier wieder bei null an - der Aufruf ist ja ein Zeichen, dass jemand den
-   * Generator wirklich braucht.
+   * Called before a map tool does any work. With map generation off it says so
+   * clearly instead of failing silently. If the connection had been given up
+   * after too many attempts the counter restarts here — the call is a sign that
+   * someone actually needs the generator.
    */
-  verbindeBeiBedarf(): { bereit: boolean; grund?: string } {
+  connectOnDemand(): { ready: boolean; reason?: string } {
     if (!this.config.enabled) {
       return {
-        bereit: false,
-        grund:
-          'Der Kartengenerator ist abgeschaltet. Zum Einschalten COMFYUI_ENABLED=true ' +
-          'in der Umgebung des MCP-Servers setzen und den Server neu starten.',
+        ready: false,
+        reason:
+          "Map generation is off. Set COMFYUI_ENABLED=true in the MCP server's " +
+          'environment and restart the server to switch it on.',
       };
     }
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      return { bereit: true };
+      return { ready: true };
     }
-    this.wsVersuche = 0;
+    this.wsAttempts = 0;
     this.connectWebSocket();
-    return { bereit: true };
+    return { ready: true };
   }
 
   private connectWebSocket(): void {
@@ -141,7 +140,7 @@ export class ComfyUIClient {
       this.ws = new WebSocket(wsUrl);
 
       this.ws.on('open', () => {
-        this.wsVersuche = 0;
+        this.wsAttempts = 0;
         this.logger.info('ComfyUI WebSocket connected', { clientId: this.clientId });
       });
 
@@ -159,26 +158,24 @@ export class ComfyUIClient {
       });
 
       this.ws.on('close', () => {
-        // NINJO: Frueher wurde hier ohne Ende alle fuenf Sekunden neu versucht.
-        // Ist ComfyUI nicht da, laeuft das bis zum Ende der Sitzung und schreibt
-        // das Protokoll voll. Jetzt wird aufgegeben, mit wachsendem Abstand, und
-        // erst wieder versucht, wenn jemand ein Kartenwerkzeug benutzt
-        // (verbindeBeiBedarf).
-        this.wsVersuche += 1;
-        if (this.wsVersuche > ComfyUIClient.WS_VERSUCHE_MAX) {
+        // NINJO: This used to retry every five seconds without end. With no
+        // ComfyUI present that runs for the rest of the session and fills the
+        // log. It now backs off and gives up, and only tries again when someone
+        // uses a map tool (connectOnDemand).
+        this.wsAttempts += 1;
+        if (this.wsAttempts > ComfyUIClient.WS_MAX_ATTEMPTS) {
           this.logger.warn(
-            `ComfyUI nach ${ComfyUIClient.WS_VERSUCHE_MAX} Versuchen nicht erreichbar. ` +
-              'Es wird nicht weiter versucht; der naechste Aufruf eines Kartenwerkzeugs ' +
-              'baut die Verbindung erneut auf.'
+            `ComfyUI unreachable after ${ComfyUIClient.WS_MAX_ATTEMPTS} attempts. ` +
+              'Not retrying; the next call to a map tool will connect again.'
           );
           return;
         }
-        const wartezeit = Math.min(5000 * 2 ** (this.wsVersuche - 1), 60000);
+        const wait = Math.min(5000 * 2 ** (this.wsAttempts - 1), 60000);
         this.logger.info(
-          `ComfyUI WebSocket geschlossen, neuer Versuch in ${wartezeit / 1000}s ` +
-            `(${this.wsVersuche}/${ComfyUIClient.WS_VERSUCHE_MAX})`
+          `ComfyUI WebSocket closed, retrying in ${wait / 1000}s ` +
+            `(${this.wsAttempts}/${ComfyUIClient.WS_MAX_ATTEMPTS})`
         );
-        setTimeout(() => this.connectWebSocket(), wartezeit);
+        setTimeout(() => this.connectWebSocket(), wait);
       });
     } catch (error) {
       this.logger.error('Failed to connect WebSocket', { error });

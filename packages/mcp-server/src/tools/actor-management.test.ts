@@ -9,8 +9,8 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { ActorManagementTools } from './actor-management.js';
-// Die Kennung aus der Konstanten statt fest im Test. Der uebernommene Test
-// schrieb 'foundry-mcp-bridge' hinein und brach bei der Umbenennung.
+// The module id from the constant instead of hardwired in the test. The test
+// taken over from upstream wrote 'foundry-mcp-bridge' in and broke on the rename.
 import { MODULE_ID } from '@foundry-mcp/shared';
 
 function makeTools(queryImpl?: (method: string, data: any) => unknown) {

@@ -197,7 +197,7 @@
       "savedSome": "{count} Kompendien freigegeben."
     },
     "migration": {
-      "uebernommen": "{anzahl} Einstellungen aus der bisherigen Modulkennung übernommen."
+      "carriedOver": "{count} Einstellungen aus der bisherigen Modulkennung übernommen."
     }
   },
   "MCP": {

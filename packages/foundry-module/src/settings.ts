@@ -25,7 +25,7 @@ export class ModuleSettings {
             template: `modules/${MODULE_ID}/templates/enhanced-index-menu.html`,
             width: 560,
             height: 'auto',
-            resizable: true, // NINJO: vorher fest, dadurch wurde der Inhalt abgeschnitten
+            resizable: true, // NINJO: used to be fixed, which cut the content off
             closeOnSubmit: false,
           } as any);
         }
@@ -63,7 +63,7 @@ export class ModuleSettings {
       restricted: true,
     });
 
-    // NINJO-ERWEITERUNG: Kompendien zum Anhaken freigeben
+    // NINJO EXTENSION: release compendiums by ticking them
     (game.settings as any).registerMenu(this.moduleId, 'compendiumAccessMenu', {
       name: 'ninjos-foundry-mcp.compendiumAccess.name',
       label: 'ninjos-foundry-mcp.compendiumAccess.label',
@@ -82,158 +82,156 @@ export class ModuleSettings {
         }
 
         getData(): any {
-          const roh = (game.settings.get(MODULE_ID, 'writableCompendiums') as string) || '';
-          const freigegeben = roh
+          const raw = (game.settings.get(MODULE_ID, 'writableCompendiums') as string) || '';
+          const released = raw
             .split(/[,\n;]/)
             .map((e: string) => e.trim())
             .filter(Boolean);
 
           const packs = Array.from((game.packs as any) ?? []) as any[];
 
-          // NINJO: Ein Block je Herkunft, und bei Modulen je Modul.
+          // NINJO: one block per origin, and for modules one per module.
           //
-          // Vorher gab es nur drei Bloecke - Welt, Module, System. Alle
-          // Modul-Kompendien lagen in einem Topf und dort nach Beschriftung
-          // sortiert, wodurch "BBMM Journal", "Bestiarium" aus ninjo-kompendium
-          // und "Klassen" aus dnd-players-handbook durcheinander standen. Wer ein
-          // bestimmtes Modul freigeben will, sucht sich die Eintraege dann
-          // zusammen. Jetzt traegt jedes Modul seinen eigenen Block mit seinem
-          // Titel.
-          const gruppen = new Map<string, any>();
+          // There used to be only three blocks — world, modules, system. All
+          // module compendiums sat in one pot and were sorted by label there, so
+          // that "BBMM Journal", "Bestiarium" from ninjo-kompendium and "Klassen"
+          // from dnd-players-handbook stood mixed together. Anyone wanting to
+          // release one particular module had to collect the entries. Now every
+          // module carries its own block under its own title.
+          const groups = new Map<string, any>();
 
-          const gruppeHolen = (schluessel: string, beschriftung: string, ordnung: number) => {
-            if (!gruppen.has(schluessel)) {
-              gruppen.set(schluessel, { label: beschriftung, ordnung, packs: [] });
+          const groupFor = (key: string, label: string, order: number) => {
+            if (!groups.has(key)) {
+              groups.set(key, { label: label, order, packs: [] });
             }
-            return gruppen.get(schluessel);
+            return groups.get(key);
           };
 
           for (const p of packs) {
-            const art = (p.metadata?.packageType as string) || 'module';
-            const herkunft = (p.metadata?.packageName as string) || '';
+            const packageKind = (p.metadata?.packageType as string) || 'module';
+            const origin = (p.metadata?.packageName as string) || '';
             const id = p.collection as string;
 
-            let ziel;
-            if (art === 'world') {
-              ziel = gruppeHolen(
+            let target;
+            if (packageKind === 'world') {
+              target = groupFor(
                 'world',
                 game.i18n.localize(`${MODULE_ID}.compendiumAccess.groupWorld`),
                 0
               );
-            } else if (art === 'system') {
-              ziel = gruppeHolen(
+            } else if (packageKind === 'system') {
+              target = groupFor(
                 'system',
                 game.i18n.localize(`${MODULE_ID}.compendiumAccess.groupSystem`),
                 2
               );
             } else {
-              // Der Titel des Moduls statt seiner Kennung: "Ninjos Kompendium"
-              // liest sich besser als "ninjo-kompendium". Ist das Modul nicht
-              // auffindbar, bleibt die Kennung als Notnagel.
-              const modul = (game.modules as any)?.get?.(herkunft);
-              const titel = modul?.title || herkunft || id;
-              ziel = gruppeHolen(`module:${herkunft}`, titel, 1);
+              // The module's title rather than its id: "Ninjos Kompendium" reads
+              // better than "ninjo-kompendium". If the module cannot be found, the
+              // id stays as a fallback.
+              const mod = (game.modules as any)?.get?.(origin);
+              const title = mod?.title || origin || id;
+              target = groupFor(`module:${origin}`, title, 1);
             }
 
-            ziel.packs.push({
+            target.packs.push({
               id,
               label: p.metadata?.label ?? p.title ?? id,
               type: p.documentName,
               entries: p.index?.size ?? 0,
               locked: p.locked === true,
-              selected: freigegeben.includes(id) || freigegeben.includes(herkunft),
+              selected: released.includes(id) || released.includes(origin),
             });
           }
 
-          const sortiert = Array.from(gruppen.values())
+          const sorted = Array.from(groups.values())
             .filter((g: any) => g.packs.length)
-            // Erst die eigene Welt, dann die Module nach Titel, zuletzt das
-            // Spielsystem. Was einem selbst gehoert, steht oben.
+            // The world first, then the modules by title, the game system last.
+            // What belongs to you stands at the top.
             .sort((a: any, b: any) =>
-              a.ordnung !== b.ordnung
-                ? a.ordnung - b.ordnung
+              a.order !== b.order
+                ? a.order - b.order
                 : String(a.label).localeCompare(String(b.label))
             );
 
-          for (const g of sortiert) {
+          for (const g of sorted) {
             g.packs.sort((a: any, b: any) => String(a.label).localeCompare(String(b.label)));
           }
 
           return {
-            allowAllUnlocked: freigegeben.length === 0,
-            groups: sortiert,
+            allowAllUnlocked: released.length === 0,
+            groups: sorted,
           };
         }
 
-        // NINJO: Die beiden Angaben schliessen einander aus, das Formular liess
-        // sie aber gleichzeitig setzen. Wer unten Kompendien anhakte und den
-        // Haken oben stehen liess, verlor seine Auswahl beim Speichern
-        // kommentarlos - _updateObject sieht "alles erlauben" zuerst und kehrt
-        // zurueck, bevor es die Auswahl ueberhaupt liest. Beim naechsten Oeffnen
-        // war nichts angehakt, ohne dass irgendwo stand, warum.
+        // NINJO: the two entries exclude each other, but the form let both be
+        // set at once. Anyone ticking compendiums below and leaving the tick at
+        // the top lost their selection on save without a word — _updateObject
+        // sees "allow everything" first and returns before it ever reads the
+        // selection. On the next open nothing was ticked, and nowhere did it say
+        // why.
         //
-        // Deshalb hier: Beides gleichzeitig geht nicht mehr. Wer ein Kompendium
-        // anhakt, meint eine Auswahl; wer oben anhakt, meint alle.
+        // Hence this: both at once is no longer possible. Ticking a compendium
+        // means a selection; ticking the top box means all of them.
         activateListeners(html: JQuery) {
           super.activateListeners(html);
 
-          const alle = html.find('input[name="__allowAllUnlocked"]');
+          const allBox = html.find('input[name="__allowAllUnlocked"]');
           const packs = html.find('input[name^="pack."]');
-          const liste = html.find('.mcp-pack-list');
+          const list = html.find('.mcp-pack-list');
 
-          const dimmen = () => liste.toggleClass('mcp-dimmed', alle.prop('checked') === true);
+          const dim = () => list.toggleClass('mcp-dimmed', allBox.prop('checked') === true);
 
-          alle.on('change', () => {
-            if (alle.prop('checked')) packs.prop('checked', false);
-            dimmen();
+          allBox.on('change', () => {
+            if (allBox.prop('checked')) packs.prop('checked', false);
+            dim();
           });
 
           packs.on('change', function (this: HTMLInputElement) {
-            if (this.checked) alle.prop('checked', false);
-            dimmen();
+            if (this.checked) allBox.prop('checked', false);
+            dim();
           });
 
-          dimmen();
+          dim();
         }
 
         async _updateObject(_event: Event, formData: any): Promise<void> {
-          // NINJO: Die Haken heissen in der Vorlage "pack.<kennung>", und eine
-          // Pack-Kennung enthaelt selbst einen Punkt ("ninjo-kompendium.presets").
-          // Foundry entfaltet Feldnamen mit Punkten zu verschachtelten Objekten,
-          // bevor diese Methode sie sieht - hier kommt also
+          // NINJO: in the template the checkboxes are named "pack.<id>", and a
+          // pack id contains a dot itself ("ninjo-kompendium.presets"). Foundry
+          // expands field names with dots into nested objects before this method
+          // sees them — so what arrives here is
           //
           //   { pack: { 'ninjo-kompendium': { presets: true } } }
           //
-          // an und nicht der flache Schluessel. Die frueher hier stehende Suche
-          // nach Schluesseln, die mit "pack." beginnen, fand deshalb nie etwas:
-          // Es wurde stets eine leere Liste gespeichert, und beim naechsten
-          // Oeffnen war jeder Haken wieder weg. Schlimmer noch, eine leere Liste
-          // bedeutet "jedes entsperrte Kompendium ist freigegeben" - die
-          // Einschraenkung fiel damit still zurueck.
+          // and not the flat key. The search for keys starting with "pack."
+          // that used to stand here therefore never found anything: an empty list
+          // was stored every time, and on the next open every tick was gone
+          // again. Worse still, an empty list means "every unlocked compendium is
+          // released" — so the restriction silently turned into its opposite.
           //
-          // flattenObject macht das Entfalten rueckgaengig. Es ist unschaedlich,
-          // falls Foundry die Daten eines Tages flach uebergibt.
-          const flach = (foundry as any).utils.flattenObject(formData) as Record<string, unknown>;
+          // flattenObject undoes that expansion. It is harmless should Foundry
+          // one day hand the data over flat.
+          const flat = (foundry as any).utils.flattenObject(formData) as Record<string, unknown>;
 
-          const gewaehlt = Object.entries(flach)
+          const chosen = Object.entries(flat)
             .filter(([k, v]) => k.startsWith('pack.') && v === true)
             .map(([k]) => k.slice('pack.'.length));
 
-          // Eine getroffene Auswahl sticht "alles erlauben". Frueher stand die
-          // Pruefung auf __allowAllUnlocked ganz oben und kehrte sofort zurueck -
-          // wer unten anhakte und den Haken oben stehen liess, verlor die Auswahl
-          // kommentarlos. Umgekehrt ist es richtig: Wer einzelne Kompendien
-          // benennt, hat sich etwas dabei gedacht.
-          if (!gewaehlt.length && formData?.__allowAllUnlocked === true) {
+          // A selection that was made beats "allow everything". The check on
+          // __allowAllUnlocked used to stand right at the top and returned at
+          // once — whoever ticked below and left the top tick standing lost the
+          // selection without a word. The other way round is right: naming
+          // individual compendiums is a deliberate act.
+          if (!chosen.length && formData?.__allowAllUnlocked === true) {
             await game.settings.set(MODULE_ID, 'writableCompendiums', '');
             ui.notifications?.info(game.i18n.localize(`${MODULE_ID}.compendiumAccess.savedAll`));
             return;
           }
 
-          await game.settings.set(MODULE_ID, 'writableCompendiums', gewaehlt.join(', '));
+          await game.settings.set(MODULE_ID, 'writableCompendiums', chosen.join(', '));
           ui.notifications?.info(
             game.i18n.format(`${MODULE_ID}.compendiumAccess.savedSome`, {
-              count: gewaehlt.length,
+              count: chosen.length,
             })
           );
         }
@@ -254,7 +252,7 @@ export class ModuleSettings {
             template: `modules/${MODULE_ID}/templates/comfyui-settings.html`,
             width: 560,
             height: 'auto',
-            resizable: true, // NINJO: vorher fest, dadurch wurde der Inhalt abgeschnitten
+            resizable: true, // NINJO: used to be fixed, which cut the content off
             closeOnSubmit: false,
           } as any);
         }
@@ -262,9 +260,9 @@ export class ModuleSettings {
         getData(): any {
           return {
             autoStartService: game.settings.get(MODULE_ID, 'mapGenAutoStart') ?? false,
-            // NINJO: vorher "|| true". In JavaScript ergibt false || true = true,
-            // also wurde ein gespeichertes Aus beim Anzeigen wieder zu An und beim
-            // Speichern zurueckgeschrieben. Der Haken liess sich nicht entfernen.
+            // NINJO: this used to be "|| true". In JavaScript false || true is
+            // true, so a stored "off" turned back into "on" when displayed and was
+            // written back on save. The tick could not be removed.
             mapGenQuality: game.settings.get(MODULE_ID, 'mapGenQuality') ?? 'low',
             connectionStatus: this.getConnectionStatus(),
             connectionStatusText: this.getConnectionStatusText(),
@@ -431,15 +429,15 @@ export class ModuleSettings {
     });
 
     // ============================================================================
-    // NINJO-ERWEITERUNG: Rechte je Dokumentart
+    // NINJO EXTENSION: permissions per document kind
     //
-    // Statt eines einzigen Schalters fuer alles steht jede Dokumentart einzeln
-    // zur Wahl, in drei Stufen. Loeschen ist ueberall ab Werk aus, weil es sich
-    // als einzige Aktion nicht rueckgaengig machen laesst. Wer der KI das
-    // Aufraeumen erlauben will, gibt gezielt frei, was sie anfassen darf.
+    // Instead of one switch for everything, each document kind can be chosen
+    // separately, in three levels. Deleting is off everywhere by default, because
+    // it is the one action that cannot be undone. Anyone wanting to let the AI
+    // tidy up releases exactly what it may touch.
     //
-    // Der uebergeordnete Schalter "Allow Write Operations" bleibt vorgeschaltet:
-    // ist er aus, aendert die KI gar nichts, unabhaengig von diesen Stufen.
+    // The overarching "Allow Write Operations" switch stays in front of all of
+    // this: with it off the AI changes nothing at all, whatever these levels say.
     // ============================================================================
 
     game.settings.register(this.moduleId, 'permScenes', {
@@ -530,7 +528,7 @@ export class ModuleSettings {
       default: '',
     });
 
-    // Der alte Name aus 14.2609.2, nur damit der Wanderungspfad ihn lesen kann.
+    // The old name from 14.2609.2, kept only so the migration path can read it.
     game.settings.register(this.moduleId, 'werkzeugModule', {
       name: 'werkzeugModule',
       scope: 'world',
@@ -543,7 +541,7 @@ export class ModuleSettings {
       name: 'ninjos-foundry-mcp.settings.writableCompendiums.name',
       hint: 'ninjos-foundry-mcp.settings.writableCompendiums.hint',
       scope: 'world',
-      config: false, // NINJO: wird ueber das Menue "Kompendien freigeben" gepflegt
+      config: false, // NINJO: maintained through the "Release compendiums" menu
       type: String,
       default: '',
     });
@@ -617,9 +615,9 @@ export class ModuleSettings {
     game.settings.register(this.moduleId, 'mapGenAutoStart', {
       name: 'ninjos-foundry-mcp.settings.mapGenAutoStart.name',
       scope: 'world',
-      config: true, // NINJO: im Hauptmenue sichtbar, nicht nur im Untermenue
+      config: true, // NINJO: visible in the main menu, not only in the submenu
       type: Boolean,
-      default: false, // NINJO: Kartengenerator startet nur auf ausdruecklichen Wunsch
+      default: false, // NINJO: map generation only starts on an explicit request
     });
 
     game.settings.register(this.moduleId, 'mapGenQuality', {
@@ -729,17 +727,17 @@ export class ModuleSettings {
         ? game.i18n.localize(`${this.moduleId}.status.connected`)
         : game.i18n.localize(`${this.moduleId}.status.disconnected`);
 
-      /* NINJO: Hier stand der Hinweistext der Einstellung als Grundlage. Seit die
-       * Beschriftungen ueber die Sprachdateien laufen, steht dort aber der
-       * Schluessel und nicht der uebersetzte Text. Das Anhaengen des Status machte
-       * ihn unaufloesbar, im Menue erschien "ninjos-foundry-mcp.settings.enabled.hint".
-       * Deshalb wird der Grundtext jetzt ausdruecklich uebersetzt. */
-      const basis = game.i18n.localize(`${this.moduleId}.settings.enabled.hint`);
+      /* NINJO: the setting's hint text used to serve as the base here. Since the
+       * labels go through the language files, what stands there is the key and not
+       * the translated text. Appending the status made it unresolvable, and the
+       * menu showed "ninjos-foundry-mcp.settings.enabled.hint". So the base text is
+       * now translated explicitly. */
+      const base = game.i18n.localize(`${this.moduleId}.settings.enabled.hint`);
       const label = game.i18n.localize(`${this.moduleId}.status.label`);
 
       const enabledSetting = (game.settings as any).settings.get(`${this.moduleId}.enabled`);
       if (enabledSetting) {
-        enabledSetting.hint = `${basis} | ${label}: ${statusText}`;
+        enabledSetting.hint = `${base} | ${label}: ${statusText}`;
       }
     } catch (error) {
       console.warn(`[${this.moduleId}] Failed to update status display:`, error);
@@ -930,96 +928,96 @@ export class ModuleSettings {
   }
 
   /**
-   * Übernimmt die Einstellungen aus der alten Modulkennung `foundry-mcp-bridge`.
+   * Carries the settings over from the old module id `foundry-mcp-bridge`.
    *
-   * Warum das nötig ist: Foundry speichert Einstellungen unter dem Namensraum der
-   * Modulkennung. Mit der Umbenennung auf `ninjos-foundry-mcp` sieht Foundry ein
-   * neues Modul, und alles Gespeicherte bestehender Welten hängt weiter am alten
-   * Namen — Serveradresse, Rechtematrix und die Liste der freigegebenen Kompendien
-   * wären sonst weg und müssten von Hand neu gesetzt werden.
+   * Why this is needed: Foundry stores settings under the namespace of the module
+   * id. With the rename to `ninjos-foundry-mcp` Foundry sees a new module, and
+   * everything existing worlds had stored still hangs off the old name — server
+   * address, permission matrix and the list of released compendiums would
+   * otherwise be gone and would have to be set again by hand.
    *
-   * Der Schritt ist bewusst so gebaut, dass er bei jedem Weltstart erneut laufen
-   * darf: Er überschreibt keinen Wert, der unter der neuen Kennung bereits
-   * gespeichert ist, und rührt den alten Namensraum nicht an.
+   * The step is deliberately built so that it may run again on every world start:
+   * it overwrites no value already stored under the new id, and it does not touch
+   * the old namespace.
    */
-  async uebernehmeAlteEinstellungen(): Promise<number> {
-    const ALTE_KENNUNG = 'foundry-mcp-bridge';
+  async carryOldSettingsOver(): Promise<number> {
+    const OLD_MODULE_ID = 'foundry-mcp-bridge';
 
-    // Nur der Spielleiter darf Welteinstellungen schreiben
+    // Only the GM may write world settings
     if (!game.user?.isGM) return 0;
 
-    let uebernommen = 0;
+    let carried = 0;
 
-    for (const bereich of ['world', 'client'] as const) {
-      const speicher = (game.settings as any).storage?.get(bereich);
-      if (!speicher) continue;
+    for (const scope of ['world', 'client'] as const) {
+      const storage = (game.settings as any).storage?.get(scope);
+      if (!storage) continue;
 
-      // Der Weltspeicher ist eine Sammlung von Setting-Dokumenten, der
-      // Client-Speicher ist der localStorage. Beide werden anders gelesen.
-      let eintraege: Array<{ key: string; value: string }> = [];
+      // The world storage is a collection of setting documents, the client
+      // storage is localStorage. The two are read differently.
+      let entries: Array<{ key: string; value: string }> = [];
       try {
-        eintraege =
-          bereich === 'world'
-            ? Array.from(speicher as any).map((s: any) => ({ key: s.key, value: s.value }))
-            : Object.keys(speicher)
-                .filter(k => k.startsWith(`${ALTE_KENNUNG}.`))
-                .map(k => ({ key: k, value: speicher.getItem(k) }));
-      } catch (fehler) {
-        console.warn(`[${MODULE_ID}] Speicher "${bereich}" nicht lesbar:`, fehler);
+        entries =
+          scope === 'world'
+            ? Array.from(storage as any).map((s: any) => ({ key: s.key, value: s.value }))
+            : Object.keys(storage)
+                .filter(k => k.startsWith(`${OLD_MODULE_ID}.`))
+                .map(k => ({ key: k, value: storage.getItem(k) }));
+      } catch (error) {
+        console.warn(`[${MODULE_ID}] Storage "${scope}" not readable:`, error);
         continue;
       }
 
-      for (const eintrag of eintraege) {
-        if (!eintrag.key?.startsWith(`${ALTE_KENNUNG}.`)) continue;
-        const schluessel = eintrag.key.slice(ALTE_KENNUNG.length + 1);
+      for (const entry of entries) {
+        if (!entry.key?.startsWith(`${OLD_MODULE_ID}.`)) continue;
+        const key = entry.key.slice(OLD_MODULE_ID.length + 1);
 
-        // Nur übernehmen, was es unter der neuen Kennung auch wirklich gibt.
-        // Verwaiste Schlüssel aus älteren Fassungen fallen damit weg.
-        if (!(game.settings as any).settings.has(`${this.moduleId}.${schluessel}`)) continue;
+        // Only carry over what really exists under the new id. Orphaned keys
+        // from older versions drop out that way.
+        if (!(game.settings as any).settings.has(`${this.moduleId}.${key}`)) continue;
 
-        // Einen bereits gesetzten Wert nicht antasten
-        if (this.hatGespeichertenWert(bereich, schluessel)) continue;
+        // Do not touch a value that is already set
+        if (this.hasStoredValue(scope, key)) continue;
 
         try {
-          // Foundry legt Werte als JSON ab. Ältere Stände speicherten manche
-          // Zeichenketten roh, deshalb der Rückfall auf den unveränderten Wert.
-          let wert: unknown;
+          // Foundry stores values as JSON. Older versions stored some strings
+          // raw, hence the fallback to the unchanged value.
+          let value: unknown;
           try {
-            wert = JSON.parse(eintrag.value);
+            value = JSON.parse(entry.value);
           } catch {
-            wert = eintrag.value;
+            value = entry.value;
           }
-          await game.settings.set(this.moduleId, schluessel, wert as any);
-          uebernommen++;
-        } catch (fehler) {
-          console.warn(`[${MODULE_ID}] Einstellung "${schluessel}" nicht übernommen:`, fehler);
+          await game.settings.set(this.moduleId, key, value as any);
+          carried++;
+        } catch (error) {
+          console.warn(`[${MODULE_ID}] Setting "${key}" not carried over:`, error);
         }
       }
     }
 
-    if (uebernommen > 0) {
-      console.log(`[${MODULE_ID}] ${uebernommen} Einstellungen aus "${ALTE_KENNUNG}" übernommen`);
+    if (carried > 0) {
+      console.log(`[${MODULE_ID}] Carried ${carried} settings over from "${OLD_MODULE_ID}"`);
       ui.notifications?.info(
-        game.i18n.format(`${MODULE_ID}.migration.uebernommen`, { anzahl: uebernommen })
+        game.i18n.format(`${MODULE_ID}.migration.carriedOver`, { count: carried })
       );
     }
 
-    return uebernommen;
+    return carried;
   }
 
   /**
-   * Liegt für diesen Schlüssel unter der neuen Kennung schon ein Wert im Speicher?
-   * Ein registrierter Standardwert zählt dabei nicht — nur wirklich Gespeichertes.
+   * Is there already a stored value for this key under the new module id?
+   * A registered default does not count — only what was really stored.
    */
-  private hatGespeichertenWert(bereich: 'world' | 'client', schluessel: string): boolean {
-    const speicher = (game.settings as any).storage?.get(bereich);
-    if (!speicher) return false;
+  private hasStoredValue(scope: 'world' | 'client', key: string): boolean {
+    const storage = (game.settings as any).storage?.get(scope);
+    if (!storage) return false;
 
-    const vollerSchluessel = `${this.moduleId}.${schluessel}`;
+    const fullKey = `${this.moduleId}.${key}`;
     try {
-      return bereich === 'world'
-        ? Array.from(speicher as any).some((s: any) => s.key === vollerSchluessel)
-        : speicher.getItem(vollerSchluessel) !== null;
+      return scope === 'world'
+        ? Array.from(storage as any).some((s: any) => s.key === fullKey)
+        : storage.getItem(fullKey) !== null;
     } catch {
       return false;
     }

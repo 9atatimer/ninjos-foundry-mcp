@@ -22,7 +22,7 @@ import { CompendiumTools } from './tools/compendium.js';
 
 import { SceneTools } from './tools/scene.js';
 
-// NINJO-ERWEITERUNG
+// NINJO EXTENSION
 import { NinjoCampaignTools } from './tools/ninjo-campaign.js';
 
 import { ActorCreationTools } from './tools/actor-creation.js';
@@ -40,7 +40,7 @@ import { WFRP4eUpdateActorTools } from './tools/wfrp4e/update-actor.js';
 import { WFRP4eAddItemsTools } from './tools/wfrp4e/add-items.js';
 
 import { MapGenerationTools } from './tools/map-generation.js';
-// NINJO: Die Modulkennung fuer die Abfragen an fremde Werkzeuge.
+// NINJO: The module id used for the extension-tool queries.
 import { MODULE_ID } from '@foundry-mcp/shared';
 
 import { TokenManipulationTools } from './tools/token-manipulation.js';
@@ -53,8 +53,8 @@ import { DnD5eFeaturesFromCompendiumTools } from './tools/dnd5e/features.js';
 
 const CONTROL_HOST = '127.0.0.1';
 
-// NINJO: Einstellbar, damit sich der Lebenszyklus des Backends pruefen laesst,
-// ohne die laufende Bruecke abzuschiessen. Ohne die Variable bleibt es bei 31414.
+// NINJO: Configurable so the backend lifecycle can be exercised without
+// shooting down the running bridge. Without the variable it stays at 31414.
 const CONTROL_PORT = Number(process.env.FOUNDRY_MCP_CONTROL_PORT || 31414);
 
 const LOCK_FILE = path.join(os.tmpdir(), 'foundry-mcp-backend.lock');
@@ -1231,16 +1231,15 @@ async function startBackend(): Promise<void> {
   let mapGenerationJobQueue: any = null;
   let mapGenerationComfyUIClient: any = null;
 
-  // NINJO: Ist der Kartengenerator aus, wird gar nichts davon angelegt - kein
-  // Auftragsspeicher, kein ComfyUI-Client, kein Autostart. Vorher wurde der
-  // Client auch im ausgeschalteten Zustand erzeugt; das war inkonsequent, denn
-  // "aus" soll heissen, dass nichts hochkommt.
-  const kartengeneratorAn = config.comfyui?.enabled === true;
+  // NINJO: With map generation off, none of it is created — no job queue, no
+  // ComfyUI client, no auto-start. The client used to be built even when
+  // switched off, which was half-hearted: "off" should mean nothing comes up.
+  const mapGenerationOn = config.comfyui?.enabled === true;
 
-  if (!kartengeneratorAn) {
+  if (!mapGenerationOn) {
     logger.info(
-      'Kartengenerator ist abgeschaltet: keine ComfyUI-Bestandteile, keine ' +
-        'Kartenwerkzeuge. COMFYUI_ENABLED=true schaltet ihn ein.'
+      'Map generation is switched off: no ComfyUI parts, no map tools. ' +
+        'COMFYUI_ENABLED=true turns it on.'
     );
   } else {
     try {
@@ -1255,17 +1254,17 @@ async function startBackend(): Promise<void> {
         logger,
         config: {
           port: config.comfyui?.port || 31411,
-          // NINJO: Ohne diesen Schalter verband der Client sofort und versuchte es
-          // bei Fehlschlag endlos alle fuenf Sekunden weiter - auch auf Rechnern
-          // ohne ComfyUI, was der Normalfall ist.
+          // NINJO: Without this switch the client connected straight away and
+          // retried every five seconds forever on failure — including on
+          // machines without ComfyUI, which is the normal case.
           enabled: config.comfyui?.enabled === true,
         },
       });
 
       logger.info(
         config.comfyui?.enabled === true
-          ? 'Kartengenerator bereit (ComfyUI auf localhost:31411)'
-          : 'Kartengenerator abgeschaltet - COMFYUI_ENABLED=true schaltet ihn ein'
+          ? 'Map generation ready (ComfyUI on localhost:31411)'
+          : 'Map generation switched off - COMFYUI_ENABLED=true turns it on'
       );
 
       // Auto-start ComfyUI if installed and autoStart is enabled
@@ -1448,8 +1447,8 @@ async function startBackend(): Promise<void> {
     backendComfyUIHandlers: (globalThis as any).backendComfyUIHandlers,
   });
 
-  /** NINJO: Die Werkzeuge, die wirklich ComfyUI brauchen. */
-  const KARTENWERKZEUGE = ['generate-map', 'check-map-status', 'cancel-map-job'];
+  /** NINJO: The tools that genuinely need ComfyUI. */
+  const MAP_TOOLS = ['generate-map', 'check-map-status', 'cancel-map-job'];
 
   const allTools = [
     ...characterTools.getToolDefinitions(),
@@ -1484,23 +1483,22 @@ async function startBackend(): Promise<void> {
 
     ...tokenManipulationTools.getToolDefinitions(),
 
-    // NINJO: Bei abgeschaltetem Kartengenerator werden die Kartenwerkzeuge gar
-    // nicht erst angeboten. Ein Werkzeug anzubieten, das nur eine Fehlermeldung
-    // zurueckgibt, kostet das Modell nur Versuche.
+    // NINJO: With map generation off the map tools are not offered at all.
+    // Offering a tool that can only answer with an error costs the model
+    // attempts and nothing else.
     //
-    // Gefiltert wird namentlich und nicht ueber den ganzen Satz: map-generation.ts
-    // liefert ausser den drei Kartenwerkzeugen auch list-scenes und switch-scene.
-    // Die haben mit Karten nichts zu tun und gehoeren eigentlich nach scene.ts -
-    // wuerde man den Satz als Ganzes weglassen, fehlten sie bei abgeschaltetem
-    // Generator, und das Modell koennte keine Szene mehr auflisten oder wechseln.
+    // Filtered by name rather than by dropping the whole set: map-generation.ts
+    // also provides list-scenes and switch-scene, which have nothing to do with
+    // maps and belong in scene.ts. Dropping the set wholesale would take those
+    // two with it, leaving the model unable to list or switch a scene whenever
+    // the generator is off.
     ...mapGenerationTools
       .getToolDefinitions()
-      .filter((t: any) => kartengeneratorAn || !KARTENWERKZEUGE.includes(t.name)),
+      .filter((t: any) => mapGenerationOn || !MAP_TOOLS.includes(t.name)),
   ];
 
   logger.info(
-    `${allTools.length} Werkzeuge angeboten` +
-      (kartengeneratorAn ? '' : ' (Kartengenerator abgeschaltet)')
+    `${allTools.length} tools offered` + (mapGenerationOn ? '' : ' (map generation off)')
   );
 
   // Start Foundry connector (owns app port 31415)
@@ -1527,60 +1525,60 @@ async function startBackend(): Promise<void> {
 
   // Control channel (TCP JSON-lines)
 
-  // NINJO: Wie viele Wrapper gerade am Backend haengen.
+  // NINJO: How many wrappers are currently attached to this backend.
   //
-  // Bis zum 04.09.2026 beendete der Wrapper, der das Backend gestartet hatte,
-  // es beim eigenen Ende mit kill(). Hing ein zweiter Wrapper daran - zwei offene
-  // Sitzungen genuegen -, riss dessen Verbindung mit. Fuer das Modul im Browser
-  // sah das aus wie ein Abbruch, und es verbindet sich erst beim naechsten Laden
-  // der Welt wieder. Genau daher kam das Flattern: ein Aufruf ging durch, der
-  // naechste lief in "module not connected".
+  // Until 2026-09-04 the wrapper that had spawned the backend killed it on its
+  // own exit. With a second wrapper attached — two open sessions are enough —
+  // that tore down the other one's connection. To the module in the browser it
+  // looked like a drop, and it only reconnects on the next world load. That was
+  // the flapping bridge: one call went through, the next answered "module not
+  // connected".
   //
-  // Jetzt entscheidet das Backend selbst: Es lebt, solange mindestens ein Wrapper
-  // verbunden ist, und beendet sich eine Schonfrist nach dem letzten. Die Frist
-  // gibt es, weil beim Neustart einer Sitzung die alte Verbindung kurz vor der
-  // neuen faellt - ohne sie wuerde das Backend dazwischen sterben.
-  let verbundeneWrapper = 0;
-  let abschaltUhr: NodeJS.Timeout | null = null;
-  const SCHONFRIST_MS = Number(process.env.FOUNDRY_MCP_IDLE_SHUTDOWN_MS || 60000);
+  // The backend now decides for itself. It lives while at least one wrapper is
+  // connected and shuts down a grace period after the last one leaves. The grace
+  // period matters because restarting a session drops the old connection just
+  // before the new one arrives; without it the backend would die in between.
+  let connectedWrappers = 0;
+  let shutdownTimer: NodeJS.Timeout | null = null;
+  const IDLE_SHUTDOWN_MS = Number(process.env.FOUNDRY_MCP_IDLE_SHUTDOWN_MS || 60000);
 
-  const pruefeAbschaltung = () => {
-    if (verbundeneWrapper > 0) {
-      if (abschaltUhr) {
-        clearTimeout(abschaltUhr);
-        abschaltUhr = null;
-        logger.info('Wieder ein Wrapper verbunden, Abschaltung abgesagt');
+  const checkIdleShutdown = () => {
+    if (connectedWrappers > 0) {
+      if (shutdownTimer) {
+        clearTimeout(shutdownTimer);
+        shutdownTimer = null;
+        logger.info('A wrapper connected again, shutdown cancelled');
       }
       return;
     }
-    if (abschaltUhr) return;
+    if (shutdownTimer) return;
     logger.info(
-      `Kein Wrapper mehr verbunden, Abschaltung in ${SCHONFRIST_MS / 1000}s ` +
-        '(verbindet sich einer neu, wird sie abgesagt)'
+      `No wrapper left, shutting down in ${IDLE_SHUTDOWN_MS / 1000}s ` +
+        '(a new connection cancels it)'
     );
-    abschaltUhr = setTimeout(() => {
-      logger.info('Schonfrist abgelaufen, Backend beendet sich');
+    shutdownTimer = setTimeout(() => {
+      logger.info('Grace period elapsed, backend shutting down');
       process.exit(0);
-    }, SCHONFRIST_MS);
-    // Die Uhr darf den Prozess nicht am Leben halten, wenn sonst nichts mehr laeuft
-    abschaltUhr.unref?.();
+    }, IDLE_SHUTDOWN_MS);
+    // The timer must not keep the process alive when nothing else is running
+    shutdownTimer.unref?.();
   };
 
   const server = net.createServer(socket => {
     socket.setEncoding('utf8');
 
-    verbundeneWrapper += 1;
-    logger.info(`Wrapper verbunden (${verbundeneWrapper} insgesamt)`);
-    pruefeAbschaltung();
+    connectedWrappers += 1;
+    logger.info(`Wrapper connected (${connectedWrappers} in total)`);
+    checkIdleShutdown();
 
-    const wrapperGing = () => {
-      verbundeneWrapper = Math.max(0, verbundeneWrapper - 1);
-      logger.info(`Wrapper getrennt (${verbundeneWrapper} verbleibend)`);
-      pruefeAbschaltung();
+    const wrapperLeft = () => {
+      connectedWrappers = Math.max(0, connectedWrappers - 1);
+      logger.info(`Wrapper disconnected (${connectedWrappers} remaining)`);
+      checkIdleShutdown();
     };
-    socket.once('close', wrapperGing);
+    socket.once('close', wrapperLeft);
     socket.once('error', () => {
-      /* close folgt und zaehlt herunter */
+      /* close follows and does the counting */
     });
 
     let buffer = '';
@@ -1705,7 +1703,7 @@ async function startBackend(): Promise<void> {
 
                   break;
 
-                // NINJO-ERWEITERUNG: Szenen anlegen und pflegen
+                // NINJO EXTENSION: creating and maintaining scenes
 
                 case 'create-scene':
                   result = await sceneTools.handleCreateScene(args);
@@ -1732,7 +1730,7 @@ async function startBackend(): Promise<void> {
 
                   break;
 
-                // NINJO-ERWEITERUNG: Kampagnenaufbau
+                // NINJO EXTENSION: building a campaign
 
                 case 'list-playlists':
                   result = await ninjoCampaignTools.handleListPlaylists(args);
@@ -2163,15 +2161,15 @@ async function startBackend(): Promise<void> {
     server.on('error', reject);
   });
 
-  /* NINJO: Hier wurde der Kartengenerator beim Hochfahren bedingungslos
-   * gestartet, ohne die Einstellung zu beachten. Zusammen mit dem Anzeigefehler
-   * in settings.ts ("|| true") sprang er dadurch immer wieder von selbst an.
-   * Der Start haengt jetzt an FOUNDRY_MCP_AUTOSTART_COMFYUI, ab Werk aus.
-   * An Zeile ~1248 gibt es den regulaeren Weg, der die Einstellung auswertet. */
+  /* NINJO: Map generation used to be started here unconditionally, ignoring
+   * the setting. Together with the display bug in settings.ts ("|| true") that
+   * made it start itself over and over. It now hangs on
+   * FOUNDRY_MCP_AUTOSTART_COMFYUI, off by default. The regular path that reads
+   * the setting is further up. */
   if (process.env.FOUNDRY_MCP_AUTOSTART_COMFYUI === 'true') {
     void autoStartComfyUI();
   } else {
-    logger.info('ComfyUI-Autostart uebersprungen (FOUNDRY_MCP_AUTOSTART_COMFYUI nicht gesetzt)');
+    logger.info('ComfyUI auto-start skipped (FOUNDRY_MCP_AUTOSTART_COMFYUI not set)');
   }
 
   // Shutdown hooks

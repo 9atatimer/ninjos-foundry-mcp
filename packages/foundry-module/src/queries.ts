@@ -48,8 +48,8 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.callExtensionTool`] = this.handleCallExtensionTool.bind(this);
     CONFIG.queries[`${modulePrefix}.listFremdwerkzeuge`] = this.handleListExtensionTools.bind(this);
     CONFIG.queries[`${modulePrefix}.callFremdwerkzeug`] = this.handleCallExtensionTool.bind(this);
-    // NINJO: Der Server rief getPackIndex auf, ohne dass es hier je registriert war.
-    // Beide Schreibweisen wie bei den uebrigen Abfragen.
+    // NINJO: The server called getPackIndex without it ever being registered here.
+    // Both spellings, as with the other queries.
     CONFIG.queries[`${modulePrefix}.getPackIndex`] = this.handleGetPackIndex.bind(this);
     CONFIG.queries[`${modulePrefix}.get-pack-index`] = this.handleGetPackIndex.bind(this);
 
@@ -58,7 +58,7 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.list-scenes`] = this.handleListScenes.bind(this);
     CONFIG.queries[`${modulePrefix}.switch-scene`] = this.handleSwitchScene.bind(this);
 
-    // NINJO-ERWEITERUNG: Szenen anlegen und pflegen
+    // NINJO EXTENSION: creating and maintaining scenes
     CONFIG.queries[`${modulePrefix}.createScene`] = this.handleCreateScene.bind(this);
     CONFIG.queries[`${modulePrefix}.restoreScene`] = this.handleRestoreScene.bind(this);
     CONFIG.queries[`${modulePrefix}.updateScene`] = this.handleUpdateScene.bind(this);
@@ -78,12 +78,12 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.listCompendiums`] = this.handleListCompendiums.bind(this);
     CONFIG.queries[`${modulePrefix}.createCompendium`] = this.handleCreateCompendium.bind(this);
     CONFIG.queries[`${modulePrefix}.deleteCompendium`] = this.handleDeleteCompendium.bind(this);
-    // NINJO: Eintraege eines Kompendiums auflisten. Reines Lesen.
+    // NINJO: List the entries of a compendium. Pure reading.
     CONFIG.queries[`${modulePrefix}.listCompendiumEntries`] =
       this.handleListCompendiumEntries.bind(this);
     CONFIG.queries[`${modulePrefix}.list-compendium-entries`] =
       this.handleListCompendiumEntries.bind(this);
-    // NINJO: Gezielt benannte Eintraege entfernen. Kein Leeren.
+    // NINJO: Remove specifically named entries. No emptying.
     CONFIG.queries[`${modulePrefix}.deleteCompendiumEntries`] =
       this.handleDeleteCompendiumEntries.bind(this);
     CONFIG.queries[`${modulePrefix}.delete-compendium-entries`] =
@@ -667,7 +667,7 @@ export class QueryHandlers {
   }
 
   /* =========================================================================
-   * NINJO-ERWEITERUNG: Szenen anlegen und pflegen
+   * NINJO EXTENSION: creating and maintaining scenes
    * ========================================================================= */
 
   /**
@@ -1082,7 +1082,7 @@ export class QueryHandlers {
     }
   }
 
-  /* ================= ENDE NINJO-ERWEITERUNG ================= */
+  /* ================= END OF NINJO EXTENSION ================= */
 
   /**
    * Handle journal entry creation

@@ -250,9 +250,9 @@ export class DSA5CharacterCreator {
       // Get archetypes from each pack
       for (const pack of characterPacks) {
         try {
-          // Foundry nimmt in den Index nur auf, was hier angefordert wird. Ohne die
-          // beiden system-Felder liefern die Filter unten nichts, obwohl die
-          // Archetypen vorhanden sind.
+          // Foundry only puts into the index what is requested here. Without the two
+          // system fields the filters below return nothing, even though the archetypes
+          // are there.
           const packIndex = await this.foundryClient.query('ninjos-foundry-mcp.getPackIndex', {
             packId: pack.id,
             fields: ['system.details.species.value', 'system.details.career.value'],
