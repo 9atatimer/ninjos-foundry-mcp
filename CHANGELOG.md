@@ -1,3 +1,19 @@
+## v14.2609.2 (2026-09-06)
+
+Three defects in what the Windows installer hands out, found by staging its
+payload and running it the way Claude Desktop would.
+
+- **The handshake reported the version as "unbekannt".** `paketVersion()` resolved
+  its own location through `import.meta.url`, which esbuild defines as the literal
+  string `"bundled"` in the packaged build. It now uses `__dirname` when present.
+- **The module logo was missing.** `assets/` was never copied into the Foundry
+  module, so the welcome window on first start showed a broken image placeholder.
+- **The licence was missing.** The MIT licence of the upstream project requires the
+  copyright notice to travel with every copy; a module installed this way carried
+  none. Copying it is now mandatory — a missing `LICENSE` aborts the build.
+
+The release zip was unaffected by all three; only the installer path was.
+
 ## v14.2609.1 (2026-09-06)
 
 ### The compendium allowlist actually saves now

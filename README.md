@@ -1,6 +1,6 @@
 # Ninjo's Foundry MCP
 
-**Current Version / Aktuelle Version:** `14.2609.1`
+**Current Version / Aktuelle Version:** `14.2609.2`
 
 Run your Foundry VTT world through a conversation with Claude: build scenes, write
 journals and quests, create actors, manage compendiums, request dice rolls.

@@ -1,6 +1,6 @@
 {
   "name": "ninjos-foundry-mcp",
-  "version": "14.2609.1",
+  "version": "14.2609.2",
   "description": "Bedient Foundry VTT über das Model Context Protocol",
   "private": true,
   "workspaces": [
