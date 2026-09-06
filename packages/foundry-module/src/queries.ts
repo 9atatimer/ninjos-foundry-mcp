@@ -1,5 +1,5 @@
 import { MODULE_ID } from './constants.js';
-import { fremdwerkzeugeAuflisten, fremdwerkzeugAufrufen } from './fremdwerkzeuge.js';
+import { listExtensionTools, callExtensionTool } from './extension-tools.js';
 import { FoundryDataAccess } from './data-access.js';
 import { ComfyUIManager } from './comfyui-manager.js';
 
@@ -38,10 +38,16 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.listCreaturesByCriteria`] =
       this.handleListCreaturesByCriteria.bind(this);
     CONFIG.queries[`${modulePrefix}.getAvailablePacks`] = this.handleGetAvailablePacks.bind(this);
-    // NINJO: Werkzeuge, die andere Module angemeldet haben. Der Server holt sich
-    // die Liste beim Verbinden und reicht Aufrufe hierher zurueck.
-    CONFIG.queries[`${modulePrefix}.listFremdwerkzeuge`] = this.handleListFremdwerkzeuge.bind(this);
-    CONFIG.queries[`${modulePrefix}.callFremdwerkzeug`] = this.handleCallFremdwerkzeug.bind(this);
+    // NINJO: Tools registered by other modules. The server fetches the list on
+    // every tools/list and hands unknown tool names back here.
+    //
+    // The German names stay registered as aliases: they shipped in 14.2609.2, so
+    // a server of that version talking to a newer module would otherwise find
+    // nothing. Same pattern as moveToken / move-token further down.
+    CONFIG.queries[`${modulePrefix}.listExtensionTools`] = this.handleListExtensionTools.bind(this);
+    CONFIG.queries[`${modulePrefix}.callExtensionTool`] = this.handleCallExtensionTool.bind(this);
+    CONFIG.queries[`${modulePrefix}.listFremdwerkzeuge`] = this.handleListExtensionTools.bind(this);
+    CONFIG.queries[`${modulePrefix}.callFremdwerkzeug`] = this.handleCallExtensionTool.bind(this);
     // NINJO: Der Server rief getPackIndex auf, ohne dass es hier je registriert war.
     // Beide Schreibweisen wie bei den uebrigen Abfragen.
     CONFIG.queries[`${modulePrefix}.getPackIndex`] = this.handleGetPackIndex.bind(this);
@@ -406,11 +412,11 @@ export class QueryHandlers {
   /**
    * Handle get available packs request
    */
-  private async handleListFremdwerkzeuge(): Promise<any> {
+  private async handleListExtensionTools(): Promise<any> {
     try {
       const gmCheck = this.validateGMAccess();
       if (!gmCheck.allowed) return { error: 'Access denied', success: false };
-      return { tools: fremdwerkzeugeAuflisten() };
+      return { tools: listExtensionTools() };
     } catch (error) {
       throw new Error(
         `Failed to list third-party tools: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -418,12 +424,12 @@ export class QueryHandlers {
     }
   }
 
-  private async handleCallFremdwerkzeug(data: any): Promise<any> {
+  private async handleCallExtensionTool(data: any): Promise<any> {
     try {
       const gmCheck = this.validateGMAccess();
       if (!gmCheck.allowed) return { error: 'Access denied', success: false };
       if (!data?.name) throw new Error('name is required');
-      return await fremdwerkzeugAufrufen(data.name, data.args ?? {});
+      return await callExtensionTool(data.name, data.args ?? {});
     } catch (error) {
       throw new Error(
         `Third-party tool failed: ${error instanceof Error ? error.message : 'Unknown error'}`

@@ -122,7 +122,7 @@
         "name": "Permissions · Writable compendiums",
         "hint": "Ids of compendiums that may be edited, separated by commas (e.g. ninjo-kompendium.journale). A bare module name covers all of its compendiums. Leave empty to allow every unlocked compendium."
       },
-      "werkzeugModule": {
+      "toolProviderModules": {
         "name": "Permissions · Modules with their own tools",
         "hint": "Ids of the modules allowed to offer their own tools to the AI model, comma separated (e.g. ninjos-shops). Empty by default: a third-party handler works around the permission matrix above, so each module has to be released individually."
       }

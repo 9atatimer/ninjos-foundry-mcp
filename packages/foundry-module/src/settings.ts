@@ -512,16 +512,29 @@ export class ModuleSettings {
       default: 'write',
     });
 
-    // NINJO: Welche fremden Module eigene MCP-Werkzeuge anmelden duerfen.
+    // NINJO: Which other modules may register MCP tools of their own.
     //
-    // Ab Werk leer, und das ist Absicht: Der Handler eines fremden Moduls laeuft
-    // an der Rechtematrix dieses Moduls vorbei. Wer ein Modul hier eintraegt,
-    // vertraut ihm denselben Zugriff an, den er dem Modell gibt.
-    game.settings.register(this.moduleId, 'werkzeugModule', {
-      name: `${MODULE_ID}.settings.werkzeugModule.name`,
-      hint: `${MODULE_ID}.settings.werkzeugModule.hint`,
+    // Empty by default, and that is deliberate: a third-party handler works
+    // around this module's permission matrix. Listing a module here grants it
+    // the same reach the model has.
+    //
+    // Called werkzeugModule in 14.2609.2. The old key stays registered so a
+    // world that filled it does not lose the list; extension-tools.ts reads it
+    // as a fallback and carries it over on the next start.
+    game.settings.register(this.moduleId, 'toolProviderModules', {
+      name: `${MODULE_ID}.settings.toolProviderModules.name`,
+      hint: `${MODULE_ID}.settings.toolProviderModules.hint`,
       scope: 'world',
       config: true,
+      type: String,
+      default: '',
+    });
+
+    // Der alte Name aus 14.2609.2, nur damit der Wanderungspfad ihn lesen kann.
+    game.settings.register(this.moduleId, 'werkzeugModule', {
+      name: 'werkzeugModule',
+      scope: 'world',
+      config: false,
       type: String,
       default: '',
     });

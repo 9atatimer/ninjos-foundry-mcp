@@ -1607,32 +1607,32 @@ async function startBackend(): Promise<void> {
           }
 
           if (msg.method === 'list_tools') {
-            // NINJO: Werkzeuge, die andere Foundry-Module angemeldet haben,
-            // kommen hier dazu. Sie stehen erst fest, wenn eine Welt geladen ist -
-            // deshalb werden sie bei jeder Anfrage geholt und nicht beim Start
-            // eingefroren. Ist die Bruecke getrennt, bleibt es bei den eigenen.
-            let werkzeuge: any[] = allTools;
+            // NINJO: Tools registered by other Foundry modules are added here.
+            // They only exist once a world is loaded, so the list is fetched per
+            // request rather than frozen at startup. With the bridge down we fall
+            // back to our own tools instead of refusing the list.
+            let tools: any[] = allTools;
             try {
-              const antwort: any = await foundryClient.query(`${MODULE_ID}.listFremdwerkzeuge`);
-              const fremde = (antwort?.tools ?? []).filter(
+              const answer: any = await foundryClient.query(`${MODULE_ID}.listExtensionTools`);
+              const extension = (answer?.tools ?? []).filter(
                 (t: any) => t?.name && !allTools.some((e: any) => e.name === t.name)
               );
-              if (fremde.length) {
-                werkzeuge = [
+              if (extension.length) {
+                tools = [
                   ...allTools,
-                  ...fremde.map((t: any) => ({
+                  ...extension.map((t: any) => ({
                     name: t.name,
-                    description: `${t.description} (aus dem Modul ${t.modulKennung})`,
+                    description: `${t.description} (from the module ${t.moduleId})`,
                     inputSchema: t.inputSchema,
                   })),
                 ];
-                logger.info(`${fremde.length} Werkzeug(e) aus fremden Modulen dazugenommen`);
+                logger.info(`Added ${extension.length} tool(s) from other modules`);
               }
             } catch {
-              // Keine Verbindung oder kein freigegebenes Modul - kein Grund,
-              // die eigene Werkzeugliste zu verweigern.
+              // No connection, or no released module - neither is a reason to
+              // withhold our own tool list.
             }
-            socket.write(JSON.stringify({ id: msg.id, result: { tools: werkzeuge } }) + '\n');
+            socket.write(JSON.stringify({ id: msg.id, result: { tools } }) + '\n');
 
             continue;
           }
@@ -2086,19 +2086,25 @@ async function startBackend(): Promise<void> {
                   break;
 
                 default: {
-                  // NINJO: Kein eigenes Werkzeug - koennte eines aus einem fremden
-                  // Modul sein. Der Aufruf geht zurueck ins Modul, wo der Handler
-                  // des anmeldenden Moduls laeuft, mit dessen eigenen Regeln. Ist
-                  // dort nichts angemeldet, kommt von da die klare Fehlermeldung.
-                  const fremd: any = await foundryClient.query(`${MODULE_ID}.callFremdwerkzeug`, {
-                    name,
-                    args,
-                  });
+                  // NINJO: Not one of ours - it may be a tool from another module.
+                  // The call goes back into the module, where the registering
+                  // module's handler runs with its own rules. If nothing is
+                  // registered there, the clear error comes from there.
+                  const extensionResult: any = await foundryClient.query(
+                    `${MODULE_ID}.callExtensionTool`,
+                    {
+                      name,
+                      args,
+                    }
+                  );
                   result = {
                     content: [
                       {
                         type: 'text',
-                        text: typeof fremd === 'string' ? fremd : JSON.stringify(fremd, null, 2),
+                        text:
+                          typeof extensionResult === 'string'
+                            ? extensionResult
+                            : JSON.stringify(extensionResult, null, 2),
                       },
                     ],
                   };

@@ -1,9 +1,10 @@
 import { MODULE_ID } from './constants.js';
 import {
-  fremdwerkzeugeSammeln,
-  werkzeugAnmelden,
-  eigeneWerkzeugnamenSetzen,
-} from './fremdwerkzeuge.js';
+  collectExtensionTools,
+  registerTool,
+  setOwnToolNames,
+  migrateToolProvidersSetting,
+} from './extension-tools.js';
 import { SocketBridge } from './socket-bridge.js';
 import { QueryHandlers } from './queries.js';
 import { ModuleSettings } from './settings.js';
@@ -53,18 +54,14 @@ class FoundryMCPBridge {
       // Register query handlers
       this.queryHandlers.registerHandlers();
 
-      // NINJO: Erst die eigenen Werkzeugnamen bekanntmachen, damit ein fremdes
-      // Modul keines davon ueberschreiben kann, dann anmelden lassen. Muss nach
-      // registerSettings stehen - die Freigabeliste wird beim Anmelden gelesen.
-      eigeneWerkzeugnamenSetzen(
-        Object.keys(CONFIG.queries ?? {}).map(k => k.split('.').pop() as string)
-      );
-      fremdwerkzeugeSammeln();
+      // NINJO: Make our own tool names known first, so a third-party module
+      // cannot override one of them, then let modules register. Must run after
+      // registerSettings — the release list is read while registering.
+      setOwnToolNames(Object.keys(CONFIG.queries ?? {}).map(k => k.split('.').pop() as string));
+      collectExtensionTools();
 
-      // Andere Module koennen auch ueber die API anmelden, nicht nur ueber den Hook.
-      (game.modules.get(MODULE_ID) as any).api = {
-        werkzeugAnmelden,
-      };
+      // Modules can register through the API as well, not only through the hook.
+      (game.modules.get(MODULE_ID) as any).api = { registerTool };
 
       // Register campaign hooks for interactive dashboards
       this.campaignHooks.register();
@@ -98,6 +95,11 @@ class FoundryMCPBridge {
       // Wert gelesen wird — sonst startet eine bestehende Welt mit Standardwerten
       // und verbindet sich womoeglich gar nicht erst.
       await this.settings.uebernehmeAlteEinstellungen();
+
+      // NINJO: Die Freigabeliste hiess in 14.2609.2 noch werkzeugModule. Ohne
+      // diesen Schritt stuende sie nach dem Umbenennen leer da, und ein bereits
+      // freigegebenes Modul koennte nichts mehr anmelden.
+      await migrateToolProvidersSetting();
 
       // Connection control now handled through settings menu
 
