@@ -1,4 +1,5 @@
 import { MODULE_ID } from './constants.js';
+import { fremdwerkzeugeAuflisten, fremdwerkzeugAufrufen } from './fremdwerkzeuge.js';
 import { FoundryDataAccess } from './data-access.js';
 import { ComfyUIManager } from './comfyui-manager.js';
 
@@ -37,6 +38,10 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.listCreaturesByCriteria`] =
       this.handleListCreaturesByCriteria.bind(this);
     CONFIG.queries[`${modulePrefix}.getAvailablePacks`] = this.handleGetAvailablePacks.bind(this);
+    // NINJO: Werkzeuge, die andere Module angemeldet haben. Der Server holt sich
+    // die Liste beim Verbinden und reicht Aufrufe hierher zurueck.
+    CONFIG.queries[`${modulePrefix}.listFremdwerkzeuge`] = this.handleListFremdwerkzeuge.bind(this);
+    CONFIG.queries[`${modulePrefix}.callFremdwerkzeug`] = this.handleCallFremdwerkzeug.bind(this);
     // NINJO: Der Server rief getPackIndex auf, ohne dass es hier je registriert war.
     // Beide Schreibweisen wie bei den uebrigen Abfragen.
     CONFIG.queries[`${modulePrefix}.getPackIndex`] = this.handleGetPackIndex.bind(this);
@@ -401,6 +406,31 @@ export class QueryHandlers {
   /**
    * Handle get available packs request
    */
+  private async handleListFremdwerkzeuge(): Promise<any> {
+    try {
+      const gmCheck = this.validateGMAccess();
+      if (!gmCheck.allowed) return { error: 'Access denied', success: false };
+      return { tools: fremdwerkzeugeAuflisten() };
+    } catch (error) {
+      throw new Error(
+        `Failed to list third-party tools: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  private async handleCallFremdwerkzeug(data: any): Promise<any> {
+    try {
+      const gmCheck = this.validateGMAccess();
+      if (!gmCheck.allowed) return { error: 'Access denied', success: false };
+      if (!data?.name) throw new Error('name is required');
+      return await fremdwerkzeugAufrufen(data.name, data.args ?? {});
+    } catch (error) {
+      throw new Error(
+        `Third-party tool failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
   private async handleGetAvailablePacks(): Promise<any> {
     try {
       // SECURITY: Silent GM validation

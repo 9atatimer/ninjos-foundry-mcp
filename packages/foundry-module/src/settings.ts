@@ -512,6 +512,20 @@ export class ModuleSettings {
       default: 'write',
     });
 
+    // NINJO: Welche fremden Module eigene MCP-Werkzeuge anmelden duerfen.
+    //
+    // Ab Werk leer, und das ist Absicht: Der Handler eines fremden Moduls laeuft
+    // an der Rechtematrix dieses Moduls vorbei. Wer ein Modul hier eintraegt,
+    // vertraut ihm denselben Zugriff an, den er dem Modell gibt.
+    game.settings.register(this.moduleId, 'werkzeugModule', {
+      name: `${MODULE_ID}.settings.werkzeugModule.name`,
+      hint: `${MODULE_ID}.settings.werkzeugModule.hint`,
+      scope: 'world',
+      config: true,
+      type: String,
+      default: '',
+    });
+
     game.settings.register(this.moduleId, 'writableCompendiums', {
       name: 'ninjos-foundry-mcp.settings.writableCompendiums.name',
       hint: 'ninjos-foundry-mcp.settings.writableCompendiums.hint',

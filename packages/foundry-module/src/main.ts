@@ -1,4 +1,9 @@
 import { MODULE_ID } from './constants.js';
+import {
+  fremdwerkzeugeSammeln,
+  werkzeugAnmelden,
+  eigeneWerkzeugnamenSetzen,
+} from './fremdwerkzeuge.js';
 import { SocketBridge } from './socket-bridge.js';
 import { QueryHandlers } from './queries.js';
 import { ModuleSettings } from './settings.js';
@@ -47,6 +52,19 @@ class FoundryMCPBridge {
 
       // Register query handlers
       this.queryHandlers.registerHandlers();
+
+      // NINJO: Erst die eigenen Werkzeugnamen bekanntmachen, damit ein fremdes
+      // Modul keines davon ueberschreiben kann, dann anmelden lassen. Muss nach
+      // registerSettings stehen - die Freigabeliste wird beim Anmelden gelesen.
+      eigeneWerkzeugnamenSetzen(
+        Object.keys(CONFIG.queries ?? {}).map(k => k.split('.').pop() as string)
+      );
+      fremdwerkzeugeSammeln();
+
+      // Andere Module koennen auch ueber die API anmelden, nicht nur ueber den Hook.
+      (game.modules.get(MODULE_ID) as any).api = {
+        werkzeugAnmelden,
+      };
 
       // Register campaign hooks for interactive dashboards
       this.campaignHooks.register();

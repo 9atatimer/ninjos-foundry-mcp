@@ -121,6 +121,10 @@
       "writableCompendiums": {
         "name": "Rechte · Kompendien zum Bearbeiten",
         "hint": "Kennungen der Kompendien, die bearbeitet werden dürfen, durch Komma getrennt (z. B. ninjo-kompendium.journale). Auch ein Modulname allein gilt für alle seine Kompendien. Bleibt das Feld leer, darf jedes entsperrte Kompendium bearbeitet werden."
+      },
+      "werkzeugModule": {
+        "name": "Rechte · Module mit eigenen Werkzeugen",
+        "hint": "Kennungen der Module, die dem KI-Modell eigene Werkzeuge anbieten duerfen, durch Komma getrennt (z. B. ninjos-shops). Ab Werk leer: Der Handler eines fremden Moduls arbeitet an der Rechtematrix oben vorbei, deshalb muss jedes Modul einzeln freigegeben werden."
       }
     },
     "menus": {

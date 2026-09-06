@@ -40,6 +40,8 @@ import { WFRP4eUpdateActorTools } from './tools/wfrp4e/update-actor.js';
 import { WFRP4eAddItemsTools } from './tools/wfrp4e/add-items.js';
 
 import { MapGenerationTools } from './tools/map-generation.js';
+// NINJO: Die Modulkennung fuer die Abfragen an fremde Werkzeuge.
+import { MODULE_ID } from '@foundry-mcp/shared';
 
 import { TokenManipulationTools } from './tools/token-manipulation.js';
 
@@ -1605,7 +1607,32 @@ async function startBackend(): Promise<void> {
           }
 
           if (msg.method === 'list_tools') {
-            socket.write(JSON.stringify({ id: msg.id, result: { tools: allTools } }) + '\n');
+            // NINJO: Werkzeuge, die andere Foundry-Module angemeldet haben,
+            // kommen hier dazu. Sie stehen erst fest, wenn eine Welt geladen ist -
+            // deshalb werden sie bei jeder Anfrage geholt und nicht beim Start
+            // eingefroren. Ist die Bruecke getrennt, bleibt es bei den eigenen.
+            let werkzeuge: any[] = allTools;
+            try {
+              const antwort: any = await foundryClient.query(`${MODULE_ID}.listFremdwerkzeuge`);
+              const fremde = (antwort?.tools ?? []).filter(
+                (t: any) => t?.name && !allTools.some((e: any) => e.name === t.name)
+              );
+              if (fremde.length) {
+                werkzeuge = [
+                  ...allTools,
+                  ...fremde.map((t: any) => ({
+                    name: t.name,
+                    description: `${t.description} (aus dem Modul ${t.modulKennung})`,
+                    inputSchema: t.inputSchema,
+                  })),
+                ];
+                logger.info(`${fremde.length} Werkzeug(e) aus fremden Modulen dazugenommen`);
+              }
+            } catch {
+              // Keine Verbindung oder kein freigegebenes Modul - kein Grund,
+              // die eigene Werkzeugliste zu verweigern.
+            }
+            socket.write(JSON.stringify({ id: msg.id, result: { tools: werkzeuge } }) + '\n');
 
             continue;
           }
@@ -2058,8 +2085,25 @@ async function startBackend(): Promise<void> {
 
                   break;
 
-                default:
-                  throw new Error(`Unknown tool: ${name}`);
+                default: {
+                  // NINJO: Kein eigenes Werkzeug - koennte eines aus einem fremden
+                  // Modul sein. Der Aufruf geht zurueck ins Modul, wo der Handler
+                  // des anmeldenden Moduls laeuft, mit dessen eigenen Regeln. Ist
+                  // dort nichts angemeldet, kommt von da die klare Fehlermeldung.
+                  const fremd: any = await foundryClient.query(`${MODULE_ID}.callFremdwerkzeug`, {
+                    name,
+                    args,
+                  });
+                  result = {
+                    content: [
+                      {
+                        type: 'text',
+                        text: typeof fremd === 'string' ? fremd : JSON.stringify(fremd, null, 2),
+                      },
+                    ],
+                  };
+                  break;
+                }
               }
 
               const payload = {
