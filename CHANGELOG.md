@@ -1,3 +1,47 @@
+## v14.2609.3 (2026-09-07)
+
+### The bridge could be dead without anything saying so
+
+On 2026-09-06 the bridge was down for eleven hours before anyone noticed. The
+backend starts a signaling server for the WebRTC detour on port 31416, and a
+failure there rejected — so `start()` gave up before it ever reached the listen
+call for the actual bridge port. The backend still came up, registered every
+system adapter, offered all 79 tools, and answered each one with "module not
+connected".
+
+WebRTC is only the detour for a browser that refuses `ws://` — Foundry served
+over HTTPS from a non-loopback host. Losing the detour costs that one case;
+losing the bridge costs every case. A failure there is now a warning and startup
+carries on, and every start logs whether the detour is available.
+
+### The GM can see the bridge state at a glance
+
+A small readout above the player list: green when connected, gold while
+connecting, red when not, grey when switched off in the settings. Clicking a dead
+bridge reconnects it and reports what happened; hovering shows the host and port.
+
+It is deliberately quiet while things work — an indicator that alarms when
+everything is fine gets ignored, and is then worth nothing on the day it is
+right. "Switched off" is grey rather than red for the same reason. GM only, since
+players can neither act on it nor change the settings.
+
+### The source is in English now
+
+Comments, identifiers and error messages throughout both packages. The repository
+is public, and everything needed to follow a bug or send a patch was in German.
+Comments were translated, not shortened — they carry the reasoning, which is the
+part nobody can reconstruct from a diff.
+
+Two field names crossed the server/module boundary and moved together, and the
+setting `werkzeugModule` became `toolProviderModules`. A world that filled the
+old key keeps its list: it is carried over once at the next world start, and the
+old query names `listFremdwerkzeuge` and `callFremdwerkzeug` stay registered as
+aliases, so a module still on 14.2609.2 keeps answering.
+
+The upstream system adapters under `src/systems/` (dsa5, mgt2e, wfrp4e) were left
+as they came in — rewriting them would make every future comparison against the
+origin harder, and their German is the vocabulary of a German game system.
+
 ## v14.2609.2 (2026-09-06)
 
 Three defects in what the Windows installer hands out, found by staging its

@@ -1,6 +1,6 @@
 {
   "name": "@foundry-mcp/server",
-  "version": "14.2609.2",
+  "version": "14.2609.3",
   "description": "MCP server for Foundry VTT integration with Claude Desktop",
   "type": "module",
   "main": "dist/index.js",
