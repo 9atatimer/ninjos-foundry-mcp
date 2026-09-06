@@ -144,6 +144,21 @@
       "connected": "✅ Verbunden",
       "disconnected": "❌ Getrennt — über die Verbindungsleiste verbinden"
     },
+    "indicator": {
+      "on": "MCP: verbunden",
+      "onDetail": "Brücke zu",
+      "connecting": "MCP: verbindet …",
+      "attempt": "Versuch",
+      "down": "MCP: getrennt",
+      "downDetail": "Keine Brücke zu",
+      "downHint": "Läuft der MCP-Server auf dem PC? Klicken versucht es erneut.",
+      "off": "MCP: aus",
+      "offDetail": "Die Brücke ist in den Moduleinstellungen ausgeschaltet.",
+      "unknown": "MCP: keine Antwort",
+      "unknownDetail": "Das Modul ist geladen, meldet aber keinen Zustand.",
+      "retrying": "MCP-Brücke wird neu verbunden …",
+      "retryFailed": "Neu verbinden fehlgeschlagen"
+    },
     "common": {
       "apply": "Übernehmen",
       "save": "Speichern"

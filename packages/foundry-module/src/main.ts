@@ -11,6 +11,7 @@ import { ModuleSettings } from './settings.js';
 import { CampaignHooks } from './campaign-hooks.js';
 import { ComfyUIManager } from './comfyui-manager.js';
 import { willkommenEinrichten, willkommenZeigen } from './willkommen.js';
+import { installStatusIndicator, refreshStatusIndicator } from './status-indicator.js';
 // Connection control now handled through settings menu
 
 /**
@@ -100,6 +101,11 @@ class FoundryMCPBridge {
       // Without this step it would stand empty after the rename, and a module that
       // was already released could no longer register anything.
       await migrateToolProvidersSetting();
+
+      // NINJO: the GM's readout of the bridge state. Installed before the
+      // connection attempt below, so that a failure to connect is already
+      // visible while it happens rather than only afterwards.
+      installStatusIndicator();
 
       // Connection control now handled through settings menu
 
@@ -225,6 +231,7 @@ class FoundryMCPBridge {
 
       // Update settings display with connection status
       this.settings.updateConnectionStatusDisplay(true, 17); // 17 MCP tools
+      refreshStatusIndicator();
 
       // Start heartbeat monitoring if enabled
       this.startHeartbeat();
@@ -298,6 +305,7 @@ class FoundryMCPBridge {
 
       // Update settings display with disconnected status
       this.settings.updateConnectionStatusDisplay(false, 0);
+      refreshStatusIndicator();
 
       console.log(`[${MODULE_ID}] Bridge stopped`);
 

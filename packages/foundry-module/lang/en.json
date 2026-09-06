@@ -144,6 +144,21 @@
       "connected": "✅ Connected",
       "disconnected": "❌ Disconnected — use the connection panel to connect"
     },
+    "indicator": {
+      "on": "MCP: connected",
+      "onDetail": "Bridge to",
+      "connecting": "MCP: connecting…",
+      "attempt": "Attempt",
+      "down": "MCP: disconnected",
+      "downDetail": "No bridge to",
+      "downHint": "Is the MCP server running on the PC? Click to try again.",
+      "off": "MCP: off",
+      "offDetail": "The bridge is switched off in the module settings.",
+      "unknown": "MCP: no answer",
+      "unknownDetail": "The module is loaded but reports no state.",
+      "retrying": "Reconnecting the MCP bridge…",
+      "retryFailed": "Reconnecting failed"
+    },
     "common": {
       "apply": "Apply",
       "save": "Save"
