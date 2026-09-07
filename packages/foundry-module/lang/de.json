@@ -213,6 +213,28 @@
     },
     "migration": {
       "carriedOver": "{count} Einstellungen aus der bisherigen Modulkennung übernommen."
+    },
+    "notify": {
+      "gmOnlyProgress": "Nur die Spielleitung kann den Kampagnenfortschritt ändern.",
+      "progressSaveFailed": "Der Kampagnenfortschritt konnte nicht gespeichert werden.",
+      "progressUpdateFailed": "Der Kampagnenfortschritt konnte nicht aktualisiert werden.",
+      "comfyAlreadyRunning": "Der ComfyUI-Dienst läuft bereits.",
+      "comfyStarting": "Der ComfyUI-Dienst wird gestartet …",
+      "backendMissing": "Keine Verbindung zum MCP-Server — der Dienst lässt sich von hier nicht anhalten.",
+      "comfyStopped": "ComfyUI-Dienst angehalten: {grund}",
+      "rollNotAllowed": "Diesen Wurf darfst du nicht ausführen.",
+      "rollFailed": "Der Wurf konnte nicht ausgeführt werden.",
+      "indexBuilding": "Der Kreaturenindex wird für die Suche aufgebaut …",
+      "connected": "MCP-Brücke verbunden.",
+      "disconnected": "MCP-Brücke getrennt.",
+      "lostConnection": "Verbindung zum Modell verloren — die automatische Neuverbindung ist aus.",
+      "indexRebuilding": "Der Kreaturenindex wird neu aufgebaut …",
+      "mapgenSaved": "Einstellungen der Kartenerzeugung gespeichert.",
+      "settingsReset": "Die Einstellungen der MCP-Brücke stehen wieder auf den Werkswerten.",
+      "sceneCreated": "Szene „{name}“ angelegt.",
+      "sceneSwitched": "Zu „{name}“ gewechselt — bereit zum Setzen der Figuren.",
+      "wallsCreated": "{anzahl} Wände in „{name}“ angelegt.",
+      "noWalls": "Aus der Erkennung ließen sich keine brauchbaren Wände bilden."
     }
   },
   "MCP": {

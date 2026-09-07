@@ -9,20 +9,20 @@
 
 .mcp-menu {
   /* Pergament */
-  --mcp-bg: #fdfbf7;
+  --mcp-bg: var(--ninjo-grund);
   --mcp-card: #ffffff;
-  --mcp-nav: #f4f1ea;
-  --mcp-border: #dcd6cc;
-  --mcp-text: #1a1a1a;
+  --mcp-nav: var(--ninjo-leiste);
+  --mcp-border: var(--ninjo-rand);
+  --mcp-text: var(--ninjo-text);
   --mcp-text-weak: #5f5a52;
 
   /* Akzente */
-  --mcp-red: #8b0000;
-  --mcp-red-dark: #600000;
-  --mcp-gold: #d4af37;
+  --mcp-red: var(--ninjo-marke);
+  --mcp-red-dark: var(--ninjo-marke-tief);
+  --mcp-gold: var(--ninjo-akzent);
   --mcp-heading: #5f4a21;
 
-  --mcp-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --mcp-font: var(--ninjo-schrift);
   --mcp-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
   background: var(--mcp-bg);
@@ -364,7 +364,7 @@
   border-radius: 3px;
   border: 1px solid rgba(212, 175, 55, 0.25);
   background: rgba(0, 0, 0, 0.25);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: var(--ninjo-schrift);
   font-size: 11px;
   line-height: 1.3;
   color: #d8d3c8;

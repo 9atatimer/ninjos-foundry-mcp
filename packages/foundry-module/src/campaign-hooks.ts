@@ -1,3 +1,4 @@
+import { melde } from './meldungen.js';
 // Campaign Dashboard Interactive Hooks
 // Implements clickable status toggles using Foundry's native hook system
 
@@ -182,7 +183,7 @@ export class CampaignHooks {
 
       // Only allow GM to modify campaign progress
       if (!game.user?.isGM) {
-        ui.notifications?.warn('Only GMs can modify campaign progress');
+        melde.warn('gmOnlyProgress', 'Only the gamemaster can change campaign progress.');
         return;
       }
 
@@ -203,14 +204,14 @@ export class CampaignHooks {
         // Success - no notification banner needed (visual feedback already provided by toggle)
       } catch (error) {
         console.error('[Campaign Status] Failed to save status:', error);
-        ui.notifications?.error('Failed to save campaign progress');
+        melde.error('progressSaveFailed', 'Campaign progress could not be saved.');
 
         // Revert visual change on error
         this.updateToggleVisual(target, currentStatus);
       }
     } catch (error) {
       console.error('Error handling status toggle click:', error);
-      ui.notifications?.error('Failed to update campaign progress');
+      melde.error('progressUpdateFailed', 'Campaign progress could not be updated.');
     }
   }
 

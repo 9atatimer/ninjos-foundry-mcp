@@ -20,7 +20,12 @@
   "readme": "https://github.com/Niclasp1501/ninjos-foundry-mcp/blob/main/README.md",
   "license": "https://github.com/Niclasp1501/ninjos-foundry-mcp/blob/main/LICENSE",
   "esmodules": ["dist/main.js"],
-  "styles": ["styles/module.css", "styles/enhanced-creature-index.css", "styles/ninjo-menu.css"],
+  "styles": [
+    "styles/ninjo-marke.css",
+    "styles/module.css",
+    "styles/enhanced-creature-index.css",
+    "styles/ninjo-menu.css"
+  ],
   "languages": [
     {
       "lang": "en",

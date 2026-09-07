@@ -1,6 +1,7 @@
 import { MODULE_ID, ERROR_MESSAGES, TOKEN_DISPOSITIONS } from './constants.js';
 import { permissionManager } from './permissions.js';
 import { transactionManager } from './transaction-manager.js';
+import { melde } from './meldungen.js';
 // Local type definitions to avoid shared package import issues
 interface CharacterInfo {
   id: string;
@@ -7274,7 +7275,7 @@ export class FoundryDataAccess {
 
       if (!canExecuteRoll) {
         console.warn(`[${MODULE_ID}] Permission denied for roll execution`);
-        ui.notifications?.warn('You do not have permission to execute this roll');
+        melde.warn('rollNotAllowed', 'You may not make this roll.');
         return;
       }
 
@@ -7340,7 +7341,7 @@ export class FoundryDataAccess {
         }
       } catch (error) {
         console.error(`[${MODULE_ID}] Error executing roll:`, error);
-        ui.notifications?.error('Failed to execute roll');
+        melde.error('rollFailed', 'The roll could not be made.');
 
         // Re-enable button on error so user can try again
         button.prop('disabled', false);

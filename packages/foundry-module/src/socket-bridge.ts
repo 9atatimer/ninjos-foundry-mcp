@@ -1,5 +1,6 @@
 import { MODULE_ID, CONNECTION_STATES } from './constants.js';
 import { WebRTCConnection, type WebRTCConfig } from './webrtc-connection.js';
+import { melde } from './meldungen.js';
 
 export interface BridgeConfig {
   enabled: boolean;
@@ -351,13 +352,15 @@ export class SocketBridge {
         await this.createSceneWalls(scene, sceneData.walls);
       }
 
-      ui.notifications?.info(`Scene "${sceneData.name}" created successfully!`);
+      melde.info('sceneCreated', 'Scene “{name}” created.', { name: String(sceneData.name ?? '') });
 
       // Auto-activate the scene if enabled
       const autoActivate = true; // You might want to make this configurable
       if (autoActivate) {
         await scene.activate();
-        ui.notifications?.info(`Switched to "${sceneData.name}" - Ready for token placement!`);
+        melde.info('sceneSwitched', 'Switched to “{name}” — ready to place tokens.', {
+          name: String(sceneData.name ?? ''),
+        });
       }
 
       this.log(`Scene "${sceneData.name}" created and activated`);
@@ -408,10 +411,13 @@ export class SocketBridge {
 
       if (wallDocuments.length > 0) {
         await scene.createEmbeddedDocuments('Wall', wallDocuments);
-        ui.notifications?.info(`Created ${wallDocuments.length} walls in scene "${scene.name}"`);
+        melde.info('wallsCreated', '{anzahl} walls created in “{name}”.', {
+          anzahl: wallDocuments.length,
+          name: String(scene.name ?? ''),
+        });
       } else {
         this.log('No valid walls to create');
-        ui.notifications?.warn('No valid walls could be created from detection data');
+        melde.warn('noWalls', 'No usable walls came out of the detection.');
       }
     } catch (error) {
       this.log(

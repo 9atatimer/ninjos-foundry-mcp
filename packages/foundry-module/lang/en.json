@@ -213,6 +213,28 @@
     },
     "migration": {
       "carriedOver": "Carried over {count} settings from the previous module id."
+    },
+    "notify": {
+      "gmOnlyProgress": "Only the gamemaster can change campaign progress.",
+      "progressSaveFailed": "Campaign progress could not be saved.",
+      "progressUpdateFailed": "Campaign progress could not be updated.",
+      "comfyAlreadyRunning": "The ComfyUI service is already running.",
+      "comfyStarting": "Starting the ComfyUI service…",
+      "backendMissing": "No connection to the MCP server — the service cannot be stopped from here.",
+      "comfyStopped": "ComfyUI service stopped: {grund}",
+      "rollNotAllowed": "You may not make this roll.",
+      "rollFailed": "The roll could not be made.",
+      "indexBuilding": "Building the creature index for faster searching…",
+      "connected": "MCP bridge connected.",
+      "disconnected": "MCP bridge disconnected.",
+      "lostConnection": "Connection to the model lost — automatic reconnecting is switched off.",
+      "indexRebuilding": "Rebuilding the creature index…",
+      "mapgenSaved": "Map generation settings saved.",
+      "settingsReset": "MCP bridge settings reset to their defaults.",
+      "sceneCreated": "Scene “{name}” created.",
+      "sceneSwitched": "Switched to “{name}” — ready to place tokens.",
+      "wallsCreated": "{anzahl} walls created in “{name}”.",
+      "noWalls": "No usable walls came out of the detection."
     }
   },
   "MCP": {

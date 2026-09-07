@@ -1,4 +1,5 @@
 import { MODULE_ID } from './constants.js';
+import { melde } from './meldungen.js';
 
 /**
  * ComfyUI Service Manager - adapted from working foundry-mcp-mapgen implementation
@@ -39,7 +40,7 @@ export class ComfyUIManager {
         const status = await this.checkStatus();
 
         if (status.status === 'running') {
-          ui.notifications?.info('ComfyUI service is already running');
+          melde.info('comfyAlreadyRunning', 'The ComfyUI service is already running.');
           return status;
         } else {
           const helpMessage =
@@ -71,7 +72,7 @@ export class ComfyUIManager {
 
   async startServiceWithProgress(): Promise<{ status: string; message?: string; phase?: string }> {
     // Show initial progress notification
-    ui.notifications?.info('Starting ComfyUI service...');
+    melde.info('comfyStarting', 'Starting the ComfyUI service…');
 
     const maxWaitTime = 90000; // 90 seconds total timeout
     const pollInterval = 5000; // Poll every 5 seconds
@@ -202,7 +203,9 @@ export class ComfyUIManager {
         this.serviceStatus = result.status;
 
         if (result.status === 'stopped' || result.status === 'already_stopped') {
-          ui.notifications?.info(`ComfyUI service stopped: ${result.message}`);
+          melde.info('comfyStopped', 'ComfyUI service stopped: {grund}', {
+            grund: String(result.message ?? ''),
+          });
         } else {
           ui.notifications?.warn(
             `ComfyUI service could not be stopped: ${result.message || 'Unknown error'}`
@@ -211,7 +214,10 @@ export class ComfyUIManager {
 
         return result;
       } else {
-        ui.notifications?.warn('MCP backend not connected. Cannot stop service remotely.');
+        melde.warn(
+          'backendMissing',
+          'No connection to the MCP server — the service cannot be stopped from here.'
+        );
         return { status: 'backend_unavailable', message: 'MCP backend not connected' };
       }
     } catch (error) {

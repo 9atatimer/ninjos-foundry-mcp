@@ -12,6 +12,8 @@ import { CampaignHooks } from './campaign-hooks.js';
 import { ComfyUIManager } from './comfyui-manager.js';
 import { willkommenEinrichten, willkommenZeigen } from './willkommen.js';
 import { installStatusIndicator, refreshStatusIndicator } from './status-indicator.js';
+import { fensterPassenEinrichten } from './fensterpassen.js';
+import { melde } from './meldungen.js';
 // Connection control now handled through settings menu
 
 /**
@@ -163,7 +165,7 @@ class FoundryMCPBridge {
           console.log(
             `[${MODULE_ID}] Enhanced creature index not found, building automatically for better UX...`
           );
-          ui.notifications?.info('Building enhanced creature index for faster searches...');
+          melde.info('indexBuilding', 'Building the creature index for faster searching…');
 
           // Trigger index build through data access
           if (this.queryHandlers?.dataAccess?.rebuildEnhancedCreatureIndex) {
@@ -238,7 +240,7 @@ class FoundryMCPBridge {
 
       // Show connection notification based on user preference
       if (this.settings.getSetting('enableNotifications')) {
-        ui.notifications.info('🔗 MCP Bridge connected successfully');
+        melde.info('connected', 'MCP bridge connected.');
       }
       console.log(
         `[${MODULE_ID}] GM connection established - Bridge active for user: ${game.user?.name}`
@@ -311,7 +313,7 @@ class FoundryMCPBridge {
 
       // Show disconnection notification based on user preference
       if (this.settings.getSetting('enableNotifications')) {
-        ui.notifications.info('MCP Bridge disconnected');
+        melde.info('disconnected', 'MCP bridge disconnected.');
       }
     } catch (error) {
       console.error(`[${MODULE_ID}] Error stopping bridge:`, error);
@@ -412,7 +414,10 @@ class FoundryMCPBridge {
           // Disable further attempts until manual intervention
           await this.settings.setSetting('autoReconnectEnabled', false);
           if (this.settings.getSetting('enableNotifications')) {
-            ui.notifications.warn('⚠️ Lost connection to AI model - Auto-reconnect disabled');
+            melde.warn(
+              'lostConnection',
+              'Connection to the model lost — automatic reconnecting is switched off.'
+            );
           }
         }
       }
@@ -449,9 +454,7 @@ class FoundryMCPBridge {
       console.log(`[${MODULE_ID}] Starting ComfyUI monitoring...`);
 
       // Show initial loading banner
-      ui.notifications?.info(
-        `🔗 Starting AI Map Generation service... (Models loading, please wait)`
-      );
+      ui.notifications?.info(`Starting the map generation service… (loading models, please wait)`);
 
       let attempts = 0;
       const maxAttempts = 24; // 2 minutes with 5-second intervals
@@ -466,9 +469,7 @@ class FoundryMCPBridge {
 
           if (status.status === 'running') {
             // Success! ComfyUI is ready
-            ui.notifications?.info(
-              `✅ AI Map Generation service ready! Models loaded successfully.`
-            );
+            ui.notifications?.info(`Map generation service ready — models loaded.`);
             console.log(
               `[${MODULE_ID}] ComfyUI ready after ${attempts} attempts (${attempts * 5}s)`
             );
@@ -478,7 +479,7 @@ class FoundryMCPBridge {
           if (attempts >= maxAttempts) {
             // Timeout - show failure banner
             ui.notifications?.warn(
-              `⚠️ AI Map Generation service failed to start (timeout after 2 minutes). Check ComfyUI installation.`
+              `Map generation service did not start within two minutes. Check the ComfyUI installation.`
             );
             console.warn(`[${MODULE_ID}] ComfyUI startup timeout after ${maxAttempts} attempts`);
             return;
@@ -546,6 +547,7 @@ Hooks.once('init', async () => {
 });
 
 Hooks.once('ready', async () => {
+  fensterPassenEinrichten();
   try {
     await foundryMCPBridge.onReady();
 

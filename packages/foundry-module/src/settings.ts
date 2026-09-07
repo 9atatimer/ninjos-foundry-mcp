@@ -1,5 +1,6 @@
 import { MODULE_ID, DEFAULT_CONFIG } from './constants.js';
 import type { BridgeConfig } from './socket-bridge.js';
+import { melde } from './meldungen.js';
 
 export class ModuleSettings {
   private moduleId: string = MODULE_ID;
@@ -21,6 +22,8 @@ export class ModuleSettings {
       type: class extends FormApplication {
         static get defaultOptions() {
           return foundry.utils.mergeObject(super.defaultOptions, {
+            // NINJO: Marke am Fensterrahmen - daran erkennt fensterpassen.js unsere Fenster.
+            classes: [MODULE_ID],
             title: game.i18n.localize(`${MODULE_ID}.index.window`),
             template: `modules/${MODULE_ID}/templates/enhanced-index-menu.html`,
             width: 560,
@@ -45,7 +48,7 @@ export class ModuleSettings {
           html.find('.rebuild-index-btn').click(() => {
             const bridge = (globalThis as any).foundryMCPBridge;
             if (bridge?.dataAccess?.rebuildEnhancedCreatureIndex) {
-              ui.notifications?.info('Rebuilding enhanced creature index...');
+              melde.info('indexRebuilding', 'Rebuilding the creature index…');
               bridge.dataAccess.rebuildEnhancedCreatureIndex();
             }
           });
@@ -72,6 +75,8 @@ export class ModuleSettings {
       type: class extends FormApplication {
         static get defaultOptions() {
           return foundry.utils.mergeObject(super.defaultOptions, {
+            // NINJO: Marke am Fensterrahmen - daran erkennt fensterpassen.js unsere Fenster.
+            classes: [MODULE_ID],
             title: game.i18n.localize(`${MODULE_ID}.compendiumAccess.window`),
             template: `modules/${MODULE_ID}/templates/compendium-access.html`,
             width: 620,
@@ -248,6 +253,8 @@ export class ModuleSettings {
       type: class extends FormApplication {
         static get defaultOptions() {
           return foundry.utils.mergeObject(super.defaultOptions, {
+            // NINJO: Marke am Fensterrahmen - daran erkennt fensterpassen.js unsere Fenster.
+            classes: [MODULE_ID],
             title: game.i18n.localize(`${MODULE_ID}.mapgen.window`),
             template: `modules/${MODULE_ID}/templates/comfyui-settings.html`,
             width: 560,
@@ -360,7 +367,7 @@ export class ModuleSettings {
         async _updateObject(_event: Event, formData: any) {
           await game.settings.set(MODULE_ID, 'mapGenAutoStart', formData.autoStartService);
           await game.settings.set(MODULE_ID, 'mapGenQuality', formData.mapGenQuality);
-          ui.notifications?.info('Map generation service settings saved successfully');
+          melde.info('mapgenSaved', 'Map generation settings saved.');
         }
       },
       restricted: true,
@@ -924,7 +931,7 @@ export class ModuleSettings {
       }
     }
 
-    ui.notifications.info('MCP Bridge settings have been reset to defaults');
+    melde.info('settingsReset', 'MCP bridge settings reset to their defaults.');
   }
 
   /**
