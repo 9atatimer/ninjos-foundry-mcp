@@ -16,14 +16,15 @@
   past the highest under `tasks/` (including `done/`).
 - `npm run pruefen` must pass before any commit that touches query names.
 
-| Reference               | Where                         |
-| ----------------------- | ----------------------------- |
-| Repo agent instructions | `AGENT.md`                    |
-| Design records          | `docs/design/` (empty)        |
-| As-built                | `docs/arch/` (empty)          |
-| Concepts                | `docs/concepts/` (empty)      |
-| Adding a game system    | `ADDING_NEW_SYSTEMS.md`       |
-| Ninjo's own extensions  | `docs/NINJO-ERWEITERUNGEN.md` |
+| Reference                    | Where                         |
+| ---------------------------- | ----------------------------- |
+| Repo agent instructions      | `AGENT.md`                    |
+| Dev environment, clean slate | `docs/DEV-ENVIRONMENT.md`     |
+| Design records               | `docs/design/` (empty)        |
+| As-built                     | `docs/arch/` (empty)          |
+| Concepts                     | `docs/concepts/` (empty)      |
+| Adding a game system         | `ADDING_NEW_SYSTEMS.md`       |
+| Ninjo's own extensions       | `docs/NINJO-ERWEITERUNGEN.md` |
 
 ## Where Things Stand
 

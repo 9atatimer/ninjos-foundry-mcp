@@ -56,6 +56,9 @@ npm run pruefen            # must pass
 
 ## Running the local dev rig
 
+Full clean-slate runbook, including the Claude Desktop wiring and the
+verification steps: `docs/DEV-ENVIRONMENT.md`. The essentials:
+
 Foundry ships a macOS `.app`, but for a dev loop run it **headless** --
 logs go to stdout and no GUI window is in the way:
 
