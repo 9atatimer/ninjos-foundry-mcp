@@ -70,11 +70,15 @@ if (!teile) {
   }
 }
 
-// Tag gegen Manifest
+// Tag gegen Manifest. Ein Suffix wie "-beta1" ist erlaubt (siehe
+// release-modul.yml, das genau daran erkennt, ob der Foundry-Katalog
+// uebersprungen wird) -- verlangt wird nur, dass die Zahl davor exakt
+// passt.
 const tag = process.argv[2];
 if (tag) {
   const ohneV = tag.replace(/^v/, '');
-  if (ohneV !== manifest) {
+  const basisVersion = ohneV.split('-')[0];
+  if (basisVersion !== manifest) {
     fehler.push(`Tag "${tag}" passt nicht zur Manifestversion "${manifest}"`);
   } else {
     console.log(`Tag ${tag} passt zur Manifestversion.`);
