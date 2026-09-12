@@ -86,7 +86,7 @@ jobs:
         uses: cs96and/FoundryVTT-release-package@v1
         with:
           package-token: ${{ secrets.PACKAGE_TOKEN }}
-          manifest-url: https://github.com/Niclasp1501/ninjos-foundry-mcp/releases/download/${{ github.ref_name }}/module.json
+          manifest-url: https://github.com/9atatimer/ninjos-foundry-mcp/releases/download/${{ github.ref_name }}/module.json
 
       - name: Hinweis, falls nicht eingereicht wurde
         if: ${{ env.PACKAGE_TOKEN == '' && !contains(github.ref_name, 'beta') }}
