@@ -263,6 +263,83 @@ pkill -f 'mcp-server/dist/backend.js'   # backend
 
 The world's state persists in `~/Library/Application Support/FoundryVTT/Data/`.
 
+## Full recovery from nothing
+
+Everything below is reproducible from two artefacts plus this repo: the world
+export zip, and a Forge API key. Budget about an hour, most of it downloading.
+
+Nothing in this section is in git -- the world is licensed content and the
+asset library is 8.3GB -- so keep the zip somewhere you trust.
+
+**Restore the world.** The export is the ground truth; `unzip -t` it first.
+
+```
+unzip -q ForgeVTT-export-<world>-<date>.zip -d /tmp/restore
+cp -R /tmp/restore/<world> ~/Library/"Application Support"/FoundryVTT/Data/worlds/
+```
+
+**Reset the GM password**, with Foundry stopped. A world exported from Forge
+carries a password nobody has ever typed; see HOWTO.md.
+
+```
+node scripts/reset-user-password.mjs \
+  ~/Library/"Application Support"/FoundryVTT/Data/worlds/<world>/data/users <GM name> <password>
+```
+
+Role 4 is the Gamemaster. Run it with no password argument to list the users.
+
+**Install the modules the world expects.** Start Foundry with **no world
+active** -- `/setup` is admin-gated while one is launched -- then:
+
+```
+node scripts/install-world-modules.mjs \
+  --world ~/Library/"Application Support"/FoundryVTT/Data/worlds/<world> --dry-run
+```
+
+Drop `--dry-run` to install. Anything it reports as unavailable is a module
+whose declared compatibility excludes your core version, or a paid one this
+account does not own. That list is worth reading before you launch the world.
+
+**Sync the assets.** The key lives in `.env` at the repo root, mode 600 and
+gitignored.
+
+```
+node scripts/forge-asset-sync.mjs --key-file <(grep -o 'ey.*' .env) \
+  --out backup-<date>/forge-library --on-collision suffix
+```
+
+`--on-collision suffix` is required on macOS: case-insensitive volumes fold
+distinct assets together, and the run refuses to start rather than corrupt
+them silently. Resumable -- re-run it after an interruption and it skips
+whatever already matches the inventory's size.
+
+**Expose the library to Foundry.** Assets outside the data directory are
+invisible to the FilePicker, so link them in:
+
+```
+ln -sfn "$(pwd)/backup-<date>/forge-library" \
+  ~/Library/"Application Support"/FoundryVTT/Data/forge-library
+```
+
+Scene backgrounds and token art then resolve as `forge-library/...`.
+
+**Launch, join, enable the bridge.** As above in this document: launch the
+world, join as the GM, enable `ninjos-foundry-mcp`, set `connectionType` to
+`websocket`, reload, and confirm the indicator reads connected.
+
+**Verify.** `node scripts/e2e-smoke.mjs` should report the restored world's id
+and system through the same stdio wrapper Claude Desktop uses.
+
+### What this does not restore
+
+- Anything created locally since the export -- the export is a point in time.
+- `ddb-importer`'s Forge-bound settings: ten settings still name the
+  `[forgevtt]` file source, which does not exist locally. They need repointing
+  at `[data]` before any import or upload works.
+- The world's `assets.forge-vtt.com` URLs. Files are on disk, but documents
+  still reference them remotely, so the snapshot works only while Forge is up.
+  Rewriting those references is outstanding work.
+
 ## The Forge variant
 
 The topology is the same -- browser and MCP server both on your machine,
