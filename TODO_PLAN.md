@@ -28,49 +28,46 @@
 
 ## Where Things Stand
 
-A fork of `Niclasp1501/ninjos-foundry-mcp` at `14.2609.3`, cloned
-2026-09-12 and never modified before that date. Upstream of the fork's
-upstream is Adam Dooley's `foundry-vtt-mcp`.
+A fork of `Niclasp1501/ninjos-foundry-mcp` at `14.2609.3`, cloned 2026-09-12.
+Upstream of the fork's upstream is Adam Dooley's `foundry-vtt-mcp`.
 
-The thing works. On 2026-09-12 a full round trip was verified on a local
-rig: Foundry 14.359 headless serving a dnd5e 5.3.0 world, the module
-active off a symlink with all 114 queries registered, the bridge green
-over websocket, and `get-world-info` returning live world data through the
-same stdio wrapper Claude Desktop spawns. 79 tools are exposed. Build and
-`pruefen` are clean from a fresh clone.
+The bridge works against the owner's real campaign. `mainland` -- exported from
+The Forge, 752 actors, 1888 items, 51 scenes, 18 world compendiums including a
+23281-entry monster pack -- is imported locally, migrated to Foundry 14.359 /
+dnd5e 5.3.0, running with 27 modules active and 34 of its original 44 installed.
+The MCP indicator reads connected and `scripts/e2e-smoke.mjs` returns live world
+data through the same stdio wrapper Claude Desktop spawns. 79 tools exposed.
 
-What is not done is everything around it. The bridge authenticates
-nobody (task-001), two of three ports are on `0.0.0.0` (task-002), and the
-module gives up reconnecting in a situation the backend's own lifecycle
-creates (task-004). There is no design record for any of it, so the first
-piece of real work needs one written before it can start.
+The 8.3 GB Forge asset library (53,261 files) is mirrored locally under
+`backup-2026-09-12/`, pulled through the Forge REST API rather than the
+deprecated in-browser Asset Sync tool. Zero failures.
 
-The owner runs Foundry on **The Forge**, not locally. A local Foundry is
-installed anyway, purely as a dev-debug rig -- Forge has no writable
-modules directory, so iterating there means a release per change. See
-`AGENT.md` for both loops.
+Not yet done for a genuinely self-contained snapshot: the world still references
+`assets.forge-vtt.com` URLs and ten settings still name the Forge-only
+`[forgevtt]` file source. Both need a rewrite pass over the world DB.
+
+Ten of the original 44 modules are absent. Eight declare a hard maximum of
+Foundry 13 and cannot run on 14 at all -- including `chris-premades` and
+`times-up`, which are load-bearing for this campaign's automation. Recovering
+them means a Foundry 13.348 rig.
+
+`HOWTO.md` carries what all of that taught us.
 
 ## Now
 
-- **task-001** -- the bridge accepts any origin. Everything else is
-  cosmetic next to an unauthenticated local port that drives 79 tools.
-  Needs a design record first: the legitimate origin is not a constant
-  (Forge world vs `localhost:30000`), so this adds a setting and a seam,
-  and law 1 applies.
-- **task-002** -- bind 31415 and 31416 to loopback. Independent of
-  task-001 and far smaller; a same-host browser page defeats it alone,
-  which is why it is not a substitute. Do it in the same pass if the
-  design record covers both.
-- **task-008** -- lockfile version drift. Trivial, already reproduced, and
-  it makes every future `git status` honest. Cheap to clear before the
-  larger work starts.
-- **task-004** -- the reconnect defect. Real and user-visible, but see the
-  lesson below: point-fixing the retry budget may be the wrong shape.
-- **task-005** -- dependency advisories, four critical. `axios` and `ws`
-  are runtime deps of the server.
+- **task-010** -- `backup-assets.mjs` records truncated files as complete. It is
+  committed and it is a backup tool, which is the worst combination. Either fix
+  it test-first or delete it; it must not be run at scale meanwhile.
+- **task-001** -- the bridge accepts any origin. Needs a design record first:
+  the legitimate origin is not a constant, so this adds a setting and a seam.
+- **task-002** -- bind 31415 and 31416 to loopback. Small, independent of 001,
+  and not a substitute for it.
+- **task-011 / task-012** -- the rest of the downloader defects. Only worth
+  doing if 010 is fixed rather than deleted.
+- **task-004** -- the reconnect defect. Now hit routinely on the real rig.
 
-Deliberately not in Now: task-003 (no container yet), task-006 (large,
-no deadline), task-007 (latent until someone publishes).
+Deliberately not in Now: task-003 (no container yet), task-005, task-006
+(large, no deadline), task-007 and task-009 (latent).
 
 ## Blockers
 
@@ -91,15 +88,28 @@ no deadline), task-007 (latent until someone publishes).
 
 about: wip
 
-The backend is built to come and go -- it exits 60s after the last wrapper
+The backend is built to come and go -- it exits after the last wrapper
 disconnects, by design, counting wrappers only and ignoring a still-bridged
-module. The module is built as if the bridge were permanent: bounded
-retries, then a manual click. Ordinary use of Claude Desktop triggers the
-collision every time.
+module. The module is built as if the bridge were permanent: bounded retries,
+then a manual click. Ordinary use of Claude Desktop triggers the collision.
 
 Unsettled because the fix is not obvious and task-004 as filed may be too
-narrow. Candidates: unbounded backoff on the module side; the backend
-declining to exit while a module is bridged; or an explicit lifecycle
-contract making one side authoritative. Do not point-fix the retry
-constant until that is decided -- record the decision as a design record,
-because it is a contract between the halves, not an implementation detail.
+narrow. Candidates: unbounded backoff on the module side; the backend declining
+to exit while a module is bridged; or an explicit lifecycle contract making one
+side authoritative. Do not point-fix the retry constant until that is decided --
+it is a contract between the halves, so it wants a design record.
+
+### 2. Tools written this session were not built test-first, and it showed
+
+about: wip
+
+`backup-assets.mjs` was smoke-tested on 40 URLs, looked fine, and was committed.
+An adversarial review then found six defects that silently corrupt files, four
+reproducible end to end. Law 5 exists for this and was not followed.
+
+Unsettled because the right correction is not just "write tests next time" --
+the defects were all in I/O edge cases (content encoding, partial responses,
+case-folding filesystems) that a unit test written by the same author would
+likely have missed too. What actually caught them was an adversarial pass with a
+local HTTP harness. Whether that belongs in the gates skill as a standing
+requirement for any network-facing tool is the open question.
