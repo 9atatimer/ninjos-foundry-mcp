@@ -109,3 +109,6 @@ VISUAL-CONFIRMATION.md
 
 # Local Foundry binary for the dev-debug loop. Licensed download, never committed.
 /vendor/
+
+# World asset backups pulled from the Forge CDN. Large, licensed, never committed.
+/backup-*/
