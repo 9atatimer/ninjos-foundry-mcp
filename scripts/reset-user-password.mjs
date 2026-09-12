@@ -9,6 +9,11 @@
 //
 //   node scripts/reset-user-password.mjs <world>/data/users <userName> <newPassword>
 //   node scripts/reset-user-password.mjs <world>/data/users <userName> --clear
+//   node scripts/reset-user-password.mjs <world>/data/users --all <newPassword>
+//
+// --all sets every user in the world to the same password, which is what a
+// local development copy usually wants. Never do that to anything reachable
+// from outside the machine.
 //
 // FOUNDRY MUST NOT BE RUNNING. LevelDB takes an exclusive lock, so the write
 // fails while the world is active. Stop the server, reset, start it again.
@@ -44,6 +49,28 @@ const hashPassword = (pw, salt) =>
 const randomString = (n = 64) => crypto.randomBytes(n).toString('hex').slice(0, n);
 
 const db = new ClassicLevel(usersDir, { valueEncoding: 'json' });
+
+const ALL = userName === '--all';
+
+if (ALL) {
+  const targets = [];
+  for await (const [k, v] of db.iterator()) if (v?.name) targets.push([k, v]);
+  if (!newPw || newPw === '--clear') {
+    console.error('--all requires a password argument');
+    await db.close();
+    process.exit(2);
+  }
+  for (const [k, u] of targets.sort((a, b) => b[1].role - a[1].role)) {
+    const salt = randomString(64);
+    u.passwordSalt = salt;
+    u.password = hashPassword(newPw, salt);
+    await db.put(k, u);
+    console.log(`  ${String(u.name).padEnd(18)} role ${u.role}  password SET`);
+  }
+  await db.close();
+  console.log(`\n${targets.length} users updated. Start Foundry and log in.`);
+  process.exit(0);
+}
 
 let key = null;
 let user = null;

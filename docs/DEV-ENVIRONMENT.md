@@ -286,7 +286,24 @@ node scripts/reset-user-password.mjs \
   ~/Library/"Application Support"/FoundryVTT/Data/worlds/<world>/data/users <GM name> <password>
 ```
 
-Role 4 is the Gamemaster. Run it with no password argument to list the users.
+Role 4 is the Gamemaster. Run it with no password argument to list the users,
+or pass `--all <password>` to set every account at once, which is usually what
+a local copy wants.
+
+### Two Foundry versions side by side
+
+Worth doing when the export came from an older core version than the one
+installed -- HOWTO.md covers why that choice is expensive to reverse.
+
+- Install the second app under a **distinct name**; both bundles ship as
+  `Foundry Virtual Tabletop.app` and the copy will otherwise overwrite the
+  first.
+- Give each its own `--dataPath` and its own `port` in `Config/options.json`.
+  Copy `license.json` across -- one licence activates both.
+- Symlink the same asset library into both `Data/` directories rather than
+  syncing it twice.
+- One MCP backend serves whichever rig currently has a GM connected. The module
+  dials out, so switching between them needs no reconfiguration.
 
 **Install the modules the world expects.** Start Foundry with **no world
 active** -- `/setup` is admin-gated while one is launched -- then:

@@ -5,8 +5,8 @@ Forge-hosted campaign. `docs/DEV-ENVIRONMENT.md` is the runbook: follow it to
 get a rig running. This file is the other thing -- why several of those steps
 are the way they are, and what to do when they are not enough.
 
-Everything here was verified on this machine on 2026-09-12 against Foundry
-14.359, dnd5e 5.3.0, and a live Forge account.
+Everything here was verified on this machine on 2026-09-12, against Foundry
+14.359 and 13.348, dnd5e 5.3.0 and 5.1.10, and a live Forge account.
 
 ## Getting a Forge world onto your laptop
 
@@ -67,17 +67,73 @@ node "/Applications/Foundry Virtual Tabletop.app/Contents/Resources/app/main.mjs
 
 It comes back with no world active and `/setup` works again.
 
-### v13-capped modules are a hard stop, not a warning
+### Choose the core version before you import, not after
 
-Eight of this campaign's 44 declare a maximum of Foundry 13 and will not load on
-14 at all: `chris-premades`, `times-up`, `ActiveAuras`, `region-attacher`,
-`gambits-premades`, `seasons-and-stars`, `seasons-and-stars-fantasy`,
-`foundryvtt-simple-calendar-compat`. Several are the core of a midi-qol
-automation chain.
+This is the decision that is expensive to reverse, and it is easy to make by
+accident simply by importing into whatever Foundry happens to be installed.
 
-If that matters, the rig has to be Foundry 13.348 rather than 14, and that is a
-licensed download nobody can make on your behalf. Decide this before importing,
-because the world migration is one-way.
+Measured on this campaign, same world, same script:
+
+|                                        | Foundry 14.359 | Foundry 13.348 |
+| -------------------------------------- | -------------- | -------------- |
+| of 44 enabled modules, installable     | 34             | **42**         |
+| hard-blocked by declared compatibility | 8              | 0              |
+| unobtainable (Patreon / paid)          | 2              | 2              |
+
+The eight that 14 refuses are `chris-premades`, `times-up`, `ActiveAuras`,
+`region-attacher`, `gambits-premades`, `seasons-and-stars`,
+`seasons-and-stars-fantasy` and `foundryvtt-simple-calendar-compat` -- several
+of them the core of a midi-qol automation chain. They are absent from Foundry
+14's own package registry, so this is not a warning you can click past.
+
+**Launching the world migrates it, and the core migration is one-way.** After
+opening the export on 14, the world records `compatibility.minimum: 14` and a
+v13 server will no longer touch it. Re-importing from the zip is the only way
+back, which is one more reason to keep the zip.
+
+Staying on the version the export came from also keeps the migration small: on
+13.348 the world only migrated dnd5e 5.1.4 -> 5.1.10, a patch bump, with no
+core migration at all.
+
+### The module does run on Foundry 13 -- verified, not assumed
+
+`module.json` declares `minimum: 13`, and that turns out to be true rather than
+aspirational. Confirmed by running it: on 13.348 the bridge reports
+`MCP: connected`, 114 queries register, 79 tools are exposed and
+`get-world-info` returns live data -- from the same `14.2609.3` build that runs
+on 14.
+
+The thing to check if you ever doubt it is `CONFIG.queries`, since the entire
+transport is 124 call sites against it:
+
+```js
+typeof CONFIG.queries; // "object" on 13.348 and on 14.359
+typeof game.user.query; // "function" on both
+```
+
+The rest of the module's Foundry surface is `ApplicationV2`,
+`foundry.applications.api.DialogV2`, `foundry.applications.apps.FilePicker.implementation`
+and `foundry.utils.*` -- all v12/v13-era namespaced forms. There is no v14-only
+API in it and no version guards, because it does not need any.
+
+Note the cap, though: `compatibility.maximum: 14`. The module stops loading on
+Foundry 15 until someone bumps it.
+
+### Running two Foundry versions side by side
+
+Useful, and only fiddly in three places.
+
+- **Both app bundles are named `Foundry Virtual Tabletop.app`.** Install the
+  second under a distinct name (`Foundry Virtual Tabletop 13.app`) or the copy
+  silently overwrites the first.
+- **Separate data paths and ports**, set in each `Config/options.json`. Copy
+  `license.json` across; the same licence activates both.
+- **Node versions differ.** 13.348 wants Node 20+, 14.359 wants Node 24+. One
+  Node 24 satisfies both.
+
+The 8.3GB asset library is symlinked into both data directories rather than
+duplicated, and one MCP backend serves whichever rig currently has a GM
+connected -- the module dials out, so nothing needs reconfiguring to switch.
 
 ## Logging in to an imported world
 
@@ -166,6 +222,31 @@ Three more ways a transfer looks fine and is not:
 None of them survive comparing the finished file against a size obtained
 out-of-band. Get the expected length from an inventory, not from the response
 you are trying to validate.
+
+### The Forge bazaar is a separate namespace from your asset library
+
+`/api/assets` lists what _you_ uploaded. Module content that Forge caches for
+everyone lives under a `/bazaar/` path prefix on the same CDN host and is not
+in that inventory at all.
+
+Individual bazaar files are fetchable -- which is why a world referencing
+jb2a effects renders on a machine that does not have jb2a installed -- but
+there is no manifest and no directory index there:
+
+```
+assets.forge-vtt.com/bazaar/modules/<mod>-<hash>/<file>   200
+assets.forge-vtt.com/bazaar/modules/<mod>-<hash>/module.json   404
+```
+
+So the bazaar is not an install route. A paid module still has to come from its
+own distributor. Note also that a patron build may ship `manifest: null` and a
+direct `download` URL, which Foundry's `installPackage` cannot consume -- fetch
+the zip and unpack it into `Data/modules/` instead.
+
+Installing the module still matters even when its assets resolve remotely: what
+the module registers is the Sequencer _database_, the named lookups that
+`autoanimations` and `chris-premades` resolve against. Those fail without it,
+files present or not.
 
 ### Case-insensitive filesystems collide asset libraries
 
