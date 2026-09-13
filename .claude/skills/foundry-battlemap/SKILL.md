@@ -111,6 +111,13 @@ pixels means it landed.
 
 ## Failure modes met so far
 
+- **Generated scene became the active scene** (#3). Module releases up to
+  14.2609.5 call `scene.activate()` on every import, yanking connected
+  players onto an unprepared map. Fixed in source, but Forge runs the
+  _released_ module, so until a release ships: before generating with
+  players online, note `game.scenes.active.id`, and right after import
+  re-activate it and set the new scene `navigation: false`.
+
 - **"Can't be indexed using 32-bit iterator"** (#2). Apple MPS, plain
   `VAEDecode` at 1536px+: the VAE's mid-block attention over the whole latent
   overflows 32-bit indexing. Sampling finishes, decode dies. Fixed by

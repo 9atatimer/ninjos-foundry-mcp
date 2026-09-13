@@ -41,7 +41,7 @@ export function buildMapSceneData(input: MapSceneInput): Record<string, any> {
     fogReset: Date.now(),
     globalLight: false,
     darkness: 0,
-    navigation: true,
+    navigation: false, // unrevealed prep work stays out of the nav bar (#3)
     active: false,
     permission: {
       default: 2, // CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER

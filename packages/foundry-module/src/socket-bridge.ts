@@ -1,6 +1,7 @@
 import { MODULE_ID, CONNECTION_STATES } from './constants.js';
 import { WebRTCConnection, type WebRTCConfig } from './webrtc-connection.js';
 import { melde } from './meldungen.js';
+import { finalizeGeneratedScene } from './generated-scene.js';
 
 export interface BridgeConfig {
   enabled: boolean;
@@ -340,13 +341,8 @@ export class SocketBridge {
       const scene = await (globalThis as any).Scene.create(sceneData);
       console.log(`[ninjos-foundry-mcp] Scene created successfully:`, scene);
 
-      // CRITICAL: Foundry v13 bug workaround (like working mapgen system)
-      if (!scene.img && sceneData.img) {
-        await scene.update({
-          img: sceneData.img,
-          background: { src: sceneData.img },
-        });
-      }
+      // Never activates: that would pull every player onto the new map (#3).
+      await finalizeGeneratedScene(scene, sceneData);
 
       if (sceneData.walls && sceneData.walls.length > 0) {
         await this.createSceneWalls(scene, sceneData.walls);
@@ -354,16 +350,7 @@ export class SocketBridge {
 
       melde.info('sceneCreated', 'Scene “{name}” created.', { name: String(sceneData.name ?? '') });
 
-      // Auto-activate the scene if enabled
-      const autoActivate = true; // You might want to make this configurable
-      if (autoActivate) {
-        await scene.activate();
-        melde.info('sceneSwitched', 'Switched to “{name}” — ready to place tokens.', {
-          name: String(sceneData.name ?? ''),
-        });
-      }
-
-      this.log(`Scene "${sceneData.name}" created and activated`);
+      this.log(`Scene "${sceneData.name}" created (not activated)`);
     } catch (error) {
       this.log(
         `Failed to create scene from generated map: ${error instanceof Error ? error.message : 'Unknown error'}`

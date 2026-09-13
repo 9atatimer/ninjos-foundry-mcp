@@ -24,6 +24,13 @@ describe('buildMapSceneData', () => {
     expect(scene.grid.type).toBe(0); // CONST.GRID_TYPES.GRIDLESS
   });
 
+  it('is created inactive and out of the nav bar, so players cannot see it (#3)', () => {
+    const scene = buildMapSceneData(base);
+
+    expect(scene.active).toBe(false);
+    expect(scene.navigation).toBe(false);
+  });
+
   it('keeps grid size and distance so measurement still scales', () => {
     const scene = buildMapSceneData(base);
 
