@@ -666,10 +666,11 @@ export class ComfyUIClient {
       '1': {
         // CheckpointLoaderSimple. Outputs [MODEL, CLIP, VAE] on slots 0/1/2 --
         // wire VAEDecode straight to slot 2 rather than loading a separate VAE
-        // file. GammaGo's card_gen_workflow_api.json (a known-working SDXL
-        // pipeline against this same ComfyUI install) does exactly that.
+        // file. D&D Battlemaps SDXL is the model the "2d DnD battlemap" trigger
+        // and the 8-step / cfg 2.5 sampler were tuned for; a photoreal
+        // checkpoint (juggernautXL) ignores both and renders empty sand.
         inputs: {
-          ckpt_name: 'juggernautXL_ragnarokBy.safetensors',
+          ckpt_name: 'dDBattlemapsSDXL10_upscaleV10.safetensors',
         },
         class_type: 'CheckpointLoaderSimple',
       },
@@ -715,14 +716,20 @@ export class ComfyUIClient {
         class_type: 'KSampler',
       },
       '6': {
-        // VAE Decode -- VAE comes from the checkpoint's own output (slot 2),
-        // not a separate VAELoader. No standalone SDXL VAE file exists on
-        // this install; the checkpoint's bundled VAE does not need one.
+        // VAE Decode, tiled -- VAE comes from the checkpoint's own output
+        // (slot 2), not a separate VAELoader. Tiled because plain VAEDecode
+        // runs self-attention over the whole latent, and on Apple MPS a
+        // 1536px decode fails with "Can't be indexed using 32-bit iterator"
+        // (#2). 512px tiles keep every size under that limit.
         inputs: {
           samples: ['5', 0],
           vae: ['1', 2],
+          tile_size: 512,
+          overlap: 64,
+          temporal_size: 64,
+          temporal_overlap: 8,
         },
-        class_type: 'VAEDecode',
+        class_type: 'VAEDecodeTiled',
       },
       '7': {
         // Save Image
