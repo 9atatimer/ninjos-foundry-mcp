@@ -51,6 +51,14 @@ generate-map
   grid_size    px per 5 ft (default 70)
 ```
 
+**Pick size for play space, not render speed.** At the default 70px grid,
+`small` (1024) is only ~14x14 squares (~73 ft across) -- the human called it
+fairly small for The Gorge Path, and a Gargantuan roc (4x4) eats a big share
+of it. Default to `medium` (1536, ~22 squares) or `large` (2048, ~29 squares);
+tiled decode makes both safe on MPS (#2). 1536 came out softer than 1024 with
+this checkpoint, so for a sharp large map render at 1024-ish detail and grow
+it (img2img/upscale) rather than dropping the size.
+
 Write the prompt as a top-down inventory of what is on the ground: centre
 feature, what rings it, terrain, edges, light. Do not describe creatures --
 the negative prompt strips people and monsters anyway.
