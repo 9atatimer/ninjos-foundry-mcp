@@ -122,6 +122,12 @@ RepeatLatentBatch(4) -> KSampler (30 steps, cfg 2.5, denoise 0.55)`. Layout
   scene is created **gridless** (`grid.type: 0`), which gives both at once.
   `grid.size` and `grid.distance` are kept so measurement and token size
   still scale. Enforced in `map-scene.ts` and pinned by `map-scene.test.ts`.
+- **Gridless has a cost with range automation.** Nothing snaps, so tokens
+  sit at arbitrary positions. In this world `automated-conditions-5e` then
+  measured an "adjacent" Medium-vs-Tiny melee attack at 5.37 ft against 5 ft
+  reach and auto-failed it with a `-999` roll part ("Fail: Out of range").
+  When placing tokens by script on a gridless scene, put them on whole-square
+  positions that are ready for melee, and tell the GM a -999 is AC5e's range fail.
 - To fix an older scene in place:
   `game.scenes.get(id).update({ 'grid.type': 0 })`.
 
