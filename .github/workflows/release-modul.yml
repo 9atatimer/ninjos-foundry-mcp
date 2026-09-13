@@ -1,16 +1,18 @@
 # Baut das Foundry-Modul und reicht es beim Foundry-Katalog ein.
 #
-# Ausgeloest wird das vom selben Tag wie der PC-Teil (build-complete-release.yml).
-# Das ist Absicht: Modul und MCP-Server sprechen ueber rund hundert Abfragenamen
-# miteinander, die kein Compiler prueft. Kaemen die beiden Haelften aus
-# verschiedenen Tags, koennten sie auseinanderlaufen, ohne dass es auffaellt -
-# genau das ist am 30.08.2026 passiert.
+# Nur manuell ausgeloest (workflow_dispatch), auf ausdruecklichen Wunsch --
+# kein Push-Tag mehr startet das automatisch.
+#
+# ACHTUNG: Modul und MCP-Server (build-complete-release.yml) sprechen ueber
+# rund hundert Abfragenamen miteinander, die kein Compiler prueft. Frueher
+# liefen beide vom selben Tag-Push, genau damit sie nicht auseinanderlaufen -
+# das ist am 30.08.2026 einmal schiefgegangen. Jetzt beide Workflows von Hand
+# auf demselben Tag anstossen (gh workflow run ... --ref <tag>), sonst kann
+# der Drift wiederkommen.
 name: Modul veroeffentlichen
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
