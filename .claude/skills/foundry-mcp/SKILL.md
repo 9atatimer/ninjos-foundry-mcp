@@ -107,14 +107,19 @@ clean up. `delete-scene` and `manage-actors` with `action: "delete"` do that.
 
 Ask before mutating anything that existed before you arrived.
 
-## The mainland table (Forge world `mainland`)
+## Running a live table
+
+**Campaign material lives outside this repo.** Rosters, scene notes, art and
+session logs for a campaign go under `../campaigns/<campaign>/` (for the
+`mainland` world: `../campaigns/new-undead/`, including `players.md`). Read the
+roster there before acting on a player or character name.
 
 **A character name means the player.** "Move Eden to the Eyrie" means pull
 Eden's _player_ to that scene (`game.socket.emit('pullToScene', sceneId,
 userId)`), giving them Observer on the scene first if its default is None.
 Move tokens only when tokens are named explicitly.
 
-**Players roll initiative in D&D Beyond, not the tracker.** Their rolls
+**If players roll initiative in D&D Beyond, not the tracker,** their rolls
 land in chat as "Initiative (+N)" cards without the core `initiativeRoll`
 flag, so combatants show no initiative. When the GM says "take their
 initiative rolls", copy each total from chat onto the combatant. Only
@@ -133,17 +138,6 @@ monsters rolled from the tracker carry the flag.
   damage per round). Build attacks by cloning an existing attack item and
   rewriting its activity's `damage.parts`, and verify with
   `activity.labels.toHit` / `labels.damage`.
-
-| Foundry user  | Person                                                         | Character           |
-| ------------- | -------------------------------------------------------------- | ------------------- |
-| Troll         | the GM                                                         | --                  |
-| Don           | Don                                                            | Tomur               |
-| Gabe          | Gabe                                                           | Eden Rathgar        |
-| Tim           | Tim                                                            | Fletch              |
-| garyh         | Gary                                                           | Rogart Blackweasel  |
-| airshipwright | **Justin** (not obvious from the handle -- the GM enjoys that) | Zin                 |
-| str009        | ?                                                              | Tholgrim Silverbrow |
-| tedr          | ? (owns Tennin; not set as assigned character)                 | Tennin Verterion    |
 
 ## Related
 
