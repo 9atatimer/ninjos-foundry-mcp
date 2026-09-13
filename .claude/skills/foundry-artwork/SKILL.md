@@ -105,6 +105,37 @@ Verify by reading the token, not the actor -- a placed token's
 game.scenes.get(id).tokens.map(t => ({ name: t.name, src: t.texture?.src }));
 ```
 
+### Round tokens from square art
+
+The D&D Beyond 2024 Monster Manual token art (`ddb-images/.../2024-mm2024-*.webp`)
+is a 256px **opaque square**. Turning on the dynamic ring
+(`ring.enabled: true`, subject texture set, `core.dynamicTokenRing:
+coreSteel`) was accepted and read back correctly, but on the Forge game on
+2026-09-12 the GM still saw square tokens. Why it did not crop was not
+diagnosed; the opaque background is the suspect. What worked every time:
+
+- Circle-crop the art to a 512px PNG with transparent corners and a thin
+  dark rim (PIL is in the ComfyUI venv: `~/workplace/OSS/comfyui/.venv`).
+- Upload it from the GM tab with `FilePicker.upload('data',
+'worlds/<world>/tokens', file)`. Get the bytes into the page from a
+  one-shot loopback HTTP server that sends `Access-Control-Allow-Origin`
+  for the game origin (the foundry-battlemap skill has the recipe).
+- Set it on the placed tokens **and** `prototypeToken.texture.src`, with the
+  ring off so it does not draw a second frame.
+
+Uploaded so far: `worlds/mainland/tokens/roc-round.png`, `nadira-round.png`.
+
+### The turn marker
+
+The spinning image under the active combatant is core Foundry's turn marker
+(`core.combatTrackerConfig.turnMarker`), and by default it falls back to
+`icons/vtt-512.png`, which looks like a d20. Its fields are `enabled`,
+`animation` (`spin`, `spinPulse` or `pulse`), `src` and `disposition` (tint
+by disposition). **It has no alpha setting.** For transparency, upload an
+image that carries its own: an SVG wrapped in `<g opacity="0.3">`. mainland
+uses `worlds/mainland/ui/turn-marker-aura-30.svg`, a 30% copy of
+`icons/svg/aura.svg`, with pulse and disposition tint.
+
 ## Scene backgrounds
 
 ```

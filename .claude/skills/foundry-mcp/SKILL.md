@@ -114,6 +114,26 @@ Eden's _player_ to that scene (`game.socket.emit('pullToScene', sceneId,
 userId)`), giving them Observer on the scene first if its default is None.
 Move tokens only when tokens are named explicitly.
 
+**Players roll initiative in D&D Beyond, not the tracker.** Their rolls
+land in chat as "Initiative (+N)" cards without the core `initiativeRoll`
+flag, so combatants show no initiative. When the GM says "take their
+initiative rolls", copy each total from chat onto the combatant. Only
+monsters rolled from the tracker carry the flag.
+
+**Live-world scripting gotchas met here** (GM tab, `evaluate_script`):
+
+- `game.actors.importFromCompendium(pack, id, updateData, options)` takes an
+  object as its third argument. Passing a folder id string throws
+  "One of original or other are not Objects!". Use `{ folder, name }`.
+- Swapping a token for one of a different actor (delete, then create) drops
+  its combatant and any effects on its synthetic actor. Capture both first,
+  then recreate them. The tracker can briefly list stale combatants.
+- `scene.tokens` is a Collection: use `.contents.every(...)`, not `.every`.
+- Custom CR stats: follow the DMG per-CR guideline row (AC, HP, attack bonus,
+  damage per round). Build attacks by cloning an existing attack item and
+  rewriting its activity's `damage.parts`, and verify with
+  `activity.labels.toHit` / `labels.damage`.
+
 | Foundry user  | Person                                                         | Character           |
 | ------------- | -------------------------------------------------------------- | ------------------- |
 | Troll         | the GM                                                         | --                  |
@@ -123,7 +143,7 @@ Move tokens only when tokens are named explicitly.
 | garyh         | Gary                                                           | Rogart Blackweasel  |
 | airshipwright | **Justin** (not obvious from the handle -- the GM enjoys that) | Zin                 |
 | str009        | ?                                                              | Tholgrim Silverbrow |
-| tedr          | ?                                                              | --                  |
+| tedr          | ? (owns Tennin; not set as assigned character)                 | Tennin Verterion    |
 
 ## Related
 

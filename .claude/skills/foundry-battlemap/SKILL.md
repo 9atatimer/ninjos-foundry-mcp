@@ -132,6 +132,11 @@ RepeatLatentBatch(4) -> KSampler (30 steps, cfg 2.5, denoise 0.55)`. Layout
   reach and auto-failed it with a `-999` roll part ("Fail: Out of range").
   When placing tokens by script on a gridless scene, put them on whole-square
   positions that are ready for melee, and tell the GM a -999 is AC5e's range fail.
+- **Keep tokens inside `scene.dimensions.sceneRect`.** The padding around a
+  map is outside player vision: a juvenile roc parked "over the chasm" past
+  the map edge was invisible to every player even with global light on. Clamp
+  scripted positions to the rect, and before moving a token, re-read where
+  the GM put it -- they rearrange between requests.
 - To fix an older scene in place:
   `game.scenes.get(id).update({ 'grid.type': 0 })`.
 
