@@ -87,6 +87,27 @@ while i < len(d):
 
 ComfyUI output on this machine lives under `~/workplace/OSS/comfyui/output/`.
 
+## Iterating on a map outside the tool
+
+`generate-map` always samples at 8 steps from scratch, which settles layout
+but not detail. What worked for "The Roc's Eyrie":
+
+- Render candidates straight to ComfyUI (`POST :8000/prompt`, batch of 2-4)
+  so nothing touches the live game, and show the human a contact sheet.
+- When one candidate has the right layout but mush detail, run img2img from
+  it: copy it into ComfyUI's `input/`, then `LoadImage -> VAEEncode ->
+RepeatLatentBatch(4) -> KSampler (30 steps, cfg 2.5, denoise 0.55)`. Layout
+  survives; props and edges resolve.
+- Prompt by position the model can see: "sheer drop on the left into a dark
+  chasm", "cliff wall on the right with a small cave entrance". Film
+  references ("like Cliffhanger") mean nothing to a top-down map model.
+- Put the chosen PNG on an existing scene without the tool: serve it from a
+  one-shot loopback HTTP server with `Access-Control-Allow-Origin` set to the
+  game origin, `fetch` it in the GM tab, `FilePicker.upload('data',
+'worlds/<world>/ai-generated-maps', file)`, then `scene.update({ img,
+'background.src' })` and refresh the thumbnail with `createThumbnail()`.
+  Loopback fetch is allowed from the HTTPS Forge page.
+
 ## Scene rules (truisms)
 
 - **Grid lines off. Snap-to-grid off.** Generated art has no grid, so the
