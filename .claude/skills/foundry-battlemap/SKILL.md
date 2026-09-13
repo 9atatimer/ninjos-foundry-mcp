@@ -118,6 +118,10 @@ RepeatLatentBatch(4) -> KSampler (30 steps, cfg 2.5, denoise 0.55)`. Layout
 
 ## Scene rules (truisms)
 
+- **Daylight by default.** Scenes are created lit: global light on, darkness
+  0 (`environment.globalLight.enabled`, `environment.darknessLevel`). The GM
+  had to ask twice. Pinned by `map-scene.test.ts`; for older scenes set both
+  keys by hand.
 - **Grid lines off. Snap-to-grid off.** Generated art has no grid, so the
   scene is created **gridless** (`grid.type: 0`), which gives both at once.
   `grid.size` and `grid.distance` are kept so measurement and token size

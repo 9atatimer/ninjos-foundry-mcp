@@ -31,6 +31,15 @@ describe('buildMapSceneData', () => {
     expect(scene.navigation).toBe(false);
   });
 
+  it('is lit by default: global light on, no darkness', () => {
+    const scene = buildMapSceneData(base);
+
+    expect(scene.environment.globalLight.enabled).toBe(true);
+    expect(scene.environment.darknessLevel).toBe(0);
+    // The legacy v11 key would migrate to "global light off"; it must be absent.
+    expect(scene).not.toHaveProperty('globalLight');
+  });
+
   it('keeps grid size and distance so measurement still scales', () => {
     const scene = buildMapSceneData(base);
 

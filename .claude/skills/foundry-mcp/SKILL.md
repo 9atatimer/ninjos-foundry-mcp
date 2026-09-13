@@ -107,6 +107,24 @@ clean up. `delete-scene` and `manage-actors` with `action: "delete"` do that.
 
 Ask before mutating anything that existed before you arrived.
 
+## The mainland table (Forge world `mainland`)
+
+**A character name means the player.** "Move Eden to the Eyrie" means pull
+Eden's _player_ to that scene (`game.socket.emit('pullToScene', sceneId,
+userId)`), giving them Observer on the scene first if its default is None.
+Move tokens only when tokens are named explicitly.
+
+| Foundry user  | Person                                                         | Character           |
+| ------------- | -------------------------------------------------------------- | ------------------- |
+| Troll         | the GM                                                         | --                  |
+| Don           | Don                                                            | Tomur               |
+| Gabe          | Gabe                                                           | Eden Rathgar        |
+| Tim           | Tim                                                            | Fletch              |
+| garyh         | Gary                                                           | Rogart Blackweasel  |
+| airshipwright | **Justin** (not obvious from the handle -- the GM enjoys that) | Zin                 |
+| str009        | ?                                                              | Tholgrim Silverbrow |
+| tedr          | ?                                                              | --                  |
+
 ## Related
 
 - `HOWTO.md` -- the findings behind these rules.

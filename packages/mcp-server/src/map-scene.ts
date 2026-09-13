@@ -39,8 +39,11 @@ export function buildMapSceneData(input: MapSceneInput): Record<string, any> {
     tokenVision: true,
     fogExploration: true,
     fogReset: Date.now(),
-    globalLight: false,
-    darkness: 0,
+    // Lit by default: the GM wants daylight unless a scene says otherwise.
+    environment: {
+      globalLight: { enabled: true },
+      darknessLevel: 0,
+    },
     navigation: false, // unrevealed prep work stays out of the nav bar (#3)
     active: false,
     permission: {
