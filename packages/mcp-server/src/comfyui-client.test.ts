@@ -40,6 +40,15 @@ describe('ComfyUIClient.buildWorkflow', () => {
     expect(decoders[0].inputs.tile_size).toBeLessThanOrEqual(1024);
   });
 
+  it('loads the D&D Battlemaps SDXL checkpoint the prompt wrapper is tuned for', () => {
+    // "2d DnD battlemap" is this model's trigger phrase, and 8 steps at cfg 2.5
+    // are its settings. juggernautXL (a photoreal model) produced empty sand.
+    const loader = buildWorkflow(1536)['1'];
+
+    expect(loader.class_type).toBe('CheckpointLoaderSimple');
+    expect(loader.inputs.ckpt_name).toBe('dDBattlemapsSDXL10_upscaleV10.safetensors');
+  });
+
   it('wires the tiled decoder between the sampler and SaveImage', () => {
     const workflow = buildWorkflow(1536);
 

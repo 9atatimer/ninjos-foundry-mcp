@@ -34,7 +34,11 @@ unless a GM browser is bridged to the backend at the moment the job completes.
 - **Backend has map generation on.** It needs, in the _backend's_ env:
   `COMFYUI_ENABLED=true COMFYUI_HOST=127.0.0.1 COMFYUI_PORT=8000`.
   Read it with `ps eww -p <backend pid> | tr ' ' '\n' | grep COMFYUI`.
-- **Checkpoint present:** `juggernautXL_ragnarokBy.safetensors`.
+- **Checkpoint present:** `dDBattlemapsSDXL10_upscaleV10.safetensors` (D&D
+  Battlemaps SDXL 1.0, 6.9 GB) in ComfyUI's `models/checkpoints/`. Source:
+  `https://huggingface.co/AdamDooley/dnd-battlemaps-sdxl-1.0-mirror`
+  (`resolve/main/<file>`). License is CreativeML Open RAIL++-M plus
+  Attachment B: no selling or licensing generated images.
 
 ## Making the map
 
@@ -60,7 +64,7 @@ There is no checked-in ComfyUI `.json`. The graph is built in
 `packages/mcp-server/src/comfyui-client.ts` `buildWorkflow()`:
 
 ```
-CheckpointLoaderSimple -> CLIPTextEncode (+/-) -> EmptyLatentImage
+CheckpointLoaderSimple (dDBattlemapsSDXL10) -> CLIPTextEncode (+/-) -> EmptyLatentImage
   -> KSampler (8 steps, cfg 2.5, dpmpp_2m_sde, karras)
   -> VAEDecodeTiled (512 tile, 64 overlap) -> SaveImage "battlemap"
 ```
@@ -112,6 +116,16 @@ pixels means it landed.
   overflows 32-bit indexing. Sampling finishes, decode dies. Fixed by
   `VAEDecodeTiled`. 1024px never hit it, which is why the first map worked.
   Traceback is in ComfyUI's log: `~/workplace/OSS/comfyui/user/comfyui_8000.log`.
+- **Wrong checkpoint renders empty sand.** The fork once swapped in
+  `juggernautXL_ragnarokBy` (photoreal). It ignores the "2d DnD battlemap"
+  trigger, and 8 steps at cfg 2.5 are too few for it: a dense 600-word
+  caravan prompt came back as bare sand, and asking for "illustration" made
+  it a flat texture. The sampler settings belong to D&D Battlemaps SDXL; keep
+  model and settings together.
+- **Long prompts and negations.** CLIP reads ~75 tokens per window, so a
+  600-word brief is diluted. "No wagons", "no text" in the positive prompt
+  tend to add wagons and text. Condense to a ground-level inventory and move
+  exclusions to the negative prompt.
 - **Card-art settings are not battlemap settings.** Other ComfyUI workflows
   on this machine (e.g. GammaGo `card_gen_workflow_api.json`: 768px, 25 steps,
   cfg 7, then upscale) solve a different problem. Do not port their sampler

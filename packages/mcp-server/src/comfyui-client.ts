@@ -666,10 +666,11 @@ export class ComfyUIClient {
       '1': {
         // CheckpointLoaderSimple. Outputs [MODEL, CLIP, VAE] on slots 0/1/2 --
         // wire VAEDecode straight to slot 2 rather than loading a separate VAE
-        // file. GammaGo's card_gen_workflow_api.json (a known-working SDXL
-        // pipeline against this same ComfyUI install) does exactly that.
+        // file. D&D Battlemaps SDXL is the model the "2d DnD battlemap" trigger
+        // and the 8-step / cfg 2.5 sampler were tuned for; a photoreal
+        // checkpoint (juggernautXL) ignores both and renders empty sand.
         inputs: {
-          ckpt_name: 'juggernautXL_ragnarokBy.safetensors',
+          ckpt_name: 'dDBattlemapsSDXL10_upscaleV10.safetensors',
         },
         class_type: 'CheckpointLoaderSimple',
       },
