@@ -2,7 +2,7 @@
   "id": "ninjos-foundry-mcp",
   "title": "Ninjo's Foundry MCP",
   "description": "Bedient Foundry VTT \u00fcber das Model Context Protocol. Szenen anlegen, \u00e4ndern und aus einer Sicherung bergen, Journale und Questreihen schreiben, Figuren und NSC bauen, Kompendien anlegen und archivieren, Wiedergabelisten und Zufallstabellen setzen, W\u00fcrfelw\u00fcrfe anfordern. Rechte lassen sich je Dokumentart abstufen, L\u00f6schen ist ab Werk \u00fcberall aus. Deutsche und englische Oberfl\u00e4che. \u2014 Drive Foundry VTT from an AI model through the Model Context Protocol: scenes, journals, actors, compendiums, playlists, roll tables and dice requests, with per-document-type permissions and GM-only access.",
-  "version": "14.2609.4",
+  "version": "14.2609.5",
   "compatibility": {
     "minimum": "13",
     "verified": "14",
