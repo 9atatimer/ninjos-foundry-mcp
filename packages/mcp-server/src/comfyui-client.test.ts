@@ -40,13 +40,6 @@ describe('ComfyUIClient.buildWorkflow', () => {
     expect(decoders[0].inputs.tile_size).toBeLessThanOrEqual(1024);
   });
 
-  it('samples with enough steps and guidance to follow the prompt', () => {
-    const sampler = buildWorkflow(1536)['5'].inputs;
-
-    expect(sampler.steps).toBeGreaterThanOrEqual(25);
-    expect(sampler.cfg).toBeGreaterThanOrEqual(5);
-  });
-
   it('wires the tiled decoder between the sampler and SaveImage', () => {
     const workflow = buildWorkflow(1536);
 

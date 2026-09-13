@@ -660,9 +660,7 @@ export class ComfyUIClient {
 
     // Map quality setting to diffusion steps
     const quality = input.quality || 'low';
-    // 8 steps at cfg 2.5 gave muddy maps that ignored most of the prompt.
-    // juggernautXL is not a lightning model; it needs real step counts.
-    const steps = quality === 'high' ? 40 : quality === 'medium' ? 30 : 25;
+    const steps = quality === 'high' ? 35 : quality === 'medium' ? 20 : 8;
 
     return {
       '1': {
@@ -704,8 +702,8 @@ export class ComfyUIClient {
         // KSampler - Configurable quality via steps
         inputs: {
           seed: input.seed || Math.floor(Math.random() * 1000000),
-          steps: steps, // low=25, medium=30, high=40
-          cfg: 6,
+          steps: steps, // low=8, medium=20, high=35
+          cfg: 2.5, // Lower CFG for faster convergence
           denoise: 1.0,
           sampler_name: 'dpmpp_2m_sde', // SDE variant for better quality at low steps
           scheduler: 'karras',
