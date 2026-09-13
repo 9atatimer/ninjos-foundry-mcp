@@ -59,8 +59,15 @@ jobs:
             -x "package.json"
           cd ../..
           cp packages/foundry-module/module.json module.json
+          # manifest/download muessen den konkreten Tag nennen, nicht
+          # releases/latest/download -- das loest fuer ein Repo ohne
+          # Nicht-Prerelease nicht auf (task-013).
+          sed -i "s#/releases/latest/download/#/releases/download/${{ github.ref_name }}/#g" module.json
           echo "Inhalt des Pakets:"
           unzip -l module.zip | tail -20
+
+      - name: Paket gegen den Tag pruefen
+        run: node scripts/paket-pruefen.mjs module.json ${{ github.ref_name }}
 
       - name: Anhaenge an das Release
         # Titel und Text setzt bewusst nur build-complete-release.yml. Beide
