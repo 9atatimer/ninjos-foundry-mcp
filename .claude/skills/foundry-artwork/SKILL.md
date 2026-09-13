@@ -123,8 +123,6 @@ diagnosed; the opaque background is the suspect. What worked every time:
 - Set it on the placed tokens **and** `prototypeToken.texture.src`, with the
   ring off so it does not draw a second frame.
 
-Uploaded so far: `worlds/mainland/tokens/roc-round.png`, `nadira-round.png`.
-
 ### The turn marker
 
 The spinning image under the active combatant is core Foundry's turn marker
@@ -132,9 +130,9 @@ The spinning image under the active combatant is core Foundry's turn marker
 `icons/vtt-512.png`, which looks like a d20. Its fields are `enabled`,
 `animation` (`spin`, `spinPulse` or `pulse`), `src` and `disposition` (tint
 by disposition). **It has no alpha setting.** For transparency, upload an
-image that carries its own: an SVG wrapped in `<g opacity="0.3">`. mainland
-uses `worlds/mainland/ui/turn-marker-aura-30.svg`, a 30% copy of
-`icons/svg/aura.svg`, with pulse and disposition tint.
+image that carries its own: an SVG wrapped in `<g opacity="0.3">`, uploaded under
+`worlds/<world>/ui/` -- e.g. a 30% copy of `icons/svg/aura.svg`, with pulse
+and disposition tint.
 
 ## Scene backgrounds
 
