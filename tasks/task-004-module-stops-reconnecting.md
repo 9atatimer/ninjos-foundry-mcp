@@ -49,3 +49,18 @@ Observed 2026-09-12, unprompted, on the local rig.
 The reconnect scheduler is `scheduleReconnect` in
 `packages/foundry-module/src/socket-bridge.ts`, driven by
 `this.reconnectAttempts`.
+
+## Second shape: the indicator claims "connected" over a dead link
+
+Observed 2026-09-12 on the live Forge game, with `connectionType: auto`
+(so WebRTC, since the page is HTTPS). After the backend was killed and
+restarted by hand, the indicator stayed
+`mcp-status mcp-status--connected`, titled "Bridge to localhost:31415
+(webrtc)". Meanwhile `get-world-info` failed with "module not connected"
+and no socket was established on 31415. A stale 100% map-progress bar sat
+in the UI. Setting `connectionType` to `websocket` and reloading the tab
+reconnected at once; later backend restarts on websocket reconnected
+without a click.
+
+So on WebRTC the failure is worse than a bounded retry: the module does
+not notice the peer is gone. Any fix should cover both shapes.
