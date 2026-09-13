@@ -315,3 +315,57 @@ passes. Right-click -> Open once, or clear `com.apple.quarantine`.
 
 Run it headless for development; logs go to stdout and no window is in the way.
 It needs Node 24+.
+
+## Releasing the module
+
+### `releases/latest/download/...` 404s until a non-prerelease exists
+
+GitHub's `/releases/latest/` alias explicitly excludes prereleases. A repo
+whose only tag is a `-beta` prerelease has no "latest" for that alias to
+resolve to -- `curl` on it 404s, and so does Foundry (or Forge's Bazaar)
+when it fetches `download` out of the manifest to get the zip. The install
+looks like it should work (the manifest itself downloads fine) and then
+fails one step later on the zip, which reads as a Foundry/Forge bug rather
+than a URL problem.
+
+Fixed in `release-modul.yml`'s packaging step: it now rewrites the shipped
+`module.json`'s `manifest`/`download` to the concrete `github.ref_name`
+before zipping, and `scripts/paket-pruefen.mjs` fails the release if that
+rewrite didn't happen. See `tasks/done/task-013-*.md`. This means every
+release, beta or not, is self-consistent regardless of whether a
+non-prerelease tag exists yet -- don't revert to `/latest/` for
+"simplicity," it silently breaks the first beta of any new repo/fork.
+
+## Running a live session as GM
+
+### Resolving a player's dice roll requires the system's Activities API, not the module's tools
+
+The module's own `use-item` tool only opens a UI dialog for a human to
+click through -- it never resolves anything by itself. To actually roll and
+apply damage on a player's behalf (e.g. answering "I attack with my
+dagger" in chat), go through dnd5e's Activities API directly:
+
+```js
+const actor = game.actors.getName('<name>');
+const activity = actor.items.get('<itemId>').system.activities.get('<activityId>');
+const attackRoll = await activity.rollAttack({}, { configure: false }, {});
+const damageRoll = await activity.rollDamage(...);
+```
+
+This is the only path that produces a real, resolvable die result
+programmatically; anything else is narration without a mechanical result
+behind it.
+
+### Watching chat during a live combat is a poll, not a subscription
+
+There is no long-running process holding a `Hooks.on('createChatMessage')`
+listener between agent turns -- each check-in is a fresh tool call. The
+formula that worked: each tick, read `game.messages` since the last
+message id/timestamp you've already handled, filter to the player(s) in
+play, resolve any requested roll via the Activities API above, apply the
+result to HP with an `actor.update()`/token update, post the in-character
+reply with `ChatMessage.create()`, and advance the turn with
+`game.combat.nextTurn()` -- then re-check `game.combat.combatant?.name`
+afterward, because `nextTurn()` can return before the tracker's `combatant`
+getter reflects it, and narrating past that mismatch silently desyncs the
+turn tracker from what you just said happened.

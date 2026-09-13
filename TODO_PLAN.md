@@ -59,9 +59,15 @@ Not yet done for a self-contained snapshot: the world still references
 `assets.forge-vtt.com` URLs and ten settings still name the Forge-only
 `[forgevtt]` file source. Both need a rewrite pass over the world DB.
 
-Next goal is the module running on the live Forge instance, which needs the
-`manifest`/`download` URLs in `module.json` repointed at this fork first --
-they currently name upstream, so Forge would install someone else's build.
+The module now runs on the live Forge instance: `v14.2609.5-beta1` installed
+and was activated 2026-09-12. Getting there needed two fixes -- pointing
+`manifest`/`download`/etc. at this fork instead of upstream (task-007), and
+then discovering `download` still used `/releases/latest/download/`, which
+404s until a non-prerelease exists (task-013, now in `done/`).
+
+Surfaced by that install: Forge's Bazaar nests the fork under Ninjo's own
+listing rather than showing it as a separate package, because `module.json`
+still ships the upstream `id`. See task-014 -- blocked on a name.
 
 `HOWTO.md` carries what all of that taught us.
 `docs/concepts/npc-dialog/` holds an unfunded idea captured this session.
@@ -84,6 +90,9 @@ Deliberately not in Now: task-003 (no container yet), task-005, task-006
 
 ## Blockers
 
+- **task-014 needs a name.** The new module id/title, to stop Forge's Bazaar
+  from nesting this fork under Ninjo's own catalog listing. Unblock: owner
+  picks a name.
 - **Issues are disabled on this fork** (`gh issue list` refuses;
   `viewerPermission: ADMIN`, so it is one settings change). Until they are
   enabled, `issue:` stays empty on every task and the defect-first
