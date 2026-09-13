@@ -189,7 +189,9 @@ about: wip
 
 On 2026-09-12 the bridge was driven during a real session, with players
 online, a stream of GM requests, and the GM rearranging the world between
-them. Three mistakes had the same mechanism: state or effects the agent
+them. A timestamped timeline of the session, with a friction analysis, is
+outside this repo at
+`../campaigns/new-undead/sessions/2026-09-12/timeline.md`. Three mistakes had the same mechanism: state or effects the agent
 did not re-read before acting.
 
 - A module default (`autoActivate = true`) pulled every player onto an
