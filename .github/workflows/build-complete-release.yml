@@ -1,11 +1,6 @@
 name: Build Complete Release
 
 on:
-  push:
-    tags:
-      - 'v*'
-    branches:
-      - feature/nsis-installer
   pull_request:
     branches:
       - main

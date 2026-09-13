@@ -88,6 +88,8 @@ VISUAL-CONFIRMATION.md
 # Internal planning / analysis docs — keep in chat or under docs/, not repo root.
 # These accumulate as cruft and aren't useful for contributors.
 /*_PLAN.md
+# ...except the one plan the SDLC requires at the repo root.
+!/TODO_PLAN.md
 /*_ANALYSIS.md
 /*_SUMMARY.md
 /*_COMPARISON.md
@@ -104,3 +106,9 @@ VISUAL-CONFIRMATION.md
 /MISSING_*.md
 /REGISTRY_*.md
 /TOOL_INVENTORY.md
+
+# Local Foundry binary for the dev-debug loop. Licensed download, never committed.
+/vendor/
+
+# World asset backups pulled from the Forge CDN. Large, licensed, never committed.
+/backup-*/

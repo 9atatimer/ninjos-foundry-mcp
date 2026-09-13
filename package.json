@@ -1,6 +1,6 @@
 {
   "name": "ninjos-foundry-mcp",
-  "version": "14.2609.3",
+  "version": "14.2609.5",
   "description": "Bedient Foundry VTT über das Model Context Protocol",
   "private": true,
   "workspaces": [
@@ -38,6 +38,7 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "classic-level": "^2.0.0",
     "esbuild-analyzer": "^0.2.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",

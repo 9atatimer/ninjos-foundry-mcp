@@ -664,9 +664,12 @@ export class ComfyUIClient {
 
     return {
       '1': {
-        // CheckpointLoaderSimple
+        // CheckpointLoaderSimple. Outputs [MODEL, CLIP, VAE] on slots 0/1/2 --
+        // wire VAEDecode straight to slot 2 rather than loading a separate VAE
+        // file. GammaGo's card_gen_workflow_api.json (a known-working SDXL
+        // pipeline against this same ComfyUI install) does exactly that.
         inputs: {
-          ckpt_name: 'dDBattlemapsSDXL10_upscaleV10.safetensors',
+          ckpt_name: 'juggernautXL_ragnarokBy.safetensors',
         },
         class_type: 'CheckpointLoaderSimple',
       },
@@ -711,18 +714,13 @@ export class ComfyUIClient {
         },
         class_type: 'KSampler',
       },
-      '9': {
-        // VAE Loader
-        inputs: {
-          vae_name: 'sdxl_vae.safetensors',
-        },
-        class_type: 'VAELoader',
-      },
       '6': {
-        // VAE Decode
+        // VAE Decode -- VAE comes from the checkpoint's own output (slot 2),
+        // not a separate VAELoader. No standalone SDXL VAE file exists on
+        // this install; the checkpoint's bundled VAE does not need one.
         inputs: {
           samples: ['5', 0],
-          vae: ['9', 0],
+          vae: ['1', 2],
         },
         class_type: 'VAEDecode',
       },

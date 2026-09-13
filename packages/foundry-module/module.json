@@ -1,8 +1,8 @@
 {
   "id": "ninjos-foundry-mcp",
   "title": "Ninjo's Foundry MCP",
-  "description": "Bedient Foundry VTT über das Model Context Protocol. Szenen anlegen, ändern und aus einer Sicherung bergen, Journale und Questreihen schreiben, Figuren und NSC bauen, Kompendien anlegen und archivieren, Wiedergabelisten und Zufallstabellen setzen, Würfelwürfe anfordern. Rechte lassen sich je Dokumentart abstufen, Löschen ist ab Werk überall aus. Deutsche und englische Oberfläche. — Drive Foundry VTT from an AI model through the Model Context Protocol: scenes, journals, actors, compendiums, playlists, roll tables and dice requests, with per-document-type permissions and GM-only access.",
-  "version": "14.2609.3",
+  "description": "Bedient Foundry VTT \u00fcber das Model Context Protocol. Szenen anlegen, \u00e4ndern und aus einer Sicherung bergen, Journale und Questreihen schreiben, Figuren und NSC bauen, Kompendien anlegen und archivieren, Wiedergabelisten und Zufallstabellen setzen, W\u00fcrfelw\u00fcrfe anfordern. Rechte lassen sich je Dokumentart abstufen, L\u00f6schen ist ab Werk \u00fcberall aus. Deutsche und englische Oberfl\u00e4che. \u2014 Drive Foundry VTT from an AI model through the Model Context Protocol: scenes, journals, actors, compendiums, playlists, roll tables and dice requests, with per-document-type permissions and GM-only access.",
+  "version": "14.2609.5",
   "compatibility": {
     "minimum": "13",
     "verified": "14",
@@ -14,11 +14,11 @@
       "url": "https://github.com/Niclasp1501"
     }
   ],
-  "url": "https://github.com/Niclasp1501/ninjos-foundry-mcp",
-  "bugs": "https://github.com/Niclasp1501/ninjos-foundry-mcp/issues",
-  "changelog": "https://github.com/Niclasp1501/ninjos-foundry-mcp/blob/main/CHANGELOG.md",
-  "readme": "https://github.com/Niclasp1501/ninjos-foundry-mcp/blob/main/README.md",
-  "license": "https://github.com/Niclasp1501/ninjos-foundry-mcp/blob/main/LICENSE",
+  "url": "https://github.com/9atatimer/ninjos-foundry-mcp",
+  "bugs": "https://github.com/9atatimer/ninjos-foundry-mcp/issues",
+  "changelog": "https://github.com/9atatimer/ninjos-foundry-mcp/blob/main/CHANGELOG.md",
+  "readme": "https://github.com/9atatimer/ninjos-foundry-mcp/blob/main/README.md",
+  "license": "https://github.com/9atatimer/ninjos-foundry-mcp/blob/main/LICENSE",
   "esmodules": ["dist/main.js"],
   "styles": [
     "styles/ninjo-marke.css",
@@ -39,8 +39,8 @@
     }
   ],
   "socket": true,
-  "manifest": "https://github.com/Niclasp1501/ninjos-foundry-mcp/releases/latest/download/module.json",
-  "download": "https://github.com/Niclasp1501/ninjos-foundry-mcp/releases/latest/download/module.zip",
+  "manifest": "https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest/download/module.json",
+  "download": "https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest/download/module.zip",
   "protected": false,
   "coreTranslation": false,
   "library": false,

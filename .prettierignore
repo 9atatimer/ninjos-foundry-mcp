@@ -8,3 +8,4 @@ shared/dist
 package-lock.json
 *.bundle.cjs
 .husky/_
+vendor

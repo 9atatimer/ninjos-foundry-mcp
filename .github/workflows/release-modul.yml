@@ -1,16 +1,18 @@
 # Baut das Foundry-Modul und reicht es beim Foundry-Katalog ein.
 #
-# Ausgeloest wird das vom selben Tag wie der PC-Teil (build-complete-release.yml).
-# Das ist Absicht: Modul und MCP-Server sprechen ueber rund hundert Abfragenamen
-# miteinander, die kein Compiler prueft. Kaemen die beiden Haelften aus
-# verschiedenen Tags, koennten sie auseinanderlaufen, ohne dass es auffaellt -
-# genau das ist am 30.08.2026 passiert.
+# Nur manuell ausgeloest (workflow_dispatch), auf ausdruecklichen Wunsch --
+# kein Push-Tag mehr startet das automatisch.
+#
+# ACHTUNG: Modul und MCP-Server (build-complete-release.yml) sprechen ueber
+# rund hundert Abfragenamen miteinander, die kein Compiler prueft. Frueher
+# liefen beide vom selben Tag-Push, genau damit sie nicht auseinanderlaufen -
+# das ist am 30.08.2026 einmal schiefgegangen. Jetzt beide Workflows von Hand
+# auf demselben Tag anstossen (gh workflow run ... --ref <tag>), sonst kann
+# der Drift wiederkommen.
 name: Modul veroeffentlichen
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -59,8 +61,15 @@ jobs:
             -x "package.json"
           cd ../..
           cp packages/foundry-module/module.json module.json
+          # manifest/download muessen den konkreten Tag nennen, nicht
+          # releases/latest/download -- das loest fuer ein Repo ohne
+          # Nicht-Prerelease nicht auf (task-013).
+          sed -i "s#/releases/latest/download/#/releases/download/${{ github.ref_name }}/#g" module.json
           echo "Inhalt des Pakets:"
           unzip -l module.zip | tail -20
+
+      - name: Paket gegen den Tag pruefen
+        run: node scripts/paket-pruefen.mjs module.json ${{ github.ref_name }}
 
       - name: Anhaenge an das Release
         # Titel und Text setzt bewusst nur build-complete-release.yml. Beide
@@ -86,7 +95,7 @@ jobs:
         uses: cs96and/FoundryVTT-release-package@v1
         with:
           package-token: ${{ secrets.PACKAGE_TOKEN }}
-          manifest-url: https://github.com/Niclasp1501/ninjos-foundry-mcp/releases/download/${{ github.ref_name }}/module.json
+          manifest-url: https://github.com/9atatimer/ninjos-foundry-mcp/releases/download/${{ github.ref_name }}/module.json
 
       - name: Hinweis, falls nicht eingereicht wurde
         if: ${{ env.PACKAGE_TOKEN == '' && !contains(github.ref_name, 'beta') }}
