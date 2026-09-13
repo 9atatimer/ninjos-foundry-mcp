@@ -158,6 +158,15 @@ The topology is unchanged from local: the browser and the MCP server are
 both on the GM's machine, and the module dials `ws://localhost:31415` from
 a page served over HTTPS.
 
+**The two halves ship on different clocks.** A server fix is live as soon
+as the local backend is rebuilt and restarted. A module fix is not live on
+Forge until a release is cut *and* installed there -- the live game keeps
+running the old module code. On 2026-09-12 the fix for #3 (generated maps
+auto-activating) was committed and tested while the Forge game still ran
+14.2609.5, so the next generated map still yanked every player onto it.
+When a fix lives in `packages/foundry-module`, say it is not live yet and
+work around it in the running game until the release is installed.
+
 ## The GM browser: the debug Chrome, never the human's main Chrome
 
 The world is driven from a dedicated debug Chrome whose profile holds the
