@@ -107,6 +107,15 @@ Deliberately not in Now: task-003 (no container yet), task-005, task-006
 (large, no deadline), task-007 and task-009 (latent). task-016 and task-019
 wait on the map-generation design decision (task-020).
 
+Wanted next, not yet scheduled:
+
+- **task-021** -- Docling as an MCP tool, so campaign PDFs and Word files can
+  become Foundry journal and compendium entries instead of being retyped.
+  Needs a tech-radar row before anything is installed.
+- **task-022** -- a GM agent persona with its own skills for prep, combat and
+  scene dressing, so running a live table is not improvised from the product
+  agent's posture. May belong outside this repo.
+
 ## Blockers
 
 - **task-014 needs a name.** The new module id/title, to stop Forge's Bazaar
