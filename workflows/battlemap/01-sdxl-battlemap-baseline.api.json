@@ -1,0 +1,111 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "dDBattlemapsSDXL10_upscaleV10.safetensors"
+    },
+    "_meta": {
+      "title": "CHECKPOINT"
+    }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "2d DnD battlemap of a narrow rocky cliff ledge with a bird nest of bones, sheer drop into a dark chasm on the left, cave mouth in the cliff on the right, top-down view, overhead perspective, aerial",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "POSITIVE"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "grid, low angle, isometric, oblique, horizon, text, watermark, logo, caption, people, creatures, monsters, blurry, artifacts",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "NEGATIVE"
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "LATENT"
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 1,
+      "steps": 8,
+      "cfg": 2.5,
+      "denoise": 1.0,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "2",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAMPLER"
+    }
+  },
+  "6": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "DECODE"
+    }
+  },
+  "7": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "bm01-baseline",
+      "images": [
+        "6",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAVE"
+    }
+  }
+}

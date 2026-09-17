@@ -1,0 +1,148 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "dndMapGenerator_v3_sd15.safetensors"
+    },
+    "_meta": {
+      "title": "CHECKPOINT"
+    }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "2d dnd battlemap, 2d DnD battlemap of a narrow rocky cliff ledge with a bird nest of bones, sheer drop into a dark chasm on the left, cave mouth in the cliff on the right, top-down view, overhead perspective, aerial",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "POSITIVE"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "grid, low angle, isometric, oblique, horizon, text, watermark, logo, caption, people, creatures, monsters, blurry, artifacts",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "NEGATIVE"
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 768,
+      "height": 768,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "LATENT"
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 1,
+      "steps": 25,
+      "cfg": 7.0,
+      "denoise": 1.0,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "2",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAMPLER"
+    }
+  },
+  "6": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "_meta": {
+      "title": "DECODE"
+    }
+  },
+  "17": {
+    "class_type": "UpscaleModelLoader",
+    "inputs": {
+      "model_name": "4x_NMKD-Siax_200k.pth"
+    },
+    "_meta": {
+      "title": "UPSCALE_MODEL"
+    }
+  },
+  "18": {
+    "class_type": "ImageUpscaleWithModel",
+    "inputs": {
+      "upscale_model": [
+        "17",
+        0
+      ],
+      "image": [
+        "6",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "UPSCALE"
+    }
+  },
+  "19": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "18",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 1536,
+      "height": 1536,
+      "crop": "disabled"
+    },
+    "_meta": {
+      "title": "RESIZE"
+    }
+  },
+  "7": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "bm05-sd15",
+      "images": [
+        "19",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAVE"
+    }
+  }
+}

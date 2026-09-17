@@ -1,0 +1,158 @@
+{
+  "1": {
+    "class_type": "UnetLoaderGGUF",
+    "inputs": {
+      "unet_name": "flux1-dev-Q8_0.gguf"
+    },
+    "_meta": {
+      "title": "UNET"
+    }
+  },
+  "20": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "lora_name": "flux-dnd-map-world.safetensors",
+      "strength_model": 0.9,
+      "model": [
+        "1",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "LORA"
+    }
+  },
+  "14": {
+    "class_type": "DualCLIPLoaderGGUF",
+    "inputs": {
+      "clip_name1": "t5-v1_1-xxl-encoder-Q8_0.gguf",
+      "clip_name2": "clip_l.safetensors",
+      "type": "flux"
+    },
+    "_meta": {
+      "title": "TEXT_ENCODERS"
+    }
+  },
+  "15": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "_meta": {
+      "title": "VAE"
+    }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "Dnd_maps, 2d DnD battlemap of a narrow rocky cliff ledge with a bird nest of bones, sheer drop into a dark chasm on the left, cave mouth in the cliff on the right, top-down view, overhead perspective, aerial",
+      "clip": [
+        "14",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "POSITIVE"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "",
+      "clip": [
+        "14",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "NEGATIVE"
+    }
+  },
+  "16": {
+    "class_type": "FluxGuidance",
+    "inputs": {
+      "conditioning": [
+        "2",
+        0
+      ],
+      "guidance": 3.0
+    },
+    "_meta": {
+      "title": "GUIDANCE"
+    }
+  },
+  "4": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "LATENT"
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 1,
+      "steps": 20,
+      "cfg": 1.0,
+      "denoise": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "model": [
+        "20",
+        0
+      ],
+      "positive": [
+        "16",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAMPLER"
+    }
+  },
+  "6": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "15",
+        0
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "DECODE"
+    }
+  },
+  "7": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "bm06-flux-lora",
+      "images": [
+        "6",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAVE"
+    }
+  }
+}
