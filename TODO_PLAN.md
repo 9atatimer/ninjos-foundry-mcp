@@ -107,6 +107,20 @@ Deliberately not in Now: task-003 (no container yet), task-005, task-006
 (large, no deadline), task-007 and task-009 (latent). task-016 and task-019
 wait on the map-generation design decision (task-020).
 
+Wanted next, not yet scheduled:
+
+- **task-021** -- Docling as an MCP tool, so campaign PDFs and Word files can
+  become Foundry journal and compendium entries instead of being retyped.
+  Needs a tech-radar row before anything is installed.
+- **task-022** -- a GM agent persona with its own skills for prep, combat and
+  scene dressing, so running a live table is not improvised from the product
+  agent's posture. May belong outside this repo.
+- **task-023** -- decide how `generate-map` picks an engine. Five alternative
+  workflows are checked in and measured; the decision itself is #8's.
+  task-020 asks whether map generation needs a design record at all;
+  task-023 is the first concrete choice that record would have to settle,
+  so it cannot start before task-020 is answered.
+
 ## Blockers
 
 - **task-014 needs a name.** The new module id/title, to stop Forge's Bazaar
@@ -123,6 +137,24 @@ wait on the map-generation design decision (task-020).
   mark it APPROVED.
 
 ## Lessons Learned
+
+### The tool ships one engine, and it is the weakest one for content
+
+about: wip
+
+Six graphs were run on one prompt and seed (PR #15). The shipped default --
+D&D Battlemaps SDXL at 8 steps -- was the fastest (40 s) and rendered bare
+sand for a prompt full of objects. FLUX.1-schnell followed the prompt best
+(105 s); ControlNet held a supplied layout, which no prompt does; the SDXL
+battlemap LoRA looked best but drew a grid onto scenes that are created
+gridless.
+
+Unsettled because the fix is a product decision, not a constant: a `workflow`
+parameter, a different default, a layout-driven path, or none of those
+(task-023, #8, #4). Also unsettled how much of this generalises off this
+machine -- every number is M1 Max / MPS, where Flux costs ~20 s per step
+against SDXL's ~2.5 s, and that ratio is what makes schnell usable and dev
+not.
 
 ### 1. The two halves disagree about whether the connection is permanent
 
@@ -190,8 +222,9 @@ about: wip
 On 2026-09-12 the bridge was driven during a real session, with players
 online, a stream of GM requests, and the GM rearranging the world between
 them. A timestamped timeline of the session, with a friction analysis, is
-outside this repo at
-`../campaigns/new-undead/sessions/2026-09-12/timeline.md`. Three mistakes had the same mechanism: state or effects the agent
+kept with the campaign material outside this repo, at
+`campaigns/new-undead/sessions/2026-09-12/timeline.md` in the GM's campaign
+tree (a sibling of this checkout; campaign material is not vendored here). Three mistakes had the same mechanism: state or effects the agent
 did not re-read before acting.
 
 - A module default (`autoActivate = true`) pulled every player onto an
