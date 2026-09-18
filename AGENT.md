@@ -183,6 +183,21 @@ Script names, workflow files and many code comments are German
 Docs under `docs/` are mixed. Match the surrounding language when editing;
 do not translate a file wholesale as a side effect of another change.
 
+## Infrastructure
+
+The fleet's infrastructure-as-code lives in the private infra repo
+[tds-internal](https://github.com/9atatimer/tds-internal) under
+`ops/terraform/`; its `docs/policy/{INFRASTRUCTURE,TERRAFORM,CREDENTIALS}.md`
+are the rules and win over anything here.
+
+This repo owns no long-lived cloud resource. It ships releases only: the
+MCP server, the Foundry module and the installer, built and published by
+the workflows under `.github/`. The Foundry worlds it talks to are hosted
+elsewhere and are not provisioned from here.
+
+Load the shared `iac` skill only if a task ever needs a cloud resource or
+a GitHub secret; the resource then goes in tds-internal, not here.
+
 ## Inherited hazard: .claude/settings.local.json
 
 The repo ships a committed `.claude/settings.local.json` carrying the
