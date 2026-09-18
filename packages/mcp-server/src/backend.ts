@@ -40,6 +40,7 @@ import { WFRP4eUpdateActorTools } from './tools/wfrp4e/update-actor.js';
 import { WFRP4eAddItemsTools } from './tools/wfrp4e/add-items.js';
 
 import { MapGenerationTools } from './tools/map-generation.js';
+import { buildMapSceneData } from './map-scene.js';
 // NINJO: The module id used for the extension-tool queries.
 import { MODULE_ID } from '@foundry-mcp/shared';
 
@@ -1067,39 +1068,12 @@ async function processMapGenerationInBackend(
 
     const sceneName = job.params.scene_name.trim();
     logger.info('Using scene name', { scene_name: sceneName });
-    const sceneData = {
-      name: sceneName,
-      img: webPath,
-      background: { src: webPath }, // Foundry v13 compatibility
-      width: sceneSize,
-      height: sceneSize,
-      padding: 0.25,
-      initial: {
-        x: sceneSize / 2,
-        y: sceneSize / 2,
-        scale: 1,
-      },
-      backgroundColor: '#999999',
-      grid: {
-        type: 1, // CONST.GRID_TYPES.SQUARE
-        size: job.params.grid_size || 100,
-        color: '#000000',
-        alpha: 0.2,
-        distance: 5,
-        units: 'ft',
-      },
-      tokenVision: true,
-      fogExploration: true,
-      fogReset: Date.now(),
-      globalLight: false,
-      darkness: 0,
-      navigation: true,
-      active: false,
-      permission: {
-        default: 2, // CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER
-      },
-      walls: [], // Could add wall detection here later
-    };
+    const sceneData = buildMapSceneData({
+      sceneName,
+      webPath,
+      sceneSize,
+      gridSize: job.params.grid_size,
+    });
 
     // Mark job as complete with full result data
     await jobQueue.updateJobProgress(jobId, 100, 'Complete');
