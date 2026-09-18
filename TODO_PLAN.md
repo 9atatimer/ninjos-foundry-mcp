@@ -117,6 +117,9 @@ Wanted next, not yet scheduled:
   agent's posture. May belong outside this repo.
 - **task-023** -- decide how `generate-map` picks an engine. Five alternative
   workflows are checked in and measured; the decision itself is #8's.
+  task-020 asks whether map generation needs a design record at all;
+  task-023 is the first concrete choice that record would have to settle,
+  so it cannot start before task-020 is answered.
 
 ## Blockers
 
@@ -219,8 +222,9 @@ about: wip
 On 2026-09-12 the bridge was driven during a real session, with players
 online, a stream of GM requests, and the GM rearranging the world between
 them. A timestamped timeline of the session, with a friction analysis, is
-outside this repo at
-`../campaigns/new-undead/sessions/2026-09-12/timeline.md`. Three mistakes had the same mechanism: state or effects the agent
+kept with the campaign material outside this repo, at
+`campaigns/new-undead/sessions/2026-09-12/timeline.md` in the GM's campaign
+tree (a sibling of this checkout; campaign material is not vendored here). Three mistakes had the same mechanism: state or effects the agent
 did not re-read before acting.
 
 - A module default (`autoActivate = true`) pulled every player onto an

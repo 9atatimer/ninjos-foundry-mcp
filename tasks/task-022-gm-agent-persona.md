@@ -9,8 +9,10 @@ created: 2026-09-17
 
 Driving a live table needs a different posture from product work: act inside
 one world, keep players' view in mind, never surprise the table. The
-2026-09-12 session showed the gap -- see the friction list in
-`../campaigns/new-undead/sessions/2026-09-12/timeline.md`: a generated map
+2026-09-12 session showed the gap. Its friction list lives with the campaign
+material, outside this repo (`campaigns/new-undead/sessions/2026-09-12/
+timeline.md`, a sibling checkout -- campaign material is deliberately not
+vendored here): a generated map
 activated itself and yanked every player onto it, tokens were moved from
 stale coordinates, and standing preferences (no grid, daylight) had to be
 repeated.

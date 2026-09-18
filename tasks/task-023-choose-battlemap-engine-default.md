@@ -26,7 +26,10 @@ the caravan map.
 - Does gridless-by-default stand, given the AC5e range-check cost and that
   the battlemap LoRA draws grids?
 
-Blocked on #8. #4 (no quality knob) collapses into whatever is decided here.
+Blocked on #8, and therefore on task-020: that task asks whether map
+generation needs a design record; this one is the first concrete decision
+such a record would have to contain. #4 (no quality knob) collapses into
+whatever is decided here.
 
 ## Not in scope
 
