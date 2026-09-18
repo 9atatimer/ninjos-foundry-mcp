@@ -115,6 +115,8 @@ Wanted next, not yet scheduled:
 - **task-022** -- a GM agent persona with its own skills for prep, combat and
   scene dressing, so running a live table is not improvised from the product
   agent's posture. May belong outside this repo.
+- **task-023** -- decide how `generate-map` picks an engine. Five alternative
+  workflows are checked in and measured; the decision itself is #8's.
 
 ## Blockers
 
@@ -132,6 +134,24 @@ Wanted next, not yet scheduled:
   mark it APPROVED.
 
 ## Lessons Learned
+
+### The tool ships one engine, and it is the weakest one for content
+
+about: wip
+
+Six graphs were run on one prompt and seed (PR #15). The shipped default --
+D&D Battlemaps SDXL at 8 steps -- was the fastest (40 s) and rendered bare
+sand for a prompt full of objects. FLUX.1-schnell followed the prompt best
+(105 s); ControlNet held a supplied layout, which no prompt does; the SDXL
+battlemap LoRA looked best but drew a grid onto scenes that are created
+gridless.
+
+Unsettled because the fix is a product decision, not a constant: a `workflow`
+parameter, a different default, a layout-driven path, or none of those
+(task-023, #8, #4). Also unsettled how much of this generalises off this
+machine -- every number is M1 Max / MPS, where Flux costs ~20 s per step
+against SDXL's ~2.5 s, and that ratio is what makes schnell usable and dev
+not.
 
 ### 1. The two halves disagree about whether the connection is permanent
 
