@@ -95,6 +95,59 @@ while i < len(d):
 
 ComfyUI output on this machine lives under `~/workplace/OSS/comfyui/output/`.
 
+## Which engine for which job
+
+`generate-map` uses one graph. Five alternatives are checked in as API-format
+JSON under `workflows/battlemap/`, runnable with
+`scripts/battlemap-render.mjs` (ComfyUI only -- no upload, no scene, safe
+mid-session). Measured on an M1 Max at 1024px, same prompt and seed
+(`docs/battlemap-model-comparison.md`):
+
+| Want | Use | Cost |
+| ---- | --- | ---- |
+| terrain-only map, fast | 01 baseline, D&D Battlemaps SDXL | 40 s |
+| specific objects in the scene | 04 FLUX.1-schnell Q4 | 105 s |
+| *this* layout: rooms, river, city block | 03 ControlNet union | 65 s |
+| a different art style | 02 SDXL base + battlemap LoRA | 80 s |
+| cheap candidate sweeps | 05 SD1.5 + 4x upscale | 50 s |
+
+Two facts decide most choices:
+
+- **Flux costs ~20 s per step on MPS against SDXL's ~2.5 s.** That is why
+  schnell (4 steps) is usable for iteration and dev (20 steps, 405 s) is
+  not. Flux runs at cfg 1.0 with a `FluxGuidance` node.
+- **8 steps settles layout, not content.** The baseline rendered bare sand
+  for a prompt full of objects. Fix by changing engine (Flux) or adding an
+  img2img pass, not by nudging the prompt.
+
+## ControlNet: when the GM hands you a map
+
+ControlNet has no semantics. It does not know a room from a canyon; it
+constrains geometry, and the prompt supplies the meaning. The union model
+(`diffusion_pytorch_model_promax.safetensors`) covers the useful types:
+`canny/lineart/anime_lineart/mlsd` for drawn walls (mlsd for rectilinear
+dungeons), `hed/pidi/scribble/ted` for sketches, `depth` for outdoor relief,
+`segment` for biome regions, `tile` for enlarging a finished map without
+losing its composition.
+
+Preparing a GM's own map (proven on a contour/waterway/city-block map,
+2026-09-18):
+
+- **Separate by colour first.** Green contours, dark waterways, red city
+  blocks and grey roads each become their own control image. Feeding the raw
+  scan traces everything, printed grid rule included.
+- **Thicken lines** to 3-5 px before the edge pass, or they vanish at 1024px.
+- **Contours to depth:** count contour crossings inward from each of the four
+  image edges and take the minimum. Filling nested contours fails when lines
+  run off the edge. Straight map borders and scale bars cause banding, so
+  smooth the result and check it by eye before using it.
+- **Strengths that worked:** lineart 0.8 ending at 85% of steps was the most
+  faithful, and beat depth alone (0.85) and a depth+lineart stack. Start
+  there.
+- **Scale mismatch is the standing limitation.** The battlemap model renders
+  at battlemap zoom, so a few-kilometre valley comes out looking like an
+  estate. Region maps want tiling, or a different model.
+
 ## Iterating on a map outside the tool
 
 `generate-map` always samples at 8 steps from scratch, which settles layout
