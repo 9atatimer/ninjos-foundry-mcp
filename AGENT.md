@@ -158,6 +158,24 @@ The topology is unchanged from local: the browser and the MCP server are
 both on the GM's machine, and the module dials `ws://localhost:31415` from
 a page served over HTTPS.
 
+## The GM browser: the debug Chrome, never the human's main Chrome
+
+The world is driven from a dedicated debug Chrome whose profile holds the
+Forge login: `~/.cache/chrome-devtools-mcp/chrome-profile`. Attach to it
+with the `chrome-devtools` MCP (`mcp__chrome-devtools__*`) -- calling
+`list_pages` or `new_page` launches it on that profile if it is not
+already running. The game URL is `https://forge-vtt.com/game/tds-mainland`.
+
+- Never quit, restart, or attach to the human's everyday Google Chrome
+  (`chrome-attached`, `claude-in-chrome`, `osascript quit`). It holds
+  their personal session and is not this project's browser.
+- To confirm which browser is up:
+  `ps aux | grep Chrome | grep -oE 'user-data-dir=[^ ]+' | sort -u` must
+  show the profile above.
+- "Restart the browser so I can sign in" means: open the debug Chrome at
+  the game URL, then wait for the human to sign in and launch the world
+  before running the foundry-mcp preflight.
+
 ## Language
 
 Script names, workflow files and many code comments are German
