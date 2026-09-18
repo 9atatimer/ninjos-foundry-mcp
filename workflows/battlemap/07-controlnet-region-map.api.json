@@ -1,0 +1,173 @@
+{
+  "1": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": {
+      "ckpt_name": "dDBattlemapsSDXL10_upscaleV10.safetensors"
+    },
+    "_meta": {
+      "title": "CHECKPOINT"
+    }
+  },
+  "2": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "2d DnD battlemap of a river valley, a walled market town of stone and timber buildings along the river, strip farmland and orchards, dirt roads, wooded hill slopes, a stone keep on a bluff, ford crossing, top-down view, overhead perspective, aerial",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "POSITIVE"
+    }
+  },
+  "3": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "text": "grid, low angle, isometric, oblique, horizon, text, watermark, logo, caption, people, creatures, monsters, blurry, artifacts",
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "_meta": {
+      "title": "NEGATIVE"
+    }
+  },
+  "30": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "ctrl-lineart.png"
+    },
+    "_meta": {
+      "title": "CTRL_IMAGE"
+    }
+  },
+  "32": {
+    "class_type": "SetUnionControlNetType",
+    "inputs": {
+      "control_net": [
+        "11",
+        0
+      ],
+      "type": "canny/lineart/anime_lineart/mlsd"
+    },
+    "_meta": {
+      "title": "CTRL_TYPE"
+    }
+  },
+  "11": {
+    "class_type": "ControlNetLoader",
+    "inputs": {
+      "control_net_name": "diffusion_pytorch_model_promax.safetensors"
+    },
+    "_meta": {
+      "title": "CONTROLNET"
+    }
+  },
+  "33": {
+    "class_type": "ControlNetApplyAdvanced",
+    "inputs": {
+      "positive": [
+        "2",
+        0
+      ],
+      "negative": [
+        "3",
+        0
+      ],
+      "control_net": [
+        "32",
+        0
+      ],
+      "image": [
+        "30",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "strength": 0.8,
+      "start_percent": 0.0,
+      "end_percent": 0.85
+    },
+    "_meta": {
+      "title": "CTRL_APPLY"
+    }
+  },
+  "4": {
+    "class_type": "EmptyLatentImage",
+    "inputs": {
+      "width": 1344,
+      "height": 768,
+      "batch_size": 1
+    },
+    "_meta": {
+      "title": "LATENT"
+    }
+  },
+  "5": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": 99,
+      "steps": 14,
+      "cfg": 2.5,
+      "denoise": 1.0,
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "model": [
+        "1",
+        0
+      ],
+      "positive": [
+        "33",
+        0
+      ],
+      "negative": [
+        "33",
+        1
+      ],
+      "latent_image": [
+        "4",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAMPLER"
+    }
+  },
+  "6": {
+    "class_type": "VAEDecodeTiled",
+    "inputs": {
+      "samples": [
+        "5",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ],
+      "tile_size": 512,
+      "overlap": 64,
+      "temporal_size": 64,
+      "temporal_overlap": 8
+    },
+    "_meta": {
+      "title": "DECODE"
+    }
+  },
+  "7": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "filename_prefix": "bm07-region",
+      "images": [
+        "6",
+        0
+      ]
+    },
+    "_meta": {
+      "title": "SAVE"
+    }
+  }
+}
