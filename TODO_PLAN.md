@@ -1,7 +1,7 @@
 # ninjos-foundry-mcp -- TODO Plan
 
 > **Status:** Active
-> **Updated:** 2026-09-12
+> **Updated:** 2026-09-13
 > **Design:** none yet -- no design record exists for the transport layer,
 > which is where all current work sits.
 
@@ -69,6 +69,16 @@ Surfaced by that install: Forge's Bazaar nests the fork under Ninjo's own
 listing rather than showing it as a separate package, because `module.json`
 still ships the upstream `id`. See task-014 -- blocked on a name.
 
+Map generation (`generate-map` -> ComfyUI -> scene) was used for real on
+the Forge game on 2026-09-12 and fixed along the way, on branch
+`claude/youthful-meitner-5ohkar` (unpushed at retrospective time). It
+fixed #2 (1536px decode crashed on MPS), restored the D&D Battlemaps
+SDXL checkpoint, made generated scenes gridless and lit, and fixed #3
+(generated scenes auto-activated). The server changes run on the local
+backend. The #3 module fix does not reach Forge until a release
+(task-015). None of it has a design record (#8, task-020). How to drive
+it is in `.claude/skills/foundry-battlemap/`.
+
 `HOWTO.md` carries what all of that taught us.
 `docs/concepts/npc-dialog/` holds an unfunded idea captured this session.
 
@@ -83,22 +93,30 @@ still ships the upstream `id`. See task-014 -- blocked on a name.
   and not a substitute for it.
 - **task-011 / task-012** -- the rest of the downloader defects. Only worth
   doing if 010 is fixed rather than deleted.
-- **task-004** -- the reconnect defect. Now hit routinely on the real rig.
+- **task-004** -- the reconnect defect. Now hit routinely on the real rig,
+  and on WebRTC it also reports "connected" over a dead link.
+- **task-017** -- no CI runs tests. Do it before task-015, so the #2 and #3
+  regression tests actually guard the release.
+- **task-015** -- release the module so the #3 fix is live on Forge. Until
+  then every `generate-map` yanks players onto the new scene. Blocked by the
+  map-generation branch reaching `main`.
+- **task-018** -- a wrapper-spawned backend has map generation off. Small,
+  and it bites on every backend restart.
 
 Deliberately not in Now: task-003 (no container yet), task-005, task-006
-(large, no deadline), task-007 and task-009 (latent).
+(large, no deadline), task-007 and task-009 (latent). task-016 and task-019
+wait on the map-generation design decision (task-020).
 
 ## Blockers
 
 - **task-014 needs a name.** The new module id/title, to stop Forge's Bazaar
   from nesting this fork under Ninjo's own catalog listing. Unblock: owner
   picks a name.
-- **Issues are disabled on this fork** (`gh issue list` refuses;
-  `viewerPermission: ADMIN`, so it is one settings change). Until they are
-  enabled, `issue:` stays empty on every task and the defect-first
-  workflow has no remote half. Unblock: enable Issues in repo settings, or
-  decide the local `tasks/` store is the whole record for this fork.
-  Raised 2026-09-12.
+- **Map generation needs a design call** (#8, task-020): whether its
+  in-session decisions -- gridless, lit, inactive, tiled decode, checkpoint --
+  need a design record, and whether gridless stands given the range
+  automation cost. It gates task-016 and task-019 (#7 also needs the scene
+  ownership default decided). Unblock: a human rules on #8.
 - **No design record exists for the transport layer.** task-001 cannot
   start under law 1 until one is written and approved. Unblock: write
   `docs/design/DESIGN.transport-auth.md`, run the panel, get a human to
@@ -120,6 +138,12 @@ backoff on the module side; the backend declining to exit while a module is
 bridged; or an explicit lifecycle contract making one side authoritative. It is
 a contract between the halves, so it wants a design record, not a constant.
 
+Triage 2026-09-13: kept as wip. New evidence narrows it rather than settling
+it. On WebRTC the module does not merely give up; it keeps claiming
+"connected" over a dead peer, while websocket mode reconnected unaided after
+several restarts (task-004, second shape). So the transport choice is part of
+the lifecycle contract, not just the retry policy.
+
 ### 2. Tools written this session were not built test-first, and it showed
 
 about: wip
@@ -136,6 +160,11 @@ have missed too. What caught them was an adversarial pass with a local HTTP
 harness. Whether that becomes a standing requirement for network-facing tools
 is the open question.
 
+Triage 2026-09-13: kept as wip. The map-generation fixes (#2, #3) were done
+test-first, but no CI runs tests (task-017), so a RED -> GREEN test here
+protects only the session that wrote it. Until a gate runs them, "test-first"
+is local discipline, not a guarantee.
+
 ### 3. Verify a compatibility claim by running it, not by reading the manifest
 
 about: wip
@@ -151,3 +180,32 @@ is not always cheap, and here it was only cheap because the licence, the
 export and the asset library were already in hand. The narrower and probably
 correct version: when a decision is one-way -- and a world migration is -- the
 cost of testing it is almost always less than the cost of being wrong.
+
+Triage 2026-09-13 (lesson 3): kept as wip, no new evidence.
+
+### A live table is not a dev rig
+
+about: wip
+
+On 2026-09-12 the bridge was driven during a real session, with players
+online, a stream of GM requests, and the GM rearranging the world between
+them. A timestamped timeline of the session, with a friction analysis, is
+outside this repo at
+`../campaigns/new-undead/sessions/2026-09-12/timeline.md`. Three mistakes had the same mechanism: state or effects the agent
+did not re-read before acting.
+
+- A module default (`autoActivate = true`) pulled every player onto an
+  unprepared map (#3). The code had never been exercised with players
+  connected.
+- Tokens the GM had deliberately placed were moved back to positions the
+  agent had chosen an hour earlier, because the script used remembered
+  coordinates instead of reading current ones.
+- A sampler change was committed on the agent's judgement, then reverted
+  when the GM said card-art settings do not suit battlemaps.
+
+The settled parts have graduated to `.claude/skills/foundry-battlemap/` and
+`.claude/skills/foundry-mcp/`: re-read positions, keep tokens inside the
+scene rect, and a character name means that character's player. Unsettled:
+whether player-visible effects -- activation, pulling users, revealing
+tokens -- need a standing confirm-first rule in the skill, or whether
+per-default fixes like #3 are enough.
