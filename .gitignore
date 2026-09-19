@@ -85,6 +85,15 @@ DEVELOPMENT.md
 VERIFY.md
 VISUAL-CONFIRMATION.md
 
+# Provisioned skill mirrors (regenerated per session from the shared Skills
+# repo). Only the skills this repo owns are committed.
+.claude/skills/*
+!.claude/skills/foundry-mcp/
+!.claude/skills/foundry-artwork/
+!.claude/skills/foundry-battlemap/
+.agents/
+.codex/
+
 # Internal planning / analysis docs — keep in chat or under docs/, not repo root.
 # These accumulate as cruft and aren't useful for contributors.
 /*_PLAN.md
