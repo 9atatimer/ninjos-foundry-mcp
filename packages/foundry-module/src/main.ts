@@ -217,6 +217,10 @@ class FoundryMCPBridge {
         throw new Error(`Invalid configuration: ${validation.errors.join(', ')}`);
       }
 
+      // NINJO: a bridge that failed earlier keeps retrying on its own timer.
+      // Replacing it without stopping it left two bridges racing for the server.
+      this.socketBridge?.disconnect();
+
       // Create and connect socket bridge
       this.socketBridge = new SocketBridge(config);
       await this.socketBridge.connect();

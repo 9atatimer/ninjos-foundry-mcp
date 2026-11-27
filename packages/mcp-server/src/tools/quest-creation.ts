@@ -318,21 +318,28 @@ export class QuestCreationTools {
 
       const request = requestSchema.parse(args);
 
-      // Get journal content first
-      const journalResult = await this.foundryClient.query('ninjos-foundry-mcp.getJournalContent', {
-        journalId: request.journalId,
-      });
+      // Read the whole first text page, not just its first chunk: this page is
+      // written back below, and a partial read would cut off everything after it.
+      const journal = await this.readFullJournalContent(request.journalId);
 
-      if (!journalResult || journalResult.error) {
+      if (!journal) {
         throw new Error('Journal not found');
       }
 
       // Add NPC relationship information to journal
       const updatedContent = this.addNPCLinkToJournal(
-        journalResult.content,
+        journal.content,
         request.npcName,
         request.relationship
       );
+
+      // Without a recognisable place to insert, the content comes back unchanged.
+      // Writing that and reporting success would claim a link that is not there.
+      if (updatedContent === journal.content) {
+        throw new Error(
+          'Found no place to insert the NPC link in this journal; nothing was changed'
+        );
+      }
 
       // Update journal with NPC link
       const updateResult = await this.foundryClient.query(
@@ -354,6 +361,71 @@ export class QuestCreationTools {
     } catch (error) {
       this.errorHandler.handleToolError(error, 'link-quest-to-npc', 'linking quest to NPC');
     }
+  }
+
+  /**
+   * Read a journal's first text page, or one given page, completely.
+   *
+   * The module hands page content out in chunks (50,000 characters unless more
+   * is asked for, 200,000 at most) so that one answer cannot tear the data
+   * channel. A tool that changes a page here and writes it back has to collect
+   * every chunk first. Until 14.2609.4 link-quest-to-npc and update-quest-journal
+   * read only the first chunk and wrote that back, which silently deleted
+   * everything past 50,000 characters.
+   *
+   * Returns null when the journal or page does not exist. Throws when a later
+   * chunk fails or the pieces do not add up, so that nothing incomplete is ever
+   * written back.
+   */
+  private async readFullJournalContent(
+    journalId: string,
+    pageId?: string
+  ): Promise<{ content: string } | null> {
+    const method = pageId
+      ? 'ninjos-foundry-mcp.getJournalPageContent'
+      : 'ninjos-foundry-mcp.getJournalContent';
+    const chunkSize = 200000;
+
+    let content = '';
+    let offset = 0;
+    let expectedLength: number | undefined;
+
+    // The bound only guards against a module that never reports the end.
+    for (let round = 0; round < 10000; round++) {
+      const chunk: any = await this.foundryClient.query(method, {
+        journalId,
+        ...(pageId ? { pageId } : {}),
+        offset,
+        maxChars: chunkSize,
+      });
+
+      if (!chunk || chunk.error) {
+        if (round === 0) return null;
+        throw new Error(
+          `Reading the page failed after ${content.length} characters; nothing was written`
+        );
+      }
+
+      content += chunk.content ?? '';
+      if (expectedLength === undefined && typeof chunk.contentLength === 'number') {
+        expectedLength = chunk.contentLength;
+      }
+
+      if (!chunk.hasMore) break;
+      if (typeof chunk.nextOffset !== 'number' || chunk.nextOffset <= offset) {
+        throw new Error('The module returned an invalid chunk offset; nothing was written');
+      }
+      offset = chunk.nextOffset;
+    }
+
+    // Also catches a page that changed between two chunks.
+    if (expectedLength !== undefined && content.length !== expectedLength) {
+      throw new Error(
+        `Read ${content.length} of ${expectedLength} characters; nothing was written`
+      );
+    }
+
+    return { content };
   }
 
   // REMOVED: analyze-campaign-context tool - was causing too many debugging issues
@@ -400,58 +472,80 @@ export class QuestCreationTools {
         };
       }
 
-      // Get current journal content (for the target page)
-      let currentContent: string;
+      // A specific page gets the update appended inside the module. Carrying the
+      // whole page across the bridge and back just to add to its end is how long
+      // pages lost their tail, and it is not needed: the module appends to the
+      // page it holds in full.
       if (request.pageId) {
-        const pageResult = await this.foundryClient.query(
+        const existing = await this.foundryClient.query(
           'ninjos-foundry-mcp.getJournalPageContent',
           {
             journalId: request.journalId,
             pageId: request.pageId,
+            maxChars: 1000,
           }
         );
-        if (!pageResult || pageResult.error) {
+        if (!existing || existing.error) {
           throw new Error(`Page not found: ${request.pageId}`);
         }
-        currentContent = pageResult.content;
-      } else {
-        const currentJournal = await this.foundryClient.query(
-          'ninjos-foundry-mcp.getJournalContent',
+
+        const formattedNew = this.formatUpdateContentForFoundry(request.newContent);
+        const appended = await this.foundryClient.query(
+          'ninjos-foundry-mcp.appendJournalPageContent',
           {
             journalId: request.journalId,
+            pageId: request.pageId,
+            html: formattedNew,
           }
         );
-        if (!currentJournal || currentJournal.error) {
+        if (!appended || appended.error || !appended.success) {
           throw new Error(
-            `Journal not found: ${currentJournal?.error || 'Journal ID may be invalid'}`
+            `Failed to update quest journal: ${appended?.error || 'append returned failure'}`
           );
         }
-        currentContent = currentJournal.content;
+
+        const before = Number(existing.contentLength) || 0;
+        const after = Number(appended.newLength) || 0;
+        if (after < before + formattedNew.length) {
+          throw new Error(
+            `Journal update verification failed: page length is ${after}, expected at least ${before + formattedNew.length}`
+          );
+        }
+
+        return {
+          success: true,
+          updateType: request.updateType,
+          message: `Quest journal updated with ${request.updateType}`,
+          pageId: appended.pageId || request.pageId,
+          pageName: existing.name,
+          verified: true,
+          details: `Update appended and verified. Page length changed from ${before} to ${after} characters.`,
+          appendedContent: formattedNew,
+        };
       }
+
+      // The first text page is rewritten as a whole, so it has to be read as a
+      // whole first (see readFullJournalContent).
+      const currentJournal = await this.readFullJournalContent(request.journalId);
+      if (!currentJournal) {
+        throw new Error('Journal not found: Journal ID may be invalid');
+      }
+      const currentContent = currentJournal.content;
 
       if (!currentContent) {
         throw new Error('Journal/page exists but has no content to update');
       }
 
-      // Format the update based on type
-      // For specific page updates, use append-style since the page may not have quest HTML structure
-      let updatedContent: string;
-      if (request.pageId) {
-        const formattedNew = this.formatUpdateContentForFoundry(request.newContent);
-        updatedContent = currentContent + formattedNew;
-      } else {
-        updatedContent = this.formatQuestUpdate(
-          currentContent,
-          request.newContent,
-          request.updateType
-        );
-      }
+      const updatedContent = this.formatQuestUpdate(
+        currentContent,
+        request.newContent,
+        request.updateType
+      );
 
       // Update the journal
       const result = await this.foundryClient.query('ninjos-foundry-mcp.updateJournalContent', {
         journalId: request.journalId,
         content: updatedContent,
-        pageId: request.pageId,
       });
 
       if (!result) {
@@ -466,26 +560,9 @@ export class QuestCreationTools {
         throw new Error('Failed to update quest journal: Update operation returned failure');
       }
 
-      // Verify the update by reading the content back
-      let verifyContent: string;
-      if (request.pageId) {
-        const verifyResult = await this.foundryClient.query(
-          'ninjos-foundry-mcp.getJournalPageContent',
-          {
-            journalId: request.journalId,
-            pageId: request.pageId,
-          }
-        );
-        verifyContent = verifyResult?.content || '';
-      } else {
-        const verifyResult = await this.foundryClient.query(
-          'ninjos-foundry-mcp.getJournalContent',
-          {
-            journalId: request.journalId,
-          }
-        );
-        verifyContent = verifyResult?.content || '';
-      }
+      // Verify the update by reading the whole page back
+      const verifyResult = await this.readFullJournalContent(request.journalId);
+      const verifyContent = verifyResult?.content || '';
 
       // Check if verification content contains the formatted update rather than raw content
       const verificationPassed =

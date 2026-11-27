@@ -15,6 +15,12 @@ export interface BridgeConfig {
   connectionType?: 'auto' | 'webrtc' | 'websocket'; // Connection type: auto (HTTPS→WebRTC, HTTP→WebSocket), webrtc, websocket
 }
 
+/** NINJO: the close code the server uses when it refuses this page's origin. */
+const ORIGIN_REFUSED = 4403;
+
+/** NINJO: how long an opened socket must stay open before it counts as connected. */
+const OPEN_GRACE_MS = 300;
+
 /**
  * Browser-compatible socket bridge that supports both WebSocket and WebRTC
  */
@@ -25,6 +31,13 @@ export class SocketBridge {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectTimer: any = null;
+  /** NINJO: set by disconnect(), so a close this side asked for is not retried. */
+  private manualDisconnect = false;
+  /**
+   * NINJO: why the server refused this page, if it did. Retrying cannot fix a
+   * refusal, so reconnecting stops until something changes and someone clicks.
+   */
+  private rejection: 'origin' | null = null;
   private activeConnectionType: 'websocket' | 'webrtc' | null = null;
 
   constructor(private config: BridgeConfig) {
@@ -39,6 +52,8 @@ export class SocketBridge {
       return;
     }
 
+    this.manualDisconnect = false;
+    this.rejection = null;
     this.connectionState = CONNECTION_STATES.CONNECTING;
     this.log('Connecting to MCP server...');
 
@@ -91,7 +106,13 @@ export class SocketBridge {
     } catch (error) {
       this.log(`WebRTC connection failed: ${error}`);
       this.connectionState = CONNECTION_STATES.DISCONNECTED;
-      this.scheduleReconnect();
+      // NINJO: the signaling server answers 403 when it refuses this page's
+      // origin. That is a decision, not an outage, so it is not retried.
+      if (/^HTTP 403\b/.test(error instanceof Error ? error.message : String(error))) {
+        this.rejection = 'origin';
+      } else {
+        this.scheduleReconnect();
+      }
       throw error;
     }
   }
@@ -123,58 +144,81 @@ export class SocketBridge {
     const wsUrl = `${protocol}://${host}:${this.config.serverPort}${this.config.namespace}`;
 
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const settle = (finish: () => void) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(connectTimeout);
+        finish();
+      };
+
       const connectTimeout = setTimeout(() => {
         this.log('Connection timeout');
-        this.connectionState = CONNECTION_STATES.DISCONNECTED;
-        reject(new Error('Connection timeout'));
+        settle(() => reject(new Error('Connection timeout')));
+        // Closing a socket that never opened fires onclose, which schedules the retry.
+        this.ws?.close();
       }, this.config.connectionTimeout * 1000);
 
       try {
-        this.ws = new WebSocket(wsUrl);
+        const ws = new WebSocket(wsUrl);
+        this.ws = ws;
 
-        this.ws.onopen = () => {
-          clearTimeout(connectTimeout);
-          this.connectionState = CONNECTION_STATES.CONNECTED;
-          this.reconnectAttempts = 0;
-          this.log('Connected to MCP server via WebSocket');
+        ws.onopen = () => {
           this.setupEventHandlers();
-          resolve();
+          // NINJO: a server that refuses this page completes the handshake and
+          // closes at once with 4403, because a close code is the only reason a
+          // browser passes on to the page. Waiting a moment keeps that from being
+          // reported as a successful connection first.
+          setTimeout(() => {
+            if (settled || ws.readyState !== WebSocket.OPEN) return;
+            this.connectionState = CONNECTION_STATES.CONNECTED;
+            this.reconnectAttempts = 0;
+            this.log('Connected to MCP server via WebSocket');
+            settle(resolve);
+          }, OPEN_GRACE_MS);
         };
 
-        this.ws.onerror = error => {
-          clearTimeout(connectTimeout);
-          // Use more informative message for connection failures
+        ws.onerror = () => {
+          // The close event follows and decides about reconnecting. Scheduling
+          // here as well used to count every failure twice.
           const isFirstAttempt = this.reconnectAttempts === 0;
-          const errorMsg = isFirstAttempt
-            ? "MCP server not available (this is normal if server isn't running)"
-            : `Connection error after ${this.reconnectAttempts} attempts: ${error}`;
-          this.log(errorMsg);
-          this.connectionState = CONNECTION_STATES.DISCONNECTED;
-          this.scheduleReconnect();
-          reject(new Error('WebSocket connection failed'));
+          this.log(
+            isFirstAttempt
+              ? "MCP server not available (this is normal if server isn't running)"
+              : `Connection error after ${this.reconnectAttempts} attempts`
+          );
+          settle(() => reject(new Error('WebSocket connection failed')));
         };
 
-        this.ws.onclose = event => {
-          this.log(`Disconnected: ${event.reason || 'Connection closed'}`);
-          this.connectionState = CONNECTION_STATES.DISCONNECTED;
+        ws.onclose = event => {
+          this.log(`Disconnected: ${event.reason || 'Connection closed'} (code ${event.code})`);
+          if (this.ws === ws) this.connectionState = CONNECTION_STATES.DISCONNECTED;
 
-          if (event.wasClean) {
-            // Clean disconnect, don't reconnect
+          if (event.code === ORIGIN_REFUSED) {
+            this.rejection = 'origin';
+            settle(() => reject(new Error('origin not allowed')));
             return;
           }
 
+          settle(() => reject(new Error('WebSocket closed before it was ready')));
+
+          // NINJO: only a close this side asked for ends the retries. A clean
+          // close from the server (it stopped or restarted) used to count as
+          // "do not reconnect" as well, which left the bridge down for good.
+          if (this.manualDisconnect || this.ws !== ws) return;
           this.scheduleReconnect();
         };
       } catch (error) {
-        clearTimeout(connectTimeout);
         this.log(`Failed to create WebSocket: ${error}`);
         this.connectionState = CONNECTION_STATES.DISCONNECTED;
-        reject(error);
+        settle(() => reject(error));
       }
     });
   }
 
   disconnect(): void {
+    this.manualDisconnect = true;
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -459,27 +503,36 @@ export class SocketBridge {
   }
 
   private scheduleReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.log(`Max reconnection attempts reached (${this.maxReconnectAttempts})`);
-      return;
-    }
+    // NINJO: never give up. The backend on the PC is built to come and go: it
+    // exits a minute after the last MCP client disconnects. Stopping after five
+    // attempts meant that closing Claude Desktop and opening it again later left
+    // the bridge down for good, until someone clicked the status readout.
+    // A refusal is different: retrying cannot change the server's mind.
+    if (this.manualDisconnect || this.rejection) return;
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
     }
 
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // Exponential backoff, max 30s
+    // Exponential backoff, max 30s
+    const delay = Math.min(1000 * Math.pow(2, Math.min(this.reconnectAttempts, 5)), 30000);
     this.reconnectAttempts++;
 
-    this.log(`Scheduling reconnection attempt ${this.reconnectAttempts} in ${delay}ms`);
-    this.connectionState = CONNECTION_STATES.RECONNECTING;
+    // The quick first attempts read as "connecting". After them the readout
+    // turns red, because a server that has been gone for a while is worth
+    // seeing, while the retries carry on quietly in the background.
+    this.connectionState =
+      this.reconnectAttempts <= this.maxReconnectAttempts
+        ? CONNECTION_STATES.RECONNECTING
+        : CONNECTION_STATES.DISCONNECTED;
 
-    this.reconnectTimer = setTimeout(async () => {
-      try {
-        await this.connect();
-      } catch (error) {
-        // Connection failed, scheduleReconnect will be called again from connect()
-      }
+    this.log(`Scheduling reconnection attempt ${this.reconnectAttempts} in ${delay}ms`);
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connect().catch(() => {
+        // The failure path schedules the next attempt.
+      });
     }, delay);
   }
 
@@ -526,6 +579,8 @@ export class SocketBridge {
       state: this.connectionState,
       reconnectAttempts: this.reconnectAttempts,
       maxReconnectAttempts: this.maxReconnectAttempts,
+      rejection: this.rejection,
+      pageOrigin: window.location.origin,
       config: {
         host: this.config.serverHost,
         port: this.config.serverPort,

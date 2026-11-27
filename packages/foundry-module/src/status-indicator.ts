@@ -37,6 +37,8 @@ interface Readout {
   kind: Kind;
   text: string;
   detail: string;
+  /** The server refused this page. A click cannot change that. */
+  blocked?: true;
 }
 
 function bridge(): any {
@@ -49,6 +51,13 @@ function t(key: string, fallback: string): string {
   // localize hands the key straight back when it is missing, which would put a
   // raw dotted string in the corner of the screen.
   return !out || out === full ? fallback : out;
+}
+
+function tf(key: string, fallback: string, data: Record<string, string>): string {
+  const full = `${MODULE_ID}.indicator.${key}`;
+  const out = game.i18n?.format(full, data);
+  if (out && out !== full) return out;
+  return fallback.replace(/\{(\w+)\}/g, (_match, name) => data[name] ?? `{${name}}`);
 }
 
 /** Read the current state. Never throws — a readout that can crash is worse than none. */
@@ -73,6 +82,22 @@ function read(): Readout {
       kind: 'disabled',
       text: t('off', 'MCP: off'),
       detail: t('offDetail', 'The bridge is switched off in the module settings.'),
+    };
+  }
+
+  // NINJO: the server refused this page. Retrying cannot change that, so the
+  // readout says what would.
+  if (!status.connected && status.connectionInfo?.rejection === 'origin') {
+    const origin = status.connectionInfo.pageOrigin || window.location.origin;
+    return {
+      kind: 'disconnected',
+      blocked: true,
+      text: t('blocked', 'MCP: address not allowed'),
+      detail: tf(
+        'blockedDetail',
+        'The MCP server on the PC does not accept connections from {origin}. Add the address to FOUNDRY_ALLOWED_ORIGINS there, or delete allowed-origins.json so it learns this address again.',
+        { origin }
+      ),
     };
   }
 
@@ -104,7 +129,7 @@ function read(): Readout {
     text: t('down', 'MCP: disconnected'),
     detail: `${t('downDetail', 'No bridge to')} ${where}. ${t(
       'downHint',
-      'Is the MCP server running on the PC? Click to try again.'
+      'Is the MCP server running on the PC? The bridge reconnects on its own once it is. Click to try right away.'
     )}`,
   };
 }
@@ -141,11 +166,16 @@ async function onClick(): Promise<void> {
   try {
     await bridge()?.start?.();
   } catch (error) {
-    ui.notifications?.error(
-      `${t('retryFailed', 'Reconnecting failed')}: ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
+    const after = read();
+    if (after.blocked) {
+      ui.notifications?.warn(after.detail);
+    } else {
+      ui.notifications?.error(
+        `${t('retryFailed', 'Reconnecting failed')}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
   }
   refreshStatusIndicator();
 }
