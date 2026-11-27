@@ -2,7 +2,7 @@
 id: task-017
 kind: bug
 title: No CI runs tests; the module package has no test script
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/5
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/5
 created: 2026-09-13
 ---
 

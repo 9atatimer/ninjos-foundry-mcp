@@ -16,7 +16,7 @@ This guide covers the complete installation of the Foundry VTT AI Model Integrat
 
 ### Option 1: Windows Installer (Recommended)
 
-1. Download the latest `FoundryMCPServer-Setup.exe` from [Releases](https://github.com/9atatimer/ninjos-foundry-mcp/releases)
+1. Download the latest `FoundryMCPServer-Setup.exe` from [Releases](https://github.com/9atatimer/tedious-gm-mcp/releases)
 2. Run the installer - it will:
    - Install the MCP server with bundled Node.js runtime
    - Configure Claude Desktop automatically
@@ -30,15 +30,15 @@ This guide covers the complete installation of the Foundry VTT AI Model Integrat
 
 1. Open Foundry VTT (v13 or v14)
 2. Select install module in the Foundry Add-ons menu
-3. At the bottom of the window, add the Manifest URL as: https://raw.githubusercontent.com/9atatimer/ninjos-foundry-mcp/main/packages/foundry-module/module.json and click install
+3. At the bottom of the window, add the Manifest URL as: https://raw.githubusercontent.com/9atatimer/tedious-gm-mcp/main/packages/foundry-module/module.json and click install
 4. Enable "Tedious GM MCP" in Module Management
 
 #### Install the MCP Server
 
 ```bash
 # Clone repository
-git clone https://github.com/9atatimer/ninjos-foundry-mcp.git
-cd ninjos-foundry-mcp
+git clone https://github.com/9atatimer/tedious-gm-mcp.git
+cd tedious-gm-mcp
 
 # Install dependencies and build
 npm install
@@ -55,7 +55,7 @@ Add this to your Claude Desktop configuration (claude_desktop_config.json) file:
   "mcpServers": {
     "foundry-mcp": {
       "command": "node",
-      "args": ["path/to/ninjos-foundry-mcp/packages/mcp-server/dist/index.js"],
+      "args": ["path/to/tedious-gm-mcp/packages/mcp-server/dist/index.js"],
       "env": {
         "FOUNDRY_HOST": "localhost",
         "FOUNDRY_PORT": "31415"
@@ -114,7 +114,7 @@ Starting Claude Desktop will start the MCP Server.
 
 ### Support Channels
 
-- **GitHub Issues**: [Report bugs and feature requests](https://github.com/9atatimer/ninjos-foundry-mcp/issues)
+- **GitHub Issues**: [Report bugs and feature requests](https://github.com/9atatimer/tedious-gm-mcp/issues)
 
 ## Uninstallation
 

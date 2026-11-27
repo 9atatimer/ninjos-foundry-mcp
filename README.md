@@ -41,11 +41,11 @@ everywhere by default.
 this manifest URL, install, then enable **Tedious GM MCP** in your world:
 
 ```
-https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest/download/module.json
+https://github.com/9atatimer/tedious-gm-mcp/releases/latest/download/module.json
 ```
 
 **Step 2 — the MCP server on your PC.** Download the installer for your system from
-[Releases](https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest) — it
+[Releases](https://github.com/9atatimer/tedious-gm-mcp/releases/latest) — it
 installs the server and registers it with Claude Desktop. Then restart Claude Desktop.
 
 **Step 3 — load your world.** The module connects from the browser to the server on your
@@ -58,8 +58,8 @@ installers (Node.js 18+ if you build from source).
 <summary>Building from source instead</summary>
 
 ```bash
-git clone https://github.com/9atatimer/ninjos-foundry-mcp.git
-cd ninjos-foundry-mcp
+git clone https://github.com/9atatimer/tedious-gm-mcp.git
+cd tedious-gm-mcp
 npm install
 npm run build
 npm run pruefen   # checks that both halves agree on the query names
@@ -91,7 +91,7 @@ Add this to your Claude Desktop configuration (claude_desktop_config.json) file:
   "mcpServers": {
     "foundry-mcp": {
       "command": "node",
-      "args": ["path/to/ninjos-foundry-mcp/packages/mcp-server/dist/index.js"],
+      "args": ["path/to/tedious-gm-mcp/packages/mcp-server/dist/index.js"],
       "env": {
         "FOUNDRY_HOST": "localhost",
         "FOUNDRY_PORT": "31415"
@@ -395,7 +395,7 @@ npm run test:mcp:schema
 
 ### Support & Development
 
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/9atatimer/ninjos-foundry-mcp/issues)
+- **Issues**: Report bugs on [GitHub Issues](https://github.com/9atatimer/tedious-gm-mcp/issues)
 - **YouTube Channel**: [Subscribe for updates and tutorials](https://www.youtube.com/channel/UCVrSC-FzuAk5AgvfboJj0WA)
 - **Documentation**: Built with TypeScript, comprehensive documentation included
 - **License**: MIT License (Additional Third Party licenses are included for bundled components for the installers)
@@ -432,11 +432,11 @@ diese Manifest-Adresse einfügen, installieren, dann in deiner Welt **Tedious GM
 anhaken:
 
 ```
-https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest/download/module.json
+https://github.com/9atatimer/tedious-gm-mcp/releases/latest/download/module.json
 ```
 
 **Schritt 2 — der MCP-Server auf deinem PC.** Den Installer für dein System aus den
-[Releases](https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest) laden. Er
+[Releases](https://github.com/9atatimer/tedious-gm-mcp/releases/latest) laden. Er
 richtet den Server ein und meldet ihn bei Claude Desktop an. Danach Claude Desktop neu
 starten.
 

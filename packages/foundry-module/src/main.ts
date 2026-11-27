@@ -269,7 +269,7 @@ class FoundryMCPBridge {
 
           if (!lastShown || new Date(lastShown).getTime() < thirtySecondsAgo) {
             ui.notifications?.warn(
-              'MCP Server not found. Install it from https://github.com/9atatimer/ninjos-foundry-mcp'
+              'MCP Server not found. Install it from https://github.com/9atatimer/tedious-gm-mcp'
             );
 
             // Remember when we showed this notification

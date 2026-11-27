@@ -2,7 +2,7 @@
 id: task-015
 kind: task
 title: Release the module so the #3 fix reaches the Forge game
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/3
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/3
 created: 2026-09-13
 ---
 

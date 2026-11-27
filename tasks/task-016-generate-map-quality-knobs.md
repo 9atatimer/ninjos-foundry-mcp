@@ -2,7 +2,7 @@
 id: task-016
 kind: bug
 title: generate-map exposes no quality/steps knob
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/4
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/4
 created: 2026-09-13
 ---
 

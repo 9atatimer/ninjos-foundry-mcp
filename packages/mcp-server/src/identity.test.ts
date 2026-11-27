@@ -68,8 +68,8 @@ describe('module identity', () => {
     expect(offenders(/ninjo\.png/)).toEqual([]);
   });
 
-  it('uses the old module id nowhere it ships, except in repository URLs', () => {
-    expect(offenders(/(?<!9atatimer\/)ninjos-foundry-mcp/)).toEqual([]);
+  it('uses the old module id and repository name nowhere it ships', () => {
+    expect(offenders(/ninjos-foundry-mcp/)).toEqual([]);
   });
 
   // Source comments may still credit where code came from (MIT attribution);
@@ -81,11 +81,11 @@ describe('module identity', () => {
 
   // The install guides are not shipped, but users paste their URLs: a manifest
   // link to the upstream repository installs someone else's module.
-  it('the install guides link to this repository, not upstream', () => {
-    const hits = ['README.md', 'INSTALLATION.md'].flatMap(path =>
+  it('the install guides name this repository, never the old or upstream one', () => {
+    const hits = ['README.md', 'INSTALLATION.md', 'docs/DEV-ENVIRONMENT.md'].flatMap(path =>
       readFileSync(join(ROOT, path), 'utf8')
         .split('\n')
-        .map((line, i) => (/Niclasp1501\/ninjos-foundry-mcp(?!-legacy)/.test(line) ? `${path}:${i + 1}` : null))
+        .map((line, i) => (/ninjos-foundry-mcp(?!-legacy)/.test(line) ? `${path}:${i + 1}` : null))
         .filter((x): x is string => x !== null)
     );
     expect(hits).toEqual([]);

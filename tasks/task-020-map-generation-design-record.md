@@ -2,7 +2,7 @@
 id: task-020
 kind: task
 title: Decide whether map generation needs a design record
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/8
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/8
 created: 2026-09-13
 ---
 

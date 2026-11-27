@@ -2,7 +2,7 @@
 id: task-023
 kind: task
 title: Decide how generate-map picks an engine, now that alternatives are measured
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/8
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/8
 created: 2026-09-18
 ---
 
