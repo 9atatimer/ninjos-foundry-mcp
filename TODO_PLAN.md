@@ -1,4 +1,4 @@
-# ninjos-foundry-mcp -- TODO Plan
+# tedious-gm-mcp -- TODO Plan
 
 > **Status:** Active
 > **Updated:** 2026-09-13
@@ -67,7 +67,9 @@ then discovering `download` still used `/releases/latest/download/`, which
 
 Surfaced by that install: Forge's Bazaar nests the fork under Ninjo's own
 listing rather than showing it as a separate package, because `module.json`
-still ships the upstream `id`. See task-014 -- blocked on a name.
+still shipped the upstream `id`. task-014 renamed the module to
+`tedious-gm-mcp`; a world's settings saved under the old id do not carry
+over.
 
 Map generation (`generate-map` -> ComfyUI -> scene) was used for real on
 the Forge game on 2026-09-12 and fixed along the way, on branch
@@ -122,9 +124,6 @@ Wanted next, not yet scheduled:
 
 ## Blockers
 
-- **task-014 needs a name.** The new module id/title, to stop Forge's Bazaar
-  from nesting this fork under Ninjo's own catalog listing. Unblock: owner
-  picks a name.
 - **Map generation needs a design call** (#8, task-020): whether its
   in-session decisions -- gridless, lit, inactive, tiled decode, checkpoint --
   need a design record, and whether gridless stands given the range
