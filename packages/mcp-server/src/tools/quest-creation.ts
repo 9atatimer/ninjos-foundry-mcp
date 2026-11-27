@@ -281,7 +281,7 @@ export class QuestCreationTools {
       const questContent = this.generateQuestContent(request);
 
       // Create journal entry via Foundry client
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.createJournalEntry', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.createJournalEntry', {
         name: request.questTitle,
         content: questContent,
         additionalPages: request.additionalPages,
@@ -343,7 +343,7 @@ export class QuestCreationTools {
 
       // Update journal with NPC link
       const updateResult = await this.foundryClient.query(
-        'ninjos-foundry-mcp.updateJournalContent',
+        'tedious-gm-mcp.updateJournalContent',
         {
           journalId: request.journalId,
           content: updatedContent,
@@ -382,8 +382,8 @@ export class QuestCreationTools {
     pageId?: string
   ): Promise<{ content: string } | null> {
     const method = pageId
-      ? 'ninjos-foundry-mcp.getJournalPageContent'
-      : 'ninjos-foundry-mcp.getJournalContent';
+      ? 'tedious-gm-mcp.getJournalPageContent'
+      : 'tedious-gm-mcp.getJournalContent';
     const chunkSize = 200000;
 
     let content = '';
@@ -452,7 +452,7 @@ export class QuestCreationTools {
       // If creating a new page, skip the read-modify-write cycle
       if (request.newPageName) {
         const formattedContent = this.formatNewPageContent(request.newContent, request.updateType);
-        const result = await this.foundryClient.query('ninjos-foundry-mcp.updateJournalContent', {
+        const result = await this.foundryClient.query('tedious-gm-mcp.updateJournalContent', {
           journalId: request.journalId,
           content: formattedContent,
           newPageName: request.newPageName,
@@ -478,7 +478,7 @@ export class QuestCreationTools {
       // page it holds in full.
       if (request.pageId) {
         const existing = await this.foundryClient.query(
-          'ninjos-foundry-mcp.getJournalPageContent',
+          'tedious-gm-mcp.getJournalPageContent',
           {
             journalId: request.journalId,
             pageId: request.pageId,
@@ -491,7 +491,7 @@ export class QuestCreationTools {
 
         const formattedNew = this.formatUpdateContentForFoundry(request.newContent);
         const appended = await this.foundryClient.query(
-          'ninjos-foundry-mcp.appendJournalPageContent',
+          'tedious-gm-mcp.appendJournalPageContent',
           {
             journalId: request.journalId,
             pageId: request.pageId,
@@ -543,7 +543,7 @@ export class QuestCreationTools {
       );
 
       // Update the journal
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.updateJournalContent', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.updateJournalContent', {
         journalId: request.journalId,
         content: updatedContent,
       });
@@ -614,7 +614,7 @@ export class QuestCreationTools {
       // Mode: Read a specific page
       if (request.journalId && request.pageId) {
         const pageResult = await this.foundryClient.query(
-          'ninjos-foundry-mcp.getJournalPageContent',
+          'tedious-gm-mcp.getJournalPageContent',
           {
             journalId: request.journalId,
             pageId: request.pageId,
@@ -638,7 +638,7 @@ export class QuestCreationTools {
       // Mode: Read a specific journal (first page + page manifest)
       if (request.journalId) {
         const journalContent = await this.foundryClient.query(
-          'ninjos-foundry-mcp.getJournalContent',
+          'tedious-gm-mcp.getJournalContent',
           {
             journalId: request.journalId,
             offset: request.offset,
@@ -668,7 +668,7 @@ export class QuestCreationTools {
       }
 
       // Mode: List all journals
-      const journals = await this.foundryClient.query('ninjos-foundry-mcp.listJournals', {});
+      const journals = await this.foundryClient.query('tedious-gm-mcp.listJournals', {});
 
       if (!journals || journals.error) {
         throw new Error('Failed to retrieve journals');
@@ -685,7 +685,7 @@ export class QuestCreationTools {
       if (request.includeContent) {
         for (const journal of filteredJournals) {
           try {
-            const content = await this.foundryClient.query('ninjos-foundry-mcp.getJournalContent', {
+            const content = await this.foundryClient.query('tedious-gm-mcp.getJournalContent', {
               journalId: journal.id,
             });
             journal.contentPreview = content?.content?.substring(0, 150) + '...' || '';
@@ -720,7 +720,7 @@ export class QuestCreationTools {
       const request = requestSchema.parse(args);
 
       // Get all journals (now includes page metadata)
-      const journals = await this.foundryClient.query('ninjos-foundry-mcp.listJournals', {});
+      const journals = await this.foundryClient.query('tedious-gm-mcp.listJournals', {});
 
       if (!journals || journals.error) {
         throw new Error('Failed to retrieve journals');
@@ -754,7 +754,7 @@ export class QuestCreationTools {
             if (page.type !== 'text') continue;
             try {
               const pageContent = await this.foundryClient.query(
-                'ninjos-foundry-mcp.getJournalPageContent',
+                'tedious-gm-mcp.getJournalPageContent',
                 {
                   journalId: journal.id,
                   pageId: page.id,

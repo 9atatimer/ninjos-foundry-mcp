@@ -1,5 +1,5 @@
 {
-  "ninjos-foundry-mcp": {
+  "tedious-gm-mcp": {
     "settings": {
       "enabled": {
         "name": "Connection · Enable MCP Bridge",
@@ -120,11 +120,11 @@
       },
       "writableCompendiums": {
         "name": "Permissions · Writable compendiums",
-        "hint": "Ids of compendiums that may be edited, separated by commas (e.g. ninjo-kompendium.journale). A bare module name covers all of its compendiums. Leave empty to allow every unlocked compendium."
+        "hint": "Ids of compendiums that may be edited, separated by commas (e.g. my-world-packs.journals). A bare module name covers all of its compendiums. Leave empty to allow every unlocked compendium."
       },
       "toolProviderModules": {
         "name": "Permissions · Modules with their own tools",
-        "hint": "Ids of the modules allowed to offer their own tools to the AI model, comma separated (e.g. ninjos-shops). Empty by default: a third-party handler works around the permission matrix above, so each module has to be released individually."
+        "hint": "Ids of the modules allowed to offer their own tools to the AI model, comma separated (e.g. my-shop-module). Empty by default: a third-party handler works around the permission matrix above, so each module has to be released individually."
       }
     },
     "menus": {
@@ -248,7 +248,6 @@
       "Punkt2": "<strong>Permissions per document type</strong> — you decide individually what the model may touch. Deleting is off everywhere by default, and players get no access at all.",
       "Punkt3": "<strong>Stays in the house</strong> — the bridge runs between your Foundry and your own MCP client. There is no third-party service in between.",
       "Start": "To begin: enable the bridge in the <strong>module settings</strong> and walk through the permissions. After that, just tell your client what should happen in the world.",
-      "ForgeZeile": "Every module, its documentation and the German translations in one place — open the module page",
       "Nie": "Don't show again",
       "Spaeter": "Later"
     }

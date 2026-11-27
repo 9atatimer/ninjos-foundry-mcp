@@ -15,9 +15,9 @@ export class ModuleSettings {
 
     // Enhanced Creature Index submenu
     (game.settings as any).registerMenu(this.moduleId, 'enhancedIndexMenu', {
-      name: 'ninjos-foundry-mcp.menus.enhancedIndexMenu.name',
-      label: 'ninjos-foundry-mcp.menus.enhancedIndexMenu.label',
-      hint: 'ninjos-foundry-mcp.menus.enhancedIndexMenu.hint',
+      name: 'tedious-gm-mcp.menus.enhancedIndexMenu.name',
+      label: 'tedious-gm-mcp.menus.enhancedIndexMenu.label',
+      hint: 'tedious-gm-mcp.menus.enhancedIndexMenu.hint',
       icon: 'fas fa-search-plus',
       type: class extends FormApplication {
         static get defaultOptions() {
@@ -68,9 +68,9 @@ export class ModuleSettings {
 
     // NINJO EXTENSION: release compendiums by ticking them
     (game.settings as any).registerMenu(this.moduleId, 'compendiumAccessMenu', {
-      name: 'ninjos-foundry-mcp.compendiumAccess.name',
-      label: 'ninjos-foundry-mcp.compendiumAccess.label',
-      hint: 'ninjos-foundry-mcp.compendiumAccess.hint',
+      name: 'tedious-gm-mcp.compendiumAccess.name',
+      label: 'tedious-gm-mcp.compendiumAccess.label',
+      hint: 'tedious-gm-mcp.compendiumAccess.hint',
       icon: 'fas fa-book-open',
       type: class extends FormApplication {
         static get defaultOptions() {
@@ -246,9 +246,9 @@ export class ModuleSettings {
 
     // Map Generation Service submenu
     (game.settings as any).registerMenu(this.moduleId, 'mapGenerationSettings', {
-      name: 'ninjos-foundry-mcp.menus.mapGenerationSettings.name',
-      label: 'ninjos-foundry-mcp.menus.mapGenerationSettings.label',
-      hint: 'ninjos-foundry-mcp.menus.mapGenerationSettings.hint',
+      name: 'tedious-gm-mcp.menus.mapGenerationSettings.name',
+      label: 'tedious-gm-mcp.menus.mapGenerationSettings.label',
+      hint: 'tedious-gm-mcp.menus.mapGenerationSettings.hint',
       icon: 'fas fa-cogs',
       type: class extends FormApplication {
         static get defaultOptions() {
@@ -378,8 +378,8 @@ export class ModuleSettings {
     // ============================================================================
 
     game.settings.register(this.moduleId, 'enabled', {
-      name: 'ninjos-foundry-mcp.settings.enabled.name',
-      hint: 'ninjos-foundry-mcp.settings.enabled.hint',
+      name: 'tedious-gm-mcp.settings.enabled.name',
+      hint: 'tedious-gm-mcp.settings.enabled.hint',
       scope: 'world',
       config: true,
       type: Boolean,
@@ -388,23 +388,23 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'connectionType', {
-      name: 'ninjos-foundry-mcp.settings.connectionType.name',
-      hint: 'ninjos-foundry-mcp.settings.connectionType.hint',
+      name: 'tedious-gm-mcp.settings.connectionType.name',
+      hint: 'tedious-gm-mcp.settings.connectionType.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        auto: 'ninjos-foundry-mcp.settings.connectionType.choices.auto',
-        webrtc: 'ninjos-foundry-mcp.settings.connectionType.choices.webrtc',
-        websocket: 'ninjos-foundry-mcp.settings.connectionType.choices.websocket',
+        auto: 'tedious-gm-mcp.settings.connectionType.choices.auto',
+        webrtc: 'tedious-gm-mcp.settings.connectionType.choices.webrtc',
+        websocket: 'tedious-gm-mcp.settings.connectionType.choices.websocket',
       },
       default: 'auto',
       onChange: this.onConnectionChange.bind(this),
     });
 
     game.settings.register(this.moduleId, 'serverHost', {
-      name: 'ninjos-foundry-mcp.settings.serverHost.name',
-      hint: 'ninjos-foundry-mcp.settings.serverHost.hint',
+      name: 'tedious-gm-mcp.settings.serverHost.name',
+      hint: 'tedious-gm-mcp.settings.serverHost.hint',
       scope: 'world',
       config: true,
       type: String,
@@ -413,8 +413,8 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'serverPort', {
-      name: 'ninjos-foundry-mcp.settings.serverPort.name',
-      hint: 'ninjos-foundry-mcp.settings.serverPort.hint',
+      name: 'tedious-gm-mcp.settings.serverPort.name',
+      hint: 'tedious-gm-mcp.settings.serverPort.hint',
       scope: 'world',
       config: false,
       type: Number,
@@ -427,8 +427,8 @@ export class ModuleSettings {
     // ============================================================================
 
     game.settings.register(this.moduleId, 'allowWriteOperations', {
-      name: 'ninjos-foundry-mcp.settings.allowWriteOperations.name',
-      hint: 'ninjos-foundry-mcp.settings.allowWriteOperations.hint',
+      name: 'tedious-gm-mcp.settings.allowWriteOperations.name',
+      hint: 'tedious-gm-mcp.settings.allowWriteOperations.hint',
       scope: 'world',
       config: true,
       type: Boolean,
@@ -448,71 +448,71 @@ export class ModuleSettings {
     // ============================================================================
 
     game.settings.register(this.moduleId, 'permScenes', {
-      name: 'ninjos-foundry-mcp.settings.permScenes.name',
-      hint: 'ninjos-foundry-mcp.settings.permScenes.hint',
+      name: 'tedious-gm-mcp.settings.permScenes.name',
+      hint: 'tedious-gm-mcp.settings.permScenes.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permScenes.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permScenes.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permScenes.choices.full',
+        read: 'tedious-gm-mcp.settings.permScenes.choices.read',
+        write: 'tedious-gm-mcp.settings.permScenes.choices.write',
+        full: 'tedious-gm-mcp.settings.permScenes.choices.full',
       },
       default: 'write',
     });
 
     game.settings.register(this.moduleId, 'permPlaylists', {
-      name: 'ninjos-foundry-mcp.settings.permPlaylists.name',
-      hint: 'ninjos-foundry-mcp.settings.permPlaylists.hint',
+      name: 'tedious-gm-mcp.settings.permPlaylists.name',
+      hint: 'tedious-gm-mcp.settings.permPlaylists.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permPlaylists.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permPlaylists.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permPlaylists.choices.full',
+        read: 'tedious-gm-mcp.settings.permPlaylists.choices.read',
+        write: 'tedious-gm-mcp.settings.permPlaylists.choices.write',
+        full: 'tedious-gm-mcp.settings.permPlaylists.choices.full',
       },
       default: 'write',
     });
 
     game.settings.register(this.moduleId, 'permJournals', {
-      name: 'ninjos-foundry-mcp.settings.permJournals.name',
-      hint: 'ninjos-foundry-mcp.settings.permJournals.hint',
+      name: 'tedious-gm-mcp.settings.permJournals.name',
+      hint: 'tedious-gm-mcp.settings.permJournals.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permJournals.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permJournals.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permJournals.choices.full',
+        read: 'tedious-gm-mcp.settings.permJournals.choices.read',
+        write: 'tedious-gm-mcp.settings.permJournals.choices.write',
+        full: 'tedious-gm-mcp.settings.permJournals.choices.full',
       },
       default: 'write',
     });
 
     game.settings.register(this.moduleId, 'permRollTables', {
-      name: 'ninjos-foundry-mcp.settings.permRollTables.name',
-      hint: 'ninjos-foundry-mcp.settings.permRollTables.hint',
+      name: 'tedious-gm-mcp.settings.permRollTables.name',
+      hint: 'tedious-gm-mcp.settings.permRollTables.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permRollTables.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permRollTables.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permRollTables.choices.full',
+        read: 'tedious-gm-mcp.settings.permRollTables.choices.read',
+        write: 'tedious-gm-mcp.settings.permRollTables.choices.write',
+        full: 'tedious-gm-mcp.settings.permRollTables.choices.full',
       },
       default: 'write',
     });
 
     game.settings.register(this.moduleId, 'permActors', {
-      name: 'ninjos-foundry-mcp.settings.permActors.name',
-      hint: 'ninjos-foundry-mcp.settings.permActors.hint',
+      name: 'tedious-gm-mcp.settings.permActors.name',
+      hint: 'tedious-gm-mcp.settings.permActors.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permActors.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permActors.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permActors.choices.full',
+        read: 'tedious-gm-mcp.settings.permActors.choices.read',
+        write: 'tedious-gm-mcp.settings.permActors.choices.write',
+        full: 'tedious-gm-mcp.settings.permActors.choices.full',
       },
       default: 'write',
     });
@@ -545,8 +545,8 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'writableCompendiums', {
-      name: 'ninjos-foundry-mcp.settings.writableCompendiums.name',
-      hint: 'ninjos-foundry-mcp.settings.writableCompendiums.hint',
+      name: 'tedious-gm-mcp.settings.writableCompendiums.name',
+      hint: 'tedious-gm-mcp.settings.writableCompendiums.hint',
       scope: 'world',
       config: false, // NINJO: maintained through the "Release compendiums" menu
       type: String,
@@ -554,29 +554,29 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'permCompendiums', {
-      name: 'ninjos-foundry-mcp.settings.permCompendiums.name',
-      hint: 'ninjos-foundry-mcp.settings.permCompendiums.hint',
+      name: 'tedious-gm-mcp.settings.permCompendiums.name',
+      hint: 'tedious-gm-mcp.settings.permCompendiums.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permCompendiums.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permCompendiums.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permCompendiums.choices.full',
+        read: 'tedious-gm-mcp.settings.permCompendiums.choices.read',
+        write: 'tedious-gm-mcp.settings.permCompendiums.choices.write',
+        full: 'tedious-gm-mcp.settings.permCompendiums.choices.full',
       },
       default: 'write',
     });
 
     game.settings.register(this.moduleId, 'permFolders', {
-      name: 'ninjos-foundry-mcp.settings.permFolders.name',
-      hint: 'ninjos-foundry-mcp.settings.permFolders.hint',
+      name: 'tedious-gm-mcp.settings.permFolders.name',
+      hint: 'tedious-gm-mcp.settings.permFolders.hint',
       scope: 'world',
       config: true,
       type: String,
       choices: {
-        read: 'ninjos-foundry-mcp.settings.permFolders.choices.read',
-        write: 'ninjos-foundry-mcp.settings.permFolders.choices.write',
-        full: 'ninjos-foundry-mcp.settings.permFolders.choices.full',
+        read: 'tedious-gm-mcp.settings.permFolders.choices.read',
+        write: 'tedious-gm-mcp.settings.permFolders.choices.write',
+        full: 'tedious-gm-mcp.settings.permFolders.choices.full',
       },
       default: 'write',
     });
@@ -586,8 +586,8 @@ export class ModuleSettings {
     // ============================================================================
 
     game.settings.register(this.moduleId, 'maxActorsPerRequest', {
-      name: 'ninjos-foundry-mcp.settings.maxActorsPerRequest.name',
-      hint: 'ninjos-foundry-mcp.settings.maxActorsPerRequest.hint',
+      name: 'tedious-gm-mcp.settings.maxActorsPerRequest.name',
+      hint: 'tedious-gm-mcp.settings.maxActorsPerRequest.hint',
       scope: 'world',
       config: true,
       type: Number,
@@ -620,7 +620,7 @@ export class ModuleSettings {
     // Map Generation Service settings (configured via submenu only)
     // ComfyUI always runs on localhost:31411 (same machine as MCP server)
     game.settings.register(this.moduleId, 'mapGenAutoStart', {
-      name: 'ninjos-foundry-mcp.settings.mapGenAutoStart.name',
+      name: 'tedious-gm-mcp.settings.mapGenAutoStart.name',
       scope: 'world',
       config: true, // NINJO: visible in the main menu, not only in the submenu
       type: Boolean,
@@ -628,15 +628,15 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'mapGenQuality', {
-      name: 'ninjos-foundry-mcp.settings.mapGenQuality.name',
-      hint: 'ninjos-foundry-mcp.settings.mapGenQuality.hint',
+      name: 'tedious-gm-mcp.settings.mapGenQuality.name',
+      hint: 'tedious-gm-mcp.settings.mapGenQuality.hint',
       scope: 'world',
       config: false, // Hidden from main config, accessible via submenu only
       type: String,
       choices: {
-        low: 'ninjos-foundry-mcp.settings.mapGenQuality.choices.low',
-        medium: 'ninjos-foundry-mcp.settings.mapGenQuality.choices.medium',
-        high: 'ninjos-foundry-mcp.settings.mapGenQuality.choices.high',
+        low: 'tedious-gm-mcp.settings.mapGenQuality.choices.low',
+        medium: 'tedious-gm-mcp.settings.mapGenQuality.choices.medium',
+        high: 'tedious-gm-mcp.settings.mapGenQuality.choices.high',
       },
       default: 'low',
     });
@@ -646,8 +646,8 @@ export class ModuleSettings {
     // ============================================================================
 
     game.settings.register(this.moduleId, 'enableNotifications', {
-      name: 'ninjos-foundry-mcp.settings.enableNotifications.name',
-      hint: 'ninjos-foundry-mcp.settings.enableNotifications.hint',
+      name: 'tedious-gm-mcp.settings.enableNotifications.name',
+      hint: 'tedious-gm-mcp.settings.enableNotifications.hint',
       scope: 'world',
       config: true,
       type: Boolean,
@@ -655,8 +655,8 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'autoReconnectEnabled', {
-      name: 'ninjos-foundry-mcp.settings.autoReconnectEnabled.name',
-      hint: 'ninjos-foundry-mcp.settings.autoReconnectEnabled.hint',
+      name: 'tedious-gm-mcp.settings.autoReconnectEnabled.name',
+      hint: 'tedious-gm-mcp.settings.autoReconnectEnabled.hint',
       scope: 'world',
       config: true,
       type: Boolean,
@@ -664,8 +664,8 @@ export class ModuleSettings {
     });
 
     game.settings.register(this.moduleId, 'heartbeatInterval', {
-      name: 'ninjos-foundry-mcp.settings.heartbeatInterval.name',
-      hint: 'ninjos-foundry-mcp.settings.heartbeatInterval.hint',
+      name: 'tedious-gm-mcp.settings.heartbeatInterval.name',
+      hint: 'tedious-gm-mcp.settings.heartbeatInterval.hint',
       scope: 'world',
       config: true,
       type: Number,
@@ -737,7 +737,7 @@ export class ModuleSettings {
       /* NINJO: the setting's hint text used to serve as the base here. Since the
        * labels go through the language files, what stands there is the key and not
        * the translated text. Appending the status made it unresolvable, and the
-       * menu showed "ninjos-foundry-mcp.settings.enabled.hint". So the base text is
+       * menu showed "tedious-gm-mcp.settings.enabled.hint". So the base text is
        * now translated explicitly. */
       const base = game.i18n.localize(`${this.moduleId}.settings.enabled.hint`);
       const label = game.i18n.localize(`${this.moduleId}.status.label`);
@@ -938,7 +938,7 @@ export class ModuleSettings {
    * Carries the settings over from the old module id `foundry-mcp-bridge`.
    *
    * Why this is needed: Foundry stores settings under the namespace of the module
-   * id. With the rename to `ninjos-foundry-mcp` Foundry sees a new module, and
+   * id. With the rename to `tedious-gm-mcp` Foundry sees a new module, and
    * everything existing worlds had stored still hangs off the old name — server
    * address, permission matrix and the list of released compendiums would
    * otherwise be gone and would have to be set again by hand.

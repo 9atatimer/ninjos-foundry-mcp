@@ -130,10 +130,10 @@ After installation:
 📖 DOCUMENTATION
 ═══════════════════════════════════════════════════════════════
 
-Full documentation: https://github.com/Niclasp1501/ninjos-foundry-mcp
+Full documentation: https://github.com/9atatimer/ninjos-foundry-mcp
 
 Need help? Report issues at:
-https://github.com/Niclasp1501/ninjos-foundry-mcp/issues
+https://github.com/9atatimer/ninjos-foundry-mcp/issues
 
 ═══════════════════════════════════════════════════════════════
 © 2025 Foundry MCP Server

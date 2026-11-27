@@ -9,7 +9,7 @@
  *
  * **Warum mit Rueckfalltext.** `game.i18n.localize` gibt bei einem fehlenden
  * Schluessel den Schluessel selbst zurueck — dann stuende
- * `ninjos-foundry-mcp.notify.connected` in der Ecke des Bildschirms. Der
+ * `tedious-gm-mcp.notify.connected` in der Ecke des Bildschirms. Der
  * zweite Parameter ist die Fassung, die dann erscheint. Das Muster stammt aus
  * `status-indicator.ts`, wo es sich bereits bewaehrt hat; hier ist es fuer das
  * ganze Modul verallgemeinert.

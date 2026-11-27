@@ -1,5 +1,5 @@
 {
-  "ninjos-foundry-mcp": {
+  "tedious-gm-mcp": {
     "settings": {
       "enabled": {
         "name": "Verbindung · MCP-Brücke aktivieren",
@@ -120,11 +120,11 @@
       },
       "writableCompendiums": {
         "name": "Rechte · Kompendien zum Bearbeiten",
-        "hint": "Kennungen der Kompendien, die bearbeitet werden dürfen, durch Komma getrennt (z. B. ninjo-kompendium.journale). Auch ein Modulname allein gilt für alle seine Kompendien. Bleibt das Feld leer, darf jedes entsperrte Kompendium bearbeitet werden."
+        "hint": "Kennungen der Kompendien, die bearbeitet werden dürfen, durch Komma getrennt (z. B. my-world-packs.journals). Auch ein Modulname allein gilt für alle seine Kompendien. Bleibt das Feld leer, darf jedes entsperrte Kompendium bearbeitet werden."
       },
       "toolProviderModules": {
         "name": "Rechte · Module mit eigenen Werkzeugen",
-        "hint": "Kennungen der Module, die dem KI-Modell eigene Werkzeuge anbieten duerfen, durch Komma getrennt (z. B. ninjos-shops). Ab Werk leer: Der Handler eines fremden Moduls arbeitet an der Rechtematrix oben vorbei, deshalb muss jedes Modul einzeln freigegeben werden."
+        "hint": "Kennungen der Module, die dem KI-Modell eigene Werkzeuge anbieten duerfen, durch Komma getrennt (z. B. my-shop-module). Ab Werk leer: Der Handler eines fremden Moduls arbeitet an der Rechtematrix oben vorbei, deshalb muss jedes Modul einzeln freigegeben werden."
       }
     },
     "menus": {
@@ -248,7 +248,6 @@
       "Punkt2": "<strong>Rechte je Dokumentart</strong> — was das Modell anfassen darf, stellst du einzeln ein. Löschen ist ab Werk überall aus, und Spieler bekommen gar keinen Zugriff.",
       "Punkt3": "<strong>Bleibt im Haus</strong> — die Brücke läuft zwischen deinem Foundry und deinem eigenen MCP-Client. Es gibt keinen fremden Dienst dazwischen.",
       "Start": "Zum Anfangen: unter <strong>Moduleinstellungen</strong> die Brücke aktivieren und die Rechte durchgehen. Danach genügt es, deinem Client zu sagen, was in der Welt passieren soll.",
-      "ForgeZeile": "Alle Module, Anleitungen und deutschen Übersetzungen an einem Ort — Modulseite öffnen",
       "Nie": "Nicht mehr anzeigen",
       "Spaeter": "Später"
     }

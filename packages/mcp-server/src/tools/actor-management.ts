@@ -266,7 +266,7 @@ export class ActorManagementTools {
 
     // The module already exposes a GM-gated addActorsToScene query taking existing
     // world actor IDs; expose it here rather than only via create-from-compendium.
-    return await this.foundryClient.query('ninjos-foundry-mcp.addActorsToScene', {
+    return await this.foundryClient.query('tedious-gm-mcp.addActorsToScene', {
       actorIds,
       placement,
       hidden,
@@ -311,7 +311,7 @@ export class ActorManagementTools {
         )
       : actors;
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.createActors', {
+    const result = await this.foundryClient.query('tedious-gm-mcp.createActors', {
       actors: normalizedActors,
       folder,
     });
@@ -346,7 +346,7 @@ export class ActorManagementTools {
         )
       : updates;
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.updateActors', {
+    const result = await this.foundryClient.query('tedious-gm-mcp.updateActors', {
       updates: normalizedUpdates,
     });
 
@@ -364,7 +364,7 @@ export class ActorManagementTools {
 
     this.logger.info('Deleting actors', { count: ids.length });
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.deleteActors', { ids });
+    const result = await this.foundryClient.query('tedious-gm-mcp.deleteActors', { ids });
 
     return result;
   }
@@ -393,7 +393,7 @@ export class ActorManagementTools {
       count: itemUpdates.length,
     });
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.updateActorItems', {
+    const result = await this.foundryClient.query('tedious-gm-mcp.updateActorItems', {
       actorIdentifier,
       itemUpdates,
     });
@@ -416,7 +416,7 @@ export class ActorManagementTools {
       count: itemIds.length,
     });
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.deleteActorItems', {
+    const result = await this.foundryClient.query('tedious-gm-mcp.deleteActorItems', {
       actorIdentifier,
       itemIds,
     });

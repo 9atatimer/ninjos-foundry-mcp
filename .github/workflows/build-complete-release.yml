@@ -125,14 +125,14 @@ jobs:
         # Create ZIP excluding hidden files and node_modules
         $compress = @{
           Path = Get-ChildItem -Path "." -Exclude ".*", "node_modules"
-          DestinationPath = "..\..\ninjos-foundry-mcp.zip"
+          DestinationPath = "..\..\tedious-gm-mcp.zip"
           CompressionLevel = "Optimal"
         }
         Compress-Archive @compress -Force
         
         # Verify ZIP was created
-        if (Test-Path "..\..\ninjos-foundry-mcp.zip") {
-          $size = (Get-Item "..\..\ninjos-foundry-mcp.zip").Length / 1KB
+        if (Test-Path "..\..\tedious-gm-mcp.zip") {
+          $size = (Get-Item "..\..\tedious-gm-mcp.zip").Length / 1KB
           Write-Host "✓ Foundry module ZIP created ($([math]::Round($size, 1)) KB)"
         } else {
           Write-Host "❌ Foundry module ZIP creation failed"
@@ -191,14 +191,14 @@ jobs:
         # Create the ZIP
         $compress = @{
           Path = $standalonePath
-          DestinationPath = "ninjos-foundry-mcp-server-${{ env.PACKAGE_VERSION }}.zip"
+          DestinationPath = "tedious-gm-mcp-server-${{ env.PACKAGE_VERSION }}.zip"
           CompressionLevel = "Optimal"
         }
         Compress-Archive @compress -Force
         
         # Verify and clean up
-        if (Test-Path "ninjos-foundry-mcp-server-${{ env.PACKAGE_VERSION }}.zip") {
-          $size = (Get-Item "ninjos-foundry-mcp-server-${{ env.PACKAGE_VERSION }}.zip").Length / 1KB
+        if (Test-Path "tedious-gm-mcp-server-${{ env.PACKAGE_VERSION }}.zip") {
+          $size = (Get-Item "tedious-gm-mcp-server-${{ env.PACKAGE_VERSION }}.zip").Length / 1KB
           Write-Host "✓ Standalone MCP server ZIP created ($([math]::Round($size, 1)) KB)"
         } else {
           Write-Host "❌ Standalone MCP server ZIP creation failed"
@@ -224,7 +224,7 @@ jobs:
     - name: Upload installer as artifact
       uses: actions/upload-artifact@v6
       with:
-        name: ninjos-foundry-mcp-server-installer-${{ env.PACKAGE_VERSION }}
+        name: tedious-gm-mcp-server-installer-${{ env.PACKAGE_VERSION }}
         path: installer/build/FoundryMCPServer-Setup-${{ env.PACKAGE_VERSION }}.exe
         retention-days: 30
 
@@ -338,7 +338,7 @@ jobs:
     - name: Upload Mac DMG as artifact
       uses: actions/upload-artifact@v6
       with:
-        name: ninjos-foundry-mcp-server-dmg-${{ env.PACKAGE_VERSION }}
+        name: tedious-gm-mcp-server-dmg-${{ env.PACKAGE_VERSION }}
         path: installer/build/FoundryMCPServer-${{ env.PACKAGE_VERSION }}.dmg
         retention-days: 30
 
@@ -380,21 +380,21 @@ jobs:
     - name: Download Windows installer artifact
       uses: actions/download-artifact@v6
       with:
-        name: ninjos-foundry-mcp-server-installer-${{ env.PACKAGE_VERSION }}
+        name: tedious-gm-mcp-server-installer-${{ env.PACKAGE_VERSION }}
         path: installer/build/
 
     - name: Download Mac DMG artifact
       uses: actions/download-artifact@v6
       with:
-        name: ninjos-foundry-mcp-server-dmg-${{ env.PACKAGE_VERSION }}
+        name: tedious-gm-mcp-server-dmg-${{ env.PACKAGE_VERSION }}
         path: installer/build/
 
     - name: Create Foundry Module ZIP
       run: |
         cd packages/foundry-module
-        zip -r ../../ninjos-foundry-mcp.zip . -x ".*" -x "node_modules/*"
+        zip -r ../../tedious-gm-mcp.zip . -x ".*" -x "node_modules/*"
         cd ../..
-        ls -lh ninjos-foundry-mcp.zip
+        ls -lh tedious-gm-mcp.zip
 
     - name: Create Standalone MCP Server ZIP
       run: |
@@ -438,15 +438,15 @@ jobs:
         Version: ${{ env.PACKAGE_VERSION }}
         EOF
 
-        zip -r ninjos-foundry-mcp-server-${{ env.PACKAGE_VERSION }}.zip standalone-mcp-server
+        zip -r tedious-gm-mcp-server-${{ env.PACKAGE_VERSION }}.zip standalone-mcp-server
         rm -rf standalone-mcp-server
-        ls -lh ninjos-foundry-mcp-server-${{ env.PACKAGE_VERSION }}.zip
+        ls -lh tedious-gm-mcp-server-${{ env.PACKAGE_VERSION }}.zip
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref_name }}
-        name: Ninjo's Foundry MCP ${{ github.ref_name }}
+        name: Tedious GM MCP ${{ github.ref_name }}
         body: |
           ## Foundry MCP Server ${{ github.ref_name }}
 
@@ -469,7 +469,7 @@ jobs:
           - To uninstall: Double-click `Uninstall.tool` from the DMG
 
           **Manual Installation (All Platforms):**
-          - Download `ninjos-foundry-mcp-server-${{ github.ref_name }}.zip`
+          - Download `tedious-gm-mcp-server-${{ github.ref_name }}.zip`
           - Extract and run with Node.js 18+
           - Manual Claude Desktop configuration required
 
@@ -499,8 +499,8 @@ jobs:
         files: |
           installer/build/FoundryMCPServer-Setup-${{ env.PACKAGE_VERSION }}.exe
           installer/build/FoundryMCPServer-${{ env.PACKAGE_VERSION }}.dmg
-          ninjos-foundry-mcp.zip
-          ninjos-foundry-mcp-server-${{ env.PACKAGE_VERSION }}.zip
+          tedious-gm-mcp.zip
+          tedious-gm-mcp-server-${{ env.PACKAGE_VERSION }}.zip
           packages/foundry-module/module.json
         generate_release_notes: true
         draft: false

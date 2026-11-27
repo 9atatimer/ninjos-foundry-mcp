@@ -365,7 +365,7 @@ export class NinjoCampaignTools {
     const schema = z.object({ includeSounds: z.boolean().optional() });
     const params = schema.parse(args ?? {});
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.listPlaylists', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.listPlaylists', params);
 
     if (!result?.playlists?.length) {
       return { content: [{ type: 'text', text: 'No playlists in this world.' }] };
@@ -394,7 +394,7 @@ export class NinjoCampaignTools {
     this.logger.info('Importing from compendium', params);
 
     const result = await this.foundryClient.query(
-      'ninjos-foundry-mcp.importFromCompendium',
+      'tedious-gm-mcp.importFromCompendium',
       params
     );
 
@@ -416,7 +416,7 @@ export class NinjoCampaignTools {
     });
     const params = schema.parse(args);
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.setScenePlaylist', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.setScenePlaylist', params);
 
     const text = result.playlist
       ? `Scene "${result.scene}": playlist "${result.playlist}"${
@@ -428,7 +428,7 @@ export class NinjoCampaignTools {
   }
 
   async handleListRollTables(): Promise<any> {
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.listRollTables');
+    const result = await this.foundryClient.query('tedious-gm-mcp.listRollTables');
 
     if (!result?.tables?.length) {
       return { content: [{ type: 'text', text: 'No roll tables in this world.' }] };
@@ -460,7 +460,7 @@ export class NinjoCampaignTools {
     const params = schema.parse(args);
     this.logger.info('Creating roll table', { name: params.name });
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.createRollTable', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.createRollTable', params);
 
     return {
       content: [
@@ -485,7 +485,7 @@ export class NinjoCampaignTools {
     });
     const params = schema.parse(args);
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.createSceneNote', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.createSceneNote', params);
 
     return {
       content: [
@@ -498,7 +498,7 @@ export class NinjoCampaignTools {
   }
 
   async handleGetPermissions(): Promise<any> {
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.getPermissions');
+    const result = await this.foundryClient.query('tedious-gm-mcp.getPermissions');
 
     const head = result.writeOperationsEnabled
       ? 'Writing is permitted in principle.'
@@ -522,19 +522,19 @@ export class NinjoCampaignTools {
   async handleDeletePlaylist(args: any): Promise<any> {
     const schema = z.object({ playlistId: z.string().min(1) });
     const params = schema.parse(args);
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.deletePlaylist', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.deletePlaylist', params);
     return { content: [{ type: 'text', text: `Playlist "${result.name}" deleted.` }] };
   }
 
   async handleDeleteRollTable(args: any): Promise<any> {
     const schema = z.object({ tableId: z.string().min(1) });
     const params = schema.parse(args);
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.deleteRollTable', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.deleteRollTable', params);
     return { content: [{ type: 'text', text: `Roll table "${result.name}" deleted.` }] };
   }
 
   async handleListCompendiums(): Promise<any> {
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.listCompendiums');
+    const result = await this.foundryClient.query('tedious-gm-mcp.listCompendiums');
     const packs = result?.compendiums ?? [];
 
     if (!packs.length) {
@@ -565,7 +565,7 @@ export class NinjoCampaignTools {
     const params = schema.parse(args);
     this.logger.info('Creating compendium', params);
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.createCompendium', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.createCompendium', params);
     return {
       content: [
         {
@@ -592,7 +592,7 @@ export class NinjoCampaignTools {
     });
 
     const result = await this.foundryClient.query(
-      'ninjos-foundry-mcp.deleteCompendiumEntries',
+      'tedious-gm-mcp.deleteCompendiumEntries',
       params
     );
 
@@ -648,7 +648,7 @@ export class NinjoCampaignTools {
     this.logger.info('Listing compendium entries', { pack: params.packId });
 
     const result = await this.foundryClient.query(
-      'ninjos-foundry-mcp.listCompendiumEntries',
+      'tedious-gm-mcp.listCompendiumEntries',
       params
     );
 
@@ -690,7 +690,7 @@ export class NinjoCampaignTools {
     const params = schema.parse(args);
     this.logger.info('Deleting compendium', { pack: params.packId });
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.deleteCompendium', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.deleteCompendium', params);
     return {
       content: [
         {
@@ -712,7 +712,7 @@ export class NinjoCampaignTools {
     const params = schema.parse(args);
     this.logger.info('Exporting to compendium', { pack: params.packId });
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.exportToCompendium', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.exportToCompendium', params);
 
     const created: string[] = result.exported ?? [];
     const replaced: string[] = result.replaced ?? [];
@@ -751,7 +751,7 @@ export class NinjoCampaignTools {
     const schema = z.object({ packId: z.string().min(1), locked: z.boolean() });
     const params = schema.parse(args);
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.setCompendiumLock', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.setCompendiumLock', params);
     return {
       content: [
         {
@@ -771,7 +771,7 @@ export class NinjoCampaignTools {
     });
     const params = schema.parse(args);
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.organizeCompendium', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.organizeCompendium', params);
     return {
       content: [
         {
@@ -788,7 +788,7 @@ export class NinjoCampaignTools {
     const schema = z.object({ sceneIdentifier: z.string().min(1) });
     const params = schema.parse(args);
 
-    const result = await this.foundryClient.query('ninjos-foundry-mcp.refreshSceneThumb', params);
+    const result = await this.foundryClient.query('tedious-gm-mcp.refreshSceneThumb', params);
 
     return {
       content: [

@@ -57,7 +57,7 @@ export function defaultOriginStoreFile(): string {
     process.env.FOUNDRY_MCP_STATE_DIR ||
     (process.env.LOCALAPPDATA
       ? join(process.env.LOCALAPPDATA, 'FoundryMCPServer')
-      : join(homedir(), '.config', 'ninjos-foundry-mcp'));
+      : join(homedir(), '.config', 'tedious-gm-mcp'));
   return join(base, 'allowed-origins.json');
 }
 
