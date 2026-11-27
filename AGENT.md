@@ -49,6 +49,9 @@ agree. Both must pass before a commit.
 Old spellings stay registered as aliases on purpose (see the comments in
 `packages/foundry-module/src/queries.ts`). Do not tidy them away -- they
 are what lets a server and a module from different releases keep working.
+They cover only the part of a name after the module id: a server from
+before the rename to `tedious-gm-mcp` cannot talk to a module from after
+it, or the reverse.
 
 **There is no runtime version handshake.** The halves do not refuse each
 other on a version mismatch; no such gate exists in either half. Version

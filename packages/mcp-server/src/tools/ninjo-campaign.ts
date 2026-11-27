@@ -51,7 +51,7 @@ export class NinjoCampaignTools {
           properties: {
             packId: {
               type: 'string',
-              description: 'Compendium id, e.g. "ninjo-kompendium.musik"',
+              description: 'Compendium id, e.g. "my-world-packs.music"',
             },
             entryName: {
               type: 'string',
@@ -215,7 +215,7 @@ export class NinjoCampaignTools {
             packId: {
               type: 'string',
               description:
-                'Compendium id, e.g. world.archiv-salzmarsch or ninjo-kompendium.presets',
+                'Compendium id, e.g. world.archiv-salzmarsch or my-world-packs.presets',
             },
             namePattern: {
               type: 'string',

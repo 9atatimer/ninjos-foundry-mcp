@@ -79,6 +79,18 @@ describe('module identity', () => {
     expect(offenders(/Ninjo's (Foundry|Forge)|Ninjo\)|ninjos-forge|Niclasp1501/)).toEqual([]);
   });
 
+  // The install guides are not shipped, but users paste their URLs: a manifest
+  // link to the upstream repository installs someone else's module.
+  it('the install guides link to this repository, not upstream', () => {
+    const hits = ['README.md', 'INSTALLATION.md'].flatMap(path =>
+      readFileSync(join(ROOT, path), 'utf8')
+        .split('\n')
+        .map((line, i) => (/Niclasp1501\/ninjos-foundry-mcp(?!-legacy)/.test(line) ? `${path}:${i + 1}` : null))
+        .filter((x): x is string => x !== null)
+    );
+    expect(hits).toEqual([]);
+  });
+
   it('no longer watches an upstream repository', () => {
     expect(existsSync(join(ROOT, '.github/workflows/ursprung-beobachten.yml'))).toBe(false);
   });

@@ -1,5 +1,17 @@
 ## Unreleased
 
+### The module is now Tedious GM MCP (`tedious-gm-mcp`)
+
+This fork ships under its own name. The module id, title and author change, and
+the upstream author's logo and links are gone.
+
+- **Enable the module again in every world**, under its new id. Settings saved under
+  `ninjos-foundry-mcp` do not carry over; set them up again.
+- **Update the server and the module together.** A server and a module from either
+  side of the rename do not talk to each other.
+- **On macOS and Linux the server's state moves** to `~/.config/tedious-gm-mcp`, so
+  the remembered Foundry address is learned again. On Windows it stays where it was.
+
 ### Security: only your own Foundry can use the bridge now
 
 Until now the MCP server asked nobody who was connecting. The bridge on port 31415
@@ -16,7 +28,7 @@ policy, so the browser did nothing to stop it.
   `http://localhost:30000,https://*.forge-vtt.com`. Without it, the server remembers
   the first Foundry that connects and refuses every other address afterwards. The
   remembered address is kept in `allowed-origins.json` (next to the installer on
-  Windows, under `~/.config/ninjos-foundry-mcp` elsewhere); delete that file to have
+  Windows, under `~/.config/tedious-gm-mcp` elsewhere); delete that file to have
   it learn again.
 - **A refused page is told why.** The status readout above the player list shows
   "MCP: address not allowed" together with the address and both ways out, instead

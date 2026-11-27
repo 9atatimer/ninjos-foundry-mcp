@@ -22,7 +22,7 @@ The Forge path is at the bottom.
 
 ```
 git clone https://github.com/9atatimer/ninjos-foundry-mcp
-cd tedious-gm-mcp
+cd ninjos-foundry-mcp
 npm install
 npm run build:release      # shared -> server -> bundle -> module
 npm run pruefen            # must pass
@@ -100,7 +100,7 @@ them carry live API tokens in plaintext.
 ```json
 "foundry-mcp": {
   "command": "node",
-  "args": ["/ABSOLUTE/PATH/TO/tedious-gm-mcp/packages/mcp-server/dist/index.js"]
+  "args": ["/ABSOLUTE/PATH/TO/ninjos-foundry-mcp/packages/mcp-server/dist/index.js"]
 }
 ```
 
