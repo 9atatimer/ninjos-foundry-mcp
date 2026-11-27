@@ -23,7 +23,12 @@ const SHIPPED = [
   'shared/src',
   'installer',
 ];
-const TEXT = /\.(ts|js|mjs|json|html|hbs|css|nsi|txt|sh|plist|xml)$/;
+// Every file under SHIPPED is read, whatever its extension: installers ship
+// extensionless scripts, .tool, .ps1 and .bat files too. Only binaries (a NUL
+// byte in the first 8 KB) are skipped.
+function isText(path: string): boolean {
+  return !readFileSync(path).subarray(0, 8192).includes(0);
+}
 
 function files(path: string): string[] {
   const abs = join(ROOT, path);
@@ -36,7 +41,7 @@ function files(path: string): string[] {
 
 function offenders(pattern: RegExp): string[] {
   return SHIPPED.flatMap(files)
-    .filter(f => TEXT.test(f) && !f.endsWith('identity.test.ts'))
+    .filter(f => !f.endsWith('identity.test.ts') && isText(f))
     .flatMap(f =>
       readFileSync(f, 'utf8')
         .split('\n')
