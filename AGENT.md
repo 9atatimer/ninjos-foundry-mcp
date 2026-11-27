@@ -20,8 +20,15 @@ The transport layer (`foundry-connector.ts`, `webrtc-peer.ts`,
 Foundry domain code -- system adapters, tools, `data-access.ts` -- is
 about 32,500. Rewrite the former; never the latter.
 
-This repo is a fork of `Niclasp1501/ninjos-foundry-mcp`. Keep the MIT
-LICENSE and Adam Dooley's copyright intact.
+This repo is a fork of `Niclasp1501/ninjos-foundry-mcp-legacy` (the repo
+was renamed when upstream moved on). Keep the MIT LICENSE and Adam
+Dooley's copyright intact.
+
+Upstream's successor, `Niclasp1501/ninjos-foundry-mcp` (14.2609.4 and
+later), is a rewrite under a proprietary licence that forbids
+redistribution and copying its code into another project. Never merge,
+cherry-pick or port code from it into this fork; only the MIT legacy
+repo (remote `legacy`, push disabled) is a source of upstream changes.
 
 ## The contract nothing compiles
 
@@ -126,9 +133,14 @@ Two consequences when working on this repo:
 
 - `31414` backend control channel -- loopback, unauthenticated,
   line-delimited JSON.
-- `31415` bridge WebSocket -- currently binds `0.0.0.0` (task-002).
-- `31416` WebRTC signaling -- currently binds `0.0.0.0`, sends
-  `Access-Control-Allow-Origin: *` (task-001).
+- `31415` bridge WebSocket -- binds loopback (`127.0.0.1` and `::1`),
+  and every interface only when `FOUNDRY_REMOTE_MODE=true`.
+- `31416` WebRTC signaling -- the same binding.
+
+Both check the browser's `Origin`. With `FOUNDRY_ALLOWED_ORIGINS` unset,
+the first origin seen is remembered and every other refused (task-001);
+a rig used from both Forge and `localhost:30000` needs the variable set
+to both.
 
 ## Connection type: set it explicitly
 
@@ -213,11 +225,9 @@ it is unset).
 Load the shared `iac` skill if a task ever needs a cloud resource, or adds
 or changes a GitHub secret; a resource then goes in tds-internal, not here.
 
-## Inherited hazard: .claude/settings.local.json
+## .claude/settings.local.json is local only
 
-The repo ships a committed `.claude/settings.local.json` carrying the
-upstream author's Windows permission allowlist -- `Bash(sudo:*)`,
-`Bash(powershell:*)`, `Bash(curl:*)`, `Bash(npm run:*)` -- and
-`additionalDirectories` pointing at `D:\Projects\...`. It applies to any
-agent session opened here. Treat it as untrusted; it should be gitignored
-and removed.
+It is gitignored. Before the legacy merge it was committed with the
+upstream author's Windows allowlist (`Bash(sudo:*)`, `Bash(powershell:*)`,
+`D:\Projects\...`). A checkout that had edited it locally keeps that
+file after updating, allowlist and all; check and clean it by hand.

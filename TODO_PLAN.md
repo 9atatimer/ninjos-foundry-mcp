@@ -87,14 +87,11 @@ it is in `.claude/skills/foundry-battlemap/`.
 - **task-010** -- `backup-assets.mjs` records truncated files as complete. It is
   committed and it is a backup tool, which is the worst combination. Either fix
   it test-first or delete it; it must not be run at scale meanwhile.
-- **task-001** -- the bridge accepts any origin. Needs a design record first:
-  the legitimate origin is not a constant, so this adds a setting and a seam.
-- **task-002** -- bind 31415 and 31416 to loopback. Small, independent of 001,
-  and not a substitute for it.
+- **task-001** -- the origin check exists since the legacy merge, but it
+  trusts the first origin it sees. What is left is listed in the task; it
+  still wants a design record.
 - **task-011 / task-012** -- the rest of the downloader defects. Only worth
   doing if 010 is fixed rather than deleted.
-- **task-004** -- the reconnect defect. Now hit routinely on the real rig,
-  and on WebRTC it also reports "connected" over a dead link.
 - **task-017** -- no CI runs tests. Do it before task-015, so the #2 and #3
   regression tests actually guard the release.
 - **task-015** -- release the module so the #3 fix is live on Forge. Until
@@ -104,7 +101,9 @@ it is in `.claude/skills/foundry-battlemap/`.
   and it bites on every backend restart.
 
 Deliberately not in Now: task-003 (no container yet), task-005, task-006
-(large, no deadline), task-007 and task-009 (latent). task-016 and task-019
+(large, no deadline), task-007 (latent). The legacy merge closed task-002,
+task-004, task-008 and task-009; task-005 went from 47 advisories to 40
+(6 critical) as of 2026-11-27. task-016 and task-019
 wait on the map-generation design decision (task-020).
 
 Wanted next, not yet scheduled:

@@ -63,3 +63,26 @@ forge it, so the origin is a trustworthy discriminator here.
 The legitimate origin is not a constant -- it is
 `https://<world>.forge-vtt.com` for a Forge-hosted world and
 `http://localhost:30000` for a local one. Both are in use on this machine.
+
+## What the legacy upstream merge covered
+
+The merge of `Niclasp1501/ninjos-foundry-mcp-legacy` at `5e63007`
+(`connection-guards.ts`) closes most of the attack surface above:
+
+- The bridge upgrade and the signaling offer both check `Origin`; the
+  `Access-Control-Allow-Origin: *` is gone.
+- The control channel on 31414 refuses input that looks like an HTTP
+  request, which closes the cross-protocol POST.
+
+What is still open, and why this task stays:
+
+- With `FOUNDRY_ALLOWED_ORIGINS` unset, the guard trusts the first
+  browser origin it sees and remembers it in `allowed-origins.json`. A
+  hostile page that reaches the bridge before Foundry does is remembered
+  instead. Both origins in use here (Forge and `localhost:30000`) cannot
+  share one learned entry, so this rig needs the variable set anyway.
+- A handshake with no `Origin` is accepted, on the reasoning that only a
+  local program omits it.
+- Whether the signaling offer still preempts a healthy WebSocket peer is
+  not yet checked against the merged code.
+- The design record this task asked for still does not exist.
