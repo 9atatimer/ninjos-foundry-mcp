@@ -3,6 +3,27 @@ import { listExtensionTools, callExtensionTool } from './extension-tools.js';
 import { FoundryDataAccess } from './data-access.js';
 import { ComfyUIManager } from './comfyui-manager.js';
 
+type QueryHandler = (data: any, context?: unknown) => unknown;
+
+/**
+ * Wrap a query handler so it refuses calls that come through Foundry's user
+ * queries. Why this is needed is explained where it is applied, at the end of
+ * QueryHandlers.registerHandlers().
+ */
+function refuseUserQueries(name: string, handler: QueryHandler): QueryHandler {
+  return (data: any, context?: unknown) => {
+    if (context && typeof context === 'object' && 'user' in context) {
+      const sender = (context as { user?: { name?: string; id?: string } }).user;
+      console.warn(
+        `[${MODULE_ID}] Refused "${name}" sent by user "${sender?.name ?? sender?.id ?? 'unknown'}" ` +
+          `through Foundry's user queries.`
+      );
+      throw new Error(`${name} can only be run by the MCP bridge on the gamemaster's own client.`);
+    }
+    return handler(data);
+  };
+}
+
 export class QueryHandlers {
   public dataAccess: FoundryDataAccess;
   private comfyuiManager: ComfyUIManager;
@@ -224,6 +245,23 @@ export class QueryHandlers {
     CONFIG.queries[`${modulePrefix}.addSpellsToActor`] = this.handleAddSpellsToActor.bind(this);
     CONFIG.queries[`${modulePrefix}.addFeaturesFromCompendium`] =
       this.handleAddFeaturesFromCompendium.bind(this);
+
+    // NINJO: Only the MCP bridge on this client may run these queries.
+    //
+    // Everything in CONFIG.queries is also reachable through Foundry's user
+    // queries: any user with the QUERY_USER permission, which players hold by
+    // default, can call game.users.activeGM.query("ninjos-foundry-mcp.<name>")
+    // from the browser console, and Foundry runs the handler on the GM's client.
+    // Each handler's GM check asks whether the *local* user is a GM, which on
+    // that client is always true, so a player could delete actors or rewrite
+    // every path in the world with GM rights.
+    //
+    // The bridge calls handlers locally with one argument. Foundry's user query
+    // dispatch passes a second argument carrying the sending user. Refusing
+    // every call that has one closes the route without touching the bridge.
+    for (const key of Object.keys(CONFIG.queries).filter(k => k.startsWith(`${modulePrefix}.`))) {
+      CONFIG.queries[key] = refuseUserQueries(key, CONFIG.queries[key] as QueryHandler);
+    }
   }
 
   /**

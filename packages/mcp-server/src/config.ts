@@ -22,6 +22,8 @@ const ConfigSchema = z.object({
     connectionType: z.enum(['websocket', 'webrtc', 'auto']).default('auto'),
     protocol: z.enum(['ws', 'wss']).default('ws'), // Legacy, used only for WebSocket mode
     remoteMode: z.boolean().default(false),
+    // NINJO: which Foundry pages may connect. Empty means "remember the first".
+    allowedOrigins: z.array(z.string()).default([]),
     dataPath: z.string().optional(), // Custom path for generated maps (remote mode)
     rejectUnauthorized: z.boolean().default(true), // TLS certificate validation
     // WebRTC configuration
@@ -80,6 +82,10 @@ const rawConfig = {
       | 'auto',
     protocol: (process.env.FOUNDRY_PROTOCOL || 'ws') as 'ws' | 'wss',
     remoteMode: process.env.FOUNDRY_REMOTE_MODE === 'true',
+    allowedOrigins: (process.env.FOUNDRY_ALLOWED_ORIGINS || '')
+      .split(',')
+      .map(origin => origin.trim())
+      .filter(Boolean),
     dataPath: process.env.FOUNDRY_DATA_PATH,
     rejectUnauthorized: process.env.FOUNDRY_REJECT_UNAUTHORIZED !== 'false',
     webrtc: {

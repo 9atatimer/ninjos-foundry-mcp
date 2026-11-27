@@ -20,7 +20,8 @@ import * as fs from 'fs';
 
 import * as path from 'path';
 
-const CONTROL_HOST = '127.0.0.1';
+// NINJO: must match the backend, which reads the same variable.
+const CONTROL_HOST = process.env.FOUNDRY_MCP_CONTROL_HOST || '127.0.0.1';
 
 // NINJO: Configurable so the backend lifecycle can be exercised without shooting
 // down the running bridge. Without the variable it stays at 31414.

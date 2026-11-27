@@ -43,6 +43,7 @@ import { MapGenerationTools } from './tools/map-generation.js';
 import { buildMapSceneData } from './map-scene.js';
 // NINJO: The module id used for the extension-tool queries.
 import { MODULE_ID } from '@foundry-mcp/shared';
+import { looksLikeHttpRequest } from './connection-guards.js';
 
 import { TokenManipulationTools } from './tools/token-manipulation.js';
 
@@ -52,7 +53,10 @@ import { DnD5eAddFeatureTool } from './tools/dnd5e/add-feature.js';
 import { DnD5eNpcTools } from './tools/dnd5e/npc.js';
 import { DnD5eFeaturesFromCompendiumTools } from './tools/dnd5e/features.js';
 
-const CONTROL_HOST = '127.0.0.1';
+// NINJO: configurable like the port below, for running the backend in a
+// container, where a process bound to loopback cannot be reached through a
+// published port. The default stays loopback.
+const CONTROL_HOST = process.env.FOUNDRY_MCP_CONTROL_HOST || '127.0.0.1';
 
 // NINJO: Configurable so the backend lifecycle can be exercised without
 // shooting down the running bridge. Without the variable it stays at 31414.
@@ -1556,9 +1560,23 @@ async function startBackend(): Promise<void> {
     });
 
     let buffer = '';
+    let vetted = false;
 
     socket.on('data', async (chunk: string) => {
       buffer += chunk;
+
+      // NINJO: a browser can POST to this port. The request line and headers
+      // would be skipped as unparseable and the body line would run as a tool
+      // call, so a connection that opens like HTTP is dropped before parsing.
+      if (!vetted) {
+        if (!buffer.includes('\n') && buffer.length < 32) return;
+        vetted = true;
+        if (looksLikeHttpRequest(buffer)) {
+          logger.warn('Refused an HTTP request on the control channel');
+          socket.destroy();
+          return;
+        }
+      }
 
       let idx: number;
 

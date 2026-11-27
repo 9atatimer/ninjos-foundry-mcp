@@ -75,6 +75,9 @@ test-*.ps1
 # Local Configuration
 config.local.json
 .claude/foundry-mcp-server-*.zip
+# Machine-local agent permissions. Upstream had committed its author's list,
+# Bash(sudo:*) and Read(//c/Users/Adam/**) among it, and every clone inherited it.
+.claude/settings.local.json
 foundry-vtt-mcp.zip
 .foundry-deploy-config
 .mcp.json

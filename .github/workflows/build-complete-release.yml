@@ -182,7 +182,7 @@ jobs:
           "3. Configure Claude Desktop to connect to this server",
           "4. Install the MCP Bridge module in Foundry VTT",
           "",
-          "For full documentation visit: https://github.com/Niclasp1501/ninjos-foundry-mcp",
+          "For full documentation visit: ${{ github.server_url }}/${{ github.repository }}",
           "",
           "Version: ${{ env.PACKAGE_VERSION }}"
         )
@@ -433,7 +433,7 @@ jobs:
         3. Configure Claude Desktop to connect to this server
         4. Install the MCP Bridge module in Foundry VTT
 
-        For full documentation visit: https://github.com/Niclasp1501/ninjos-foundry-mcp
+        For full documentation visit: ${{ github.server_url }}/${{ github.repository }}
 
         Version: ${{ env.PACKAGE_VERSION }}
         EOF
@@ -475,7 +475,7 @@ jobs:
 
           **Foundry VTT Users:**
           - Install directly from Foundry's module browser
-          - Or use manifest: `https://raw.githubusercontent.com/Niclasp1501/ninjos-foundry-mcp/main/packages/foundry-module/module.json`
+          - Or use manifest: `https://raw.githubusercontent.com/${{ github.repository }}/main/packages/foundry-module/module.json`
 
           ### Quick Start
           1. Choose your installation method above
@@ -495,7 +495,7 @@ jobs:
           - Enhanced creature index for instant monster searches
           - AI-powered battlemap generation with ComfyUI integration
 
-          For full documentation, visit: https://github.com/Niclasp1501/ninjos-foundry-mcp
+          For full documentation, visit: ${{ github.server_url }}/${{ github.repository }}
         files: |
           installer/build/FoundryMCPServer-Setup-${{ env.PACKAGE_VERSION }}.exe
           installer/build/FoundryMCPServer-${{ env.PACKAGE_VERSION }}.dmg

@@ -37,10 +37,20 @@ for (const datei of dateien) {
   versionen.set(datei, version);
 }
 
+// Der Lockfile traegt die Version ebenfalls, fuer die Wurzel und jeden
+// Arbeitsbereich. Beim Schneiden von 14.2609.3 wurde er nicht neu erzeugt und
+// stand danach noch auf 14.2608.1: Ein npm install aenderte fuenf Zeilen, und
+// npm ci lief gegen einen Stand, der den Paketdateien widersprach.
+const lock = JSON.parse(readFileSync(join(wurzel, 'package-lock.json'), 'utf8'));
+versionen.set('package-lock.json', lock.version);
+for (const bereich of ['', 'packages/foundry-module', 'packages/mcp-server', 'shared']) {
+  versionen.set(`package-lock.json packages["${bereich}"]`, lock.packages?.[bereich]?.version);
+}
+
 const manifest = versionen.get('packages/foundry-module/module.json');
 for (const [datei, version] of versionen) {
   const kennzeichen = version === manifest ? ' ' : '!';
-  console.log(`${kennzeichen} ${version.padEnd(12)} ${datei}`);
+  console.log(`${kennzeichen} ${String(version).padEnd(12)} ${datei}`);
   if (version !== manifest) {
     fehler.push(`${datei} steht auf ${version}, das Manifest auf ${manifest}`);
   }

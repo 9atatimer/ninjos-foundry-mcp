@@ -1,5 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { createServer } from 'http';
+import { createServer, IncomingMessage, Server, ServerResponse } from 'http';
+import type { Duplex } from 'stream';
+import { OriginGuard, defaultOriginStoreFile } from './connection-guards.js';
 import { Logger } from './logger.js';
 import { Config } from './config.js';
 import { WebRTCPeer } from './webrtc-peer.js';
@@ -46,8 +48,10 @@ interface PendingQuery {
 
 export class FoundryConnector {
   private wss: WebSocketServer | null = null;
-  private httpServer: any;
-  private webrtcSignalingServer: any; // Separate HTTP server for WebRTC signaling
+  private httpServers: Server[] = [];
+  private signalingServers: Server[] = []; // Separate HTTP servers for WebRTC signaling
+  /** NINJO: decides which pages may use the bridge. See connection-guards.ts. */
+  private originGuard: OriginGuard;
   /** NINJO: false when port 31416 was taken. The bridge runs regardless. */
   private webrtcSignalingAvailable = true;
   private logger: Logger;
@@ -62,6 +66,11 @@ export class FoundryConnector {
   constructor({ config, logger }: FoundryConnectorOptions) {
     this.config = config;
     this.logger = logger.child({ component: 'FoundryConnector' });
+    this.originGuard = new OriginGuard({
+      configured: config.allowedOrigins ?? [],
+      storeFile: defaultOriginStoreFile(),
+      logger: this.logger,
+    });
   }
 
   async start(): Promise<void> {
@@ -70,102 +79,31 @@ export class FoundryConnector {
       return;
     }
 
+    // NINJO: loopback unless remote mode is asked for. Both listeners used to
+    // bind every interface, so any machine on the same network could reach the
+    // tools without authentication. In the normal setup the browser and this
+    // server share a machine; a browser elsewhere needs FOUNDRY_REMOTE_MODE=true.
+    // Both loopback addresses, because browsers resolve "localhost" to ::1
+    // first, and a server on 127.0.0.1 alone would depend on their fallback.
+    const bindHosts = this.config.remoteMode ? ['0.0.0.0'] : ['127.0.0.1', '::1'];
+
     this.logger.info('Starting Foundry connector WebSocket server', {
       port: this.config.port,
       protocol: this.config.protocol || 'ws',
       remoteMode: this.config.remoteMode || false,
+      bindHosts,
+      origins: this.originGuard.describe(),
     });
 
-    // Create HTTP server for WebSocket connections
-    this.httpServer = createServer((req, res) => {
-      res.writeHead(404);
-      res.end();
-    });
-
-    // Create SEPARATE HTTP server for WebRTC signaling (port 31416)
-    const WEBRTC_PORT = 31416;
-    this.webrtcSignalingServer = createServer(async (req, res) => {
-      // Set CORS headers for all requests
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-      // Handle OPTIONS preflight
-      if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
-        return;
-      }
-
-      // Only handle POST to /webrtc-offer
-      if (req.method === 'POST' && req.url === '/webrtc-offer') {
-        try {
-          await this.handleWebRTCOfferHTTP(req, res);
-        } catch (error) {
-          this.logger.error('WebRTC offer handling failed', error);
-          res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Internal server error' }));
-        }
-      } else {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Not found' }));
-      }
-    });
-
-    // NINJO: The signaling server must never be able to stop the bridge.
-    //
-    // A failure here used to reject, and start() gave up before it ever reached
-    // the httpServer.listen() below — the WebSocket on the actual bridge port
-    // was never opened. That happened on 2026-09-06: a previous backend still
-    // held 31416 for a moment, the new one hit EADDRINUSE, and from then on a
-    // backend ran that offered all 79 tools and answered every one of them with
-    // "module not connected". Nothing in that state points at port 31416, so
-    // the cause is nowhere near the symptom.
-    //
-    // WebRTC is only the detour for the case where the browser refuses ws://
-    // (Foundry over HTTPS with a non-loopback host). Losing the detour costs
-    // that one case; losing the bridge costs everything.
-    await new Promise<void>(resolve => {
-      const done = () => resolve();
-
-      this.webrtcSignalingServer.listen(WEBRTC_PORT, '0.0.0.0', () => {
-        this.logger.info(`WebRTC signaling server listening on port ${WEBRTC_PORT}`);
-        done();
-      });
-
-      // Stays attached after startup: an 'error' event with no listener would
-      // take the whole process down.
-      this.webrtcSignalingServer.on('error', (error: NodeJS.ErrnoException) => {
-        this.webrtcSignalingAvailable = false;
-        if (error.code === 'EADDRINUSE') {
-          this.logger.warn(
-            `Port ${WEBRTC_PORT} is taken, so the WebRTC detour is unavailable. ` +
-              `The bridge itself runs on ${this.config.port}; only a browser that ` +
-              `refuses ws:// would have needed the detour.`
-          );
-        } else {
-          this.logger.warn('WebRTC signaling server failed, carrying on without it', error);
-        }
-        done();
-      });
-    });
+    if (this.config.remoteMode) {
+      this.logger.warn(
+        'Remote mode: the bridge listens on every interface. Only the origin check ' +
+          'stands between the network and the tools, so set FOUNDRY_ALLOWED_ORIGINS.'
+      );
+    }
 
     // Create WebSocket server in noServer mode to avoid request consumption
     this.wss = new WebSocketServer({ noServer: true });
-
-    // Manually handle upgrade for WebSocket connections
-    this.httpServer.on('upgrade', (req: any, socket: any, head: any) => {
-      const pathname = req.url || '/';
-
-      // Only upgrade if path matches WebSocket namespace
-      if (pathname === (this.config.namespace || '/')) {
-        this.wss?.handleUpgrade(req, socket, head, ws => {
-          this.wss?.emit('connection', ws, req);
-        });
-      } else {
-        socket.destroy();
-      }
-    });
 
     // Handle WebSocket connections (both signaling and direct WebSocket)
     this.wss.on('connection', ws => {
@@ -215,23 +153,226 @@ export class FoundryConnector {
       });
     });
 
-    // Start the HTTP server
-    await new Promise<void>((resolve, reject) => {
-      this.httpServer.listen(this.config.port, () => {
-        this.isStarted = true;
-        this.logger.info('Foundry connector listening', {
-          port: this.config.port,
-          // NINJO: stated on every start, so the log says plainly whether the
-          // detour is there. Its absence is not a fault of the bridge.
-          webrtcFallback: this.webrtcSignalingAvailable,
-        });
-        resolve();
-      });
+    // NINJO: the signaling server must never be able to stop the bridge.
+    //
+    // A failure here used to reject, and start() gave up before it reached the
+    // listener for the actual bridge port. That happened on 2026-09-06: a
+    // previous backend still held 31416 for a moment, the new one hit
+    // EADDRINUSE, and from then on a backend ran that offered all its tools and
+    // answered every one of them with "module not connected".
+    //
+    // WebRTC is only the detour for a browser that refuses ws://. Losing the
+    // detour costs that one case; losing the bridge costs everything.
+    const WEBRTC_PORT = 31416;
+    this.signalingServers = await this.listenOn(
+      bindHosts,
+      WEBRTC_PORT,
+      'WebRTC signaling server',
+      () => createServer((req, res) => void this.handleSignalingRequest(req, res)),
+      false
+    );
+    this.webrtcSignalingAvailable = this.signalingServers.length > 0;
+    if (!this.webrtcSignalingAvailable) {
+      this.logger.warn(
+        `The WebRTC detour on ${WEBRTC_PORT} is unavailable. The bridge itself runs on ` +
+          `${this.config.port}; only a browser that refuses ws:// would have needed the detour.`
+      );
+    }
 
-      this.httpServer.on('error', (error: Error) => {
-        this.logger.error('Failed to start Foundry connector', error);
-        reject(error);
-      });
+    this.httpServers = await this.listenOn(
+      bindHosts,
+      this.config.port,
+      'Foundry connector',
+      () => {
+        const server = createServer((_req, res) => {
+          res.writeHead(404);
+          res.end();
+        });
+        server.on('upgrade', (req, socket, head) => this.handleUpgrade(req, socket, head));
+        return server;
+      },
+      true
+    );
+
+    this.isStarted = true;
+    this.logger.info('Foundry connector listening', {
+      port: this.config.port,
+      bindHosts,
+      // NINJO: stated on every start, so the log says plainly whether the
+      // detour is there. Its absence is not a fault of the bridge.
+      webrtcFallback: this.webrtcSignalingAvailable,
+    });
+  }
+
+  /**
+   * NINJO: accept a WebSocket only from the Foundry this server belongs to.
+   *
+   * A refused page still completes the handshake and is closed at once with
+   * 4403. A refusal at the HTTP level would reach the page as a bare failure,
+   * indistinguishable from a server that is not running; a close code is the
+   * one thing a browser hands to the page, so the module can say what is wrong.
+   * The socket is never registered, so it cannot send or receive anything.
+   */
+  private handleUpgrade(req: IncomingMessage, socket: Duplex, head: Buffer): void {
+    const pathname = req.url || '/';
+
+    // Only upgrade if path matches WebSocket namespace
+    if (pathname !== (this.config.namespace || '/') || !this.wss) {
+      socket.destroy();
+      return;
+    }
+
+    const origin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+    const decision = this.originGuard.check(origin);
+
+    this.wss.handleUpgrade(req, socket, head, ws => {
+      if (!decision.allowed) {
+        this.refused('bridge', origin, decision.reason);
+        ws.close(4403, 'origin not allowed');
+        return;
+      }
+      this.wss?.emit('connection', ws, req);
+    });
+  }
+
+  /**
+   * NINJO: the signaling endpoint, with the origin checked.
+   *
+   * This used to send `Access-Control-Allow-Origin: *` to everyone. The allowed
+   * origin is now echoed back, and the offer itself is refused unless the guard
+   * accepts the origin. The preflight is answered for any origin: it grants
+   * nothing by itself, and failing it would leave the module with a bare network
+   * error instead of the 403 that explains the refusal.
+   */
+  private async handleSignalingRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const origin = typeof req.headers.origin === 'string' ? req.headers.origin : undefined;
+
+    if (origin) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Vary', 'Origin');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      // Chrome asks before a public page may reach a private address.
+      if (req.headers['access-control-request-private-network']) {
+        res.setHeader('Access-Control-Allow-Private-Network', 'true');
+      }
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    if (req.method === 'POST' && req.url === '/webrtc-offer') {
+      const decision = this.originGuard.check(origin);
+      if (!decision.allowed) {
+        this.refused('WebRTC signaling', origin, decision.reason);
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'origin not allowed' }));
+        return;
+      }
+
+      try {
+        await this.handleWebRTCOfferHTTP(req, res);
+      } catch (error) {
+        this.logger.error('WebRTC offer handling failed', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal server error' }));
+      }
+      return;
+    }
+
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not found' }));
+  }
+
+  private refused(channel: string, origin: string | undefined, reason: string): void {
+    this.logger.warn(`Refused a ${channel} connection`, { origin, reason });
+  }
+
+  /**
+   * NINJO: open one listener per address.
+   *
+   * The first address is the one that matters. A missing second loopback (IPv6
+   * switched off) is not a fault. A required listener that cannot open on its
+   * first address fails the start, as before.
+   */
+  private async listenOn(
+    hosts: string[],
+    port: number,
+    label: string,
+    make: () => Server,
+    required: boolean
+  ): Promise<Server[]> {
+    const up: Server[] = [];
+
+    for (const [index, host] of hosts.entries()) {
+      try {
+        up.push(await this.listenWithRetry(make(), port, host));
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException)?.code;
+
+        if (index > 0 && ['EADDRNOTAVAIL', 'EAFNOSUPPORT', 'EINVAL'].includes(code ?? '')) {
+          this.logger.debug(`${label}: ${host} is not available on this machine`, { code });
+          continue;
+        }
+
+        if (required && index === 0) {
+          this.logger.error(`Failed to start ${label}`, error);
+          await Promise.all(up.map(server => new Promise(resolve => server.close(resolve))));
+          throw error;
+        }
+
+        this.logger.warn(`${label} is not listening on ${host}:${port}`, {
+          code,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    return up;
+  }
+
+  /**
+   * NINJO: EADDRINUSE is retried for a few seconds. When a session restarts, the
+   * previous backend can still hold the port for a moment while the next one
+   * starts; that race is what took the bridge down on 2026-09-06.
+   */
+  private listenWithRetry(
+    server: Server,
+    port: number,
+    host: string,
+    attempts = 10
+  ): Promise<Server> {
+    return new Promise((resolve, reject) => {
+      let left = attempts;
+
+      const attempt = () => {
+        const onError = (error: NodeJS.ErrnoException) => {
+          server.off('listening', onListening);
+          if (error.code === 'EADDRINUSE' && --left > 0) {
+            setTimeout(attempt, 500);
+            return;
+          }
+          reject(error);
+        };
+
+        const onListening = () => {
+          server.off('error', onError);
+          // An 'error' event without a listener would end the whole process.
+          server.on('error', error =>
+            this.logger.warn('Listener error', { host, port, message: error.message })
+          );
+          resolve(server);
+        };
+
+        server.once('error', onError);
+        server.once('listening', onListening);
+        server.listen(port, host);
+      };
+
+      attempt();
     });
   }
 
@@ -259,14 +400,13 @@ export class FoundryConnector {
       this.wss = null;
     }
 
-    if (this.httpServer) {
-      await new Promise<void>(resolve => {
-        this.httpServer.close(() => {
-          resolve();
-        });
-      });
-      this.httpServer = null;
-    }
+    // NINJO: the signaling listeners were never closed here before.
+    const servers = [...this.httpServers, ...this.signalingServers];
+    await Promise.all(
+      servers.map(server => new Promise<void>(resolve => server.close(() => resolve())))
+    );
+    this.httpServers = [];
+    this.signalingServers = [];
 
     this.isStarted = false;
     this.logger.info('Foundry connector stopped');

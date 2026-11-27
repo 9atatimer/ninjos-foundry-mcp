@@ -4094,6 +4094,7 @@ export class FoundryDataAccess {
     additionalPages?: Array<{ name: string; content: string }>;
   }): Promise<{ id: string; name: string; pageCount: number }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'create');
 
     // Use permission system for journal creation
     const permissionCheck = permissionManager.checkWritePermission('createActor', {
@@ -4172,6 +4173,7 @@ export class FoundryDataAccess {
     pages: Array<{ name: string; content: string }>;
   }): Promise<{ id: string; name: string; pageCount: number }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'create');
 
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
@@ -4305,6 +4307,7 @@ export class FoundryDataAccess {
     ringEnabled: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Actor update denied: ${permissionCheck.reason}`);
@@ -4373,6 +4376,7 @@ export class FoundryDataAccess {
     deletedOriginal: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', request.deleteOriginal ? 'delete' : 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Journal split denied: ${permissionCheck.reason}`);
@@ -4497,6 +4501,7 @@ export class FoundryDataAccess {
     created: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Journal write denied: ${permissionCheck.reason}`);
@@ -4567,6 +4572,7 @@ export class FoundryDataAccess {
     html: string;
   }): Promise<{ success: boolean; pageId: string; newLength: number }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Journal append denied: ${permissionCheck.reason}`);
@@ -4616,6 +4622,7 @@ export class FoundryDataAccess {
     dryRun: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Actor refresh denied: ${permissionCheck.reason}`);
@@ -4821,6 +4828,12 @@ export class FoundryDataAccess {
     dryRun: boolean;
   }> {
     this.validateFoundryState();
+    // A dry run only reads; the real rewrite changes documents of every kind.
+    if (!request.dryRun) {
+      for (const kind of ['Scenes', 'Actors', 'Journals', 'Playlists', 'RollTables'] as const) {
+        this.assertAllowed(kind, 'update');
+      }
+    }
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Path rewrite denied: ${permissionCheck.reason}`);
@@ -5039,6 +5052,7 @@ export class FoundryDataAccess {
     dryRun: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Image rewrite denied: ${permissionCheck.reason}`);
@@ -5116,6 +5130,7 @@ export class FoundryDataAccess {
     dryRun: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Tag linking denied: ${permissionCheck.reason}`);
@@ -5226,6 +5241,7 @@ export class FoundryDataAccess {
     newName: string;
   }): Promise<{ success: boolean; journalId: string; name: string }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Journal rename denied: ${permissionCheck.reason}`);
@@ -5252,6 +5268,7 @@ export class FoundryDataAccess {
     type?: string;
   }): Promise<{ success: boolean; folderId: string; name: string }> {
     this.validateFoundryState();
+    this.assertAllowed('Folders', 'update');
     const permissionCheck = permissionManager.checkWritePermission('createActor', { quantity: 1 });
     if (!permissionCheck.allowed) {
       throw new Error(`Folder rename denied: ${permissionCheck.reason}`);
@@ -5486,6 +5503,7 @@ export class FoundryDataAccess {
     newPageName?: string | undefined;
   }): Promise<{ success: boolean; pageId?: string | undefined; pageName?: string | undefined }> {
     this.validateFoundryState();
+    this.assertAllowed('Journals', 'update');
 
     // Use permission system for journal updates - treating as createActor permission level
     const permissionCheck = permissionManager.checkWritePermission('createActor', {
@@ -5731,6 +5749,7 @@ export class FoundryDataAccess {
     };
   }): Promise<ActorCreationResult> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'create');
 
     try {
       const { packId, itemId, customNames, quantity = 1, addToScene = false, placement } = request;
@@ -5894,6 +5913,7 @@ export class FoundryDataAccess {
     created: Array<{ id: string; name: string; type: string }>;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     const { actorIdentifier, items } = params;
 
@@ -5985,6 +6005,7 @@ export class FoundryDataAccess {
     notFound: string[];
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'delete');
 
     const { actorIdentifier, itemIds, itemNames, type } = params;
 
@@ -6137,6 +6158,7 @@ export class FoundryDataAccess {
     updated: Array<{ id: string; name: string; type: string }>;
   }> {
     this.validateFoundryState();
+    this.assertWriteSwitch();
 
     const { updates } = params;
 
@@ -6234,6 +6256,7 @@ export class FoundryDataAccess {
     created: Array<{ id: string; name: string; type: string }>;
   }> {
     this.validateFoundryState();
+    this.assertWriteSwitch();
 
     const { items, folder } = params;
 
@@ -6496,6 +6519,7 @@ export class FoundryDataAccess {
     transactionId?: string
   ): Promise<TokenPlacementResult> {
     this.validateFoundryState();
+    this.assertAllowed('Scenes', 'update');
 
     // Use new permission system
     const permissionCheck = permissionManager.checkWritePermission('modifyScene', {
@@ -6754,6 +6778,7 @@ export class FoundryDataAccess {
     flavor: string;
   }): Promise<{ success: boolean; message: string; error?: string }> {
     this.validateFoundryState();
+    this.assertWriteSwitch();
 
     try {
       // Resolve target player from character name or player name with enhanced error handling
@@ -7604,6 +7629,7 @@ export class FoundryDataAccess {
     permission: number;
   }): Promise<{ success: boolean; message: string; error?: string }> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     try {
       const actor = game.actors?.get(data.actorId);
@@ -7660,6 +7686,7 @@ export class FoundryDataAccess {
     biography?: string;
   }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     const systemId = (game.system as any).id;
     if (systemId !== 'wfrp4e') {
@@ -7851,6 +7878,7 @@ export class FoundryDataAccess {
     }>;
   }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     const systemId = (game.system as any).id;
     if (systemId !== 'wfrp4e') {
@@ -8445,10 +8473,35 @@ export class FoundryDataAccess {
    * cannot be undone. The error message names the switch, so that it is clear
    * what would have to be turned on.
    */
+  /**
+   * The global "Allow Write Operations" switch, checked before anything writes.
+   *
+   * The settings promise that with the switch off the AI changes nothing at all.
+   * Until 14.2609.4 only the journal and token paths checked it; scenes,
+   * compendiums, playlists and roll tables went by the rights matrix alone and
+   * wrote anyway, and most actor paths checked neither. assertAllowed() calls
+   * this first, so one call covers both layers.
+   */
+  private assertWriteSwitch(): void {
+    let enabled = true;
+    try {
+      enabled = game.settings?.get(this.moduleId, 'allowWriteOperations') !== false;
+    } catch {
+      enabled = true;
+    }
+    if (!enabled) {
+      throw new Error(
+        'Writing is switched off. In the module settings, turn on "Allow Write Operations".'
+      );
+    }
+  }
+
   private assertAllowed(
     kind: 'Scenes' | 'Playlists' | 'Journals' | 'RollTables' | 'Actors' | 'Folders' | 'Compendiums',
     action: 'create' | 'update' | 'delete'
   ): void {
+    this.assertWriteSwitch();
+
     const labels: Record<string, string> = {
       Scenes: 'scenes',
       Playlists: 'playlists',
@@ -9148,6 +9201,7 @@ export class FoundryDataAccess {
     folderPath?: string;
   }): Promise<{ id: string; name: string; type: string; pack: string }> {
     this.validateFoundryState();
+    this.assertWriteSwitch();
 
     const pack: any = game.packs?.get(request.packId);
     if (!pack) throw new Error(`Compendium "${request.packId}" not found`);
@@ -10307,6 +10361,7 @@ export class FoundryDataAccess {
    */
   async switchScene(options: { scene_identifier: string; optimize_view?: boolean }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Scenes', 'update');
 
     try {
       // Find the target scene by ID or name
@@ -10474,6 +10529,7 @@ export class FoundryDataAccess {
     animate?: boolean;
   }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Scenes', 'update');
 
     // Use permission system
     const permissionCheck = permissionManager.checkWritePermission('modifyScene', {
@@ -10531,6 +10587,7 @@ export class FoundryDataAccess {
    */
   async updateToken(data: { tokenId: string; updates: Record<string, any> }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Scenes', 'update');
 
     // Use permission system
     const permissionCheck = permissionManager.checkWritePermission('modifyScene', {
@@ -10586,6 +10643,7 @@ export class FoundryDataAccess {
    */
   async deleteTokens(data: { tokenIds: string[] }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Scenes', 'update');
 
     // Use permission system
     const permissionCheck = permissionManager.checkWritePermission('modifyScene', {
@@ -10704,6 +10762,7 @@ export class FoundryDataAccess {
     active: boolean;
   }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Scenes', 'update');
 
     // Use permission system
     const permissionCheck = permissionManager.checkWritePermission('modifyScene', {
@@ -10877,6 +10936,7 @@ export class FoundryDataAccess {
     requiresGMInteraction?: boolean;
   }> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     const { actorIdentifier, itemIdentifier, targets, options = {} } = params;
 
@@ -11115,6 +11175,7 @@ export class FoundryDataAccess {
     affectsType: string;
   }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     try {
       // 1. Lookup actor
@@ -11293,6 +11354,7 @@ export class FoundryDataAccess {
     sourceRules: string;
   }): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'create');
 
     try {
       // 1. System guard
@@ -11467,6 +11529,7 @@ export class FoundryDataAccess {
 
   async addAttackToActor(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('addAttackToActor requires the dnd5e game system');
@@ -11702,6 +11765,7 @@ export class FoundryDataAccess {
 
   async addAuraToActor(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('addAuraToActor requires the dnd5e game system');
@@ -11880,6 +11944,7 @@ export class FoundryDataAccess {
 
   async addPassiveFeatureToActor(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('addPassiveFeatureToActor requires the dnd5e game system');
@@ -11974,6 +12039,7 @@ export class FoundryDataAccess {
 
   async addAttackWithSaveToActor(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('addAttackWithSaveToActor requires the dnd5e game system');
@@ -12250,6 +12316,7 @@ export class FoundryDataAccess {
 
   async setActorSpellcasting(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('setActorSpellcasting requires the dnd5e game system');
@@ -12356,6 +12423,7 @@ export class FoundryDataAccess {
 
   async addSpellsToActor(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('addSpellsToActor requires the dnd5e game system');
@@ -12536,6 +12604,7 @@ export class FoundryDataAccess {
 
   async addFeaturesFromCompendium(data: any): Promise<any> {
     this.validateFoundryState();
+    this.assertAllowed('Actors', 'update');
 
     if ((game.system as any).id !== 'dnd5e') {
       throw new Error('addFeaturesFromCompendium requires the dnd5e game system');
@@ -12731,6 +12800,7 @@ export class FoundryDataAccess {
     }>;
     folder?: string;
   }): Promise<{ created: Array<{ id: string; name: string; type: string }>; total: number }> {
+    this.assertAllowed('Actors', 'create');
     const folderName = params.folder ?? 'Foundry MCP Actors';
     const folderId = await this.getOrCreateFolder(folderName, 'Actor');
 
@@ -12926,6 +12996,7 @@ export class FoundryDataAccess {
   async updateActors(
     updates: Array<{ id: string; name?: string; img?: string; system?: Record<string, any> }>
   ): Promise<{ updated: Array<{ id: string; name: string }>; total: number }> {
+    this.assertAllowed('Actors', 'update');
     const updatedActors: Array<{ id: string; name: string }> = [];
 
     for (const u of updates) {
@@ -12972,6 +13043,7 @@ export class FoundryDataAccess {
     actorIdentifier: string,
     itemUpdates: Array<{ id: string; name?: string; img?: string; system?: Record<string, any> }>
   ): Promise<{ updated: Array<{ id: string; name: string }>; total: number }> {
+    this.assertAllowed('Actors', 'update');
     const actor =
       (game.actors.get(actorIdentifier) as any) ??
       (game.actors.find(
@@ -13004,6 +13076,7 @@ export class FoundryDataAccess {
     actorIdentifier: string,
     itemIds: string[]
   ): Promise<{ deleted: string[]; total: number }> {
+    this.assertAllowed('Actors', 'delete');
     const actor =
       (game.actors.get(actorIdentifier) as any) ??
       (game.actors.find(
@@ -13023,6 +13096,7 @@ export class FoundryDataAccess {
    * Delete one or more actors by ID.
    */
   async deleteActors(ids: string[]): Promise<{ deleted: string[]; total: number }> {
+    this.assertAllowed('Actors', 'delete');
     const existing = ids.filter(id => game.actors.get(id));
     if (existing.length === 0) throw new Error('None of the provided actor IDs were found');
 

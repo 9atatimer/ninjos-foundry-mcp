@@ -87,14 +87,11 @@ it is in `.claude/skills/foundry-battlemap/`.
 - **task-010** -- `backup-assets.mjs` records truncated files as complete. It is
   committed and it is a backup tool, which is the worst combination. Either fix
   it test-first or delete it; it must not be run at scale meanwhile.
-- **task-001** -- the bridge accepts any origin. Needs a design record first:
-  the legitimate origin is not a constant, so this adds a setting and a seam.
-- **task-002** -- bind 31415 and 31416 to loopback. Small, independent of 001,
-  and not a substitute for it.
+- **task-001** -- the origin check exists since the legacy merge, but it
+  trusts the first origin it sees. What is left is listed in the task; it
+  still wants a design record.
 - **task-011 / task-012** -- the rest of the downloader defects. Only worth
   doing if 010 is fixed rather than deleted.
-- **task-004** -- the reconnect defect. Now hit routinely on the real rig,
-  and on WebRTC it also reports "connected" over a dead link.
 - **task-017** -- no CI runs tests. Do it before task-015, so the #2 and #3
   regression tests actually guard the release.
 - **task-015** -- release the module so the #3 fix is live on Forge. Until
@@ -103,8 +100,10 @@ it is in `.claude/skills/foundry-battlemap/`.
 - **task-018** -- a wrapper-spawned backend has map generation off. Small,
   and it bites on every backend restart.
 
-Deliberately not in Now: task-003 (no container yet), task-005, task-006
-(large, no deadline), task-007 and task-009 (latent). task-016 and task-019
+Deliberately not in Now: task-005, task-006 (large, no deadline). The
+legacy merge closed task-002, task-003, task-004, task-007, task-008 and
+task-009; task-005 went from 47 advisories to 40
+(6 critical) as of 2026-11-27. task-016 and task-019
 wait on the map-generation design decision (task-020).
 
 Wanted next, not yet scheduled:
@@ -161,14 +160,13 @@ not.
 about: wip
 
 The backend exits after the last wrapper disconnects, counting wrappers only
-and ignoring a still-bridged module. The module is built as if the bridge were
-permanent: bounded retries, then a manual click. Ordinary use of Claude Desktop
-triggers the collision.
+and ignoring a still-bridged module. Since the legacy merge the module retries
+forever (backoff capped at 30 s), so the collision now costs a reconnect
+delay rather than a manual click.
 
-Unsettled because task-004 as filed may be too narrow. Candidates: unbounded
-backoff on the module side; the backend declining to exit while a module is
-bridged; or an explicit lifecycle contract making one side authoritative. It is
-a contract between the halves, so it wants a design record, not a constant.
+Still unsettled: the module retrying is one side of the contract, not a
+contract. The backend still exits under a bridged module, and nothing makes
+either side authoritative. That wants a design record, not a constant.
 
 Triage 2026-09-13: kept as wip. New evidence narrows it rather than settling
 it. On WebRTC the module does not merely give up; it keeps claiming
