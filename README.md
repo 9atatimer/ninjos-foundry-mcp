@@ -7,9 +7,11 @@ journals and quests, create actors, manage compendiums, request dice rolls.
 
 _(Scroll down for German version / Scrolle weiter runter für die deutsche Version)_
 
-> Built on [adambdooley/foundry-vtt-mcp](https://github.com/adambdooley/foundry-vtt-mcp) by Adam Dooley,
-> used under the MIT license — see [LICENSE](LICENSE). This is an independent fork, not a replacement
-> for the original project.
+> Built on [adambdooley/foundry-vtt-mcp](https://github.com/adambdooley/foundry-vtt-mcp) by Adam Dooley
+> and on Niclas Pflug's (Ninjo's) MIT-licensed fork of it,
+> [Niclasp1501/ninjos-foundry-mcp-legacy](https://github.com/Niclasp1501/ninjos-foundry-mcp-legacy),
+> both used under the MIT license -- see [LICENSE](LICENSE). This is an independent project, not a
+> replacement for either, and it shares no code with Ninjo's later, separately licensed rewrite.
 
 ---
 
@@ -462,10 +464,13 @@ Traveller 2e. Die meisten Werkzeuge arbeiten systemunabhängig.
 
 ### Herkunft
 
-Dies ist ein eigenständiger Fork von
+Dies ist ein eigenständiges Projekt auf Grundlage von
 [adambdooley/foundry-vtt-mcp](https://github.com/adambdooley/foundry-vtt-mcp) von Adam
-Dooley, verwendet unter der MIT-Lizenz — siehe [LICENSE](LICENSE). Er tritt **nicht** als
-Ersatz des Ursprungsprojekts auf.
+Dooley und von Niclas Pflugs (Ninjos) MIT-lizenziertem Fork davon,
+[Niclasp1501/ninjos-foundry-mcp-legacy](https://github.com/Niclasp1501/ninjos-foundry-mcp-legacy),
+beide verwendet unter der MIT-Lizenz -- siehe [LICENSE](LICENSE). Es tritt **nicht** als
+Ersatz eines der beiden auf und teilt keinen Code mit Ninjos späterer, gesondert lizenzierter
+Neufassung.
 
 Die ausführliche Beschreibung aller Werkzeuge, der Einstellungen und der Arbeit mit großen
 importierten Abenteuern steht weiter oben im englischen Teil.
