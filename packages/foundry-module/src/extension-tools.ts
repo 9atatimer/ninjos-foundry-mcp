@@ -1,7 +1,7 @@
 /**
  * Lets other Foundry modules register MCP tools of their own.
  *
- * The point: a module like Ninjo's Shops knows its own rules — prices, stock,
+ * The point: a shop module knows its own rules — prices, stock,
  * haggling. Building tools for it into this server would have the model work
  * around those rules, and would tie a server most people install for other
  * reasons to a module they do not have. So the other module registers its tool
@@ -9,7 +9,7 @@
  *
  * Registration happens through a hook during startup:
  *
- *   Hooks.on("ninjos-foundry-mcp.registerTools", (register) => {
+ *   Hooks.on("tedious-gm-mcp.registerTools", (register) => {
  *     register("my-module", {
  *       name: "shop-stock-item",
  *       description: "Puts an item into a shop at a given price.",
@@ -20,7 +20,7 @@
  *
  * Or through this module's API:
  *
- *   game.modules.get("ninjos-foundry-mcp").api.registerTool(moduleId, definition);
+ *   game.modules.get("tedious-gm-mcp").api.registerTool(moduleId, definition);
  *
  * Three guards that are not negotiable:
  *

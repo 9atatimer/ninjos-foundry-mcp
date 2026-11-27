@@ -402,7 +402,7 @@ export class CompendiumTools {
     });
 
     try {
-      const results = await this.foundryClient.query('ninjos-foundry-mcp.searchCompendium', {
+      const results = await this.foundryClient.query('tedious-gm-mcp.searchCompendium', {
         query,
         packType,
         filters,
@@ -446,7 +446,7 @@ export class CompendiumTools {
 
     try {
       // Use the proper document retrieval method that already exists in actor creation
-      const item = await this.foundryClient.query('ninjos-foundry-mcp.getCompendiumDocumentFull', {
+      const item = await this.foundryClient.query('tedious-gm-mcp.getCompendiumDocumentFull', {
         packId: packId,
         documentId: itemId,
       });
@@ -750,7 +750,7 @@ export class CompendiumTools {
 
     try {
       const results = await this.foundryClient.query(
-        'ninjos-foundry-mcp.listCreaturesByCriteria',
+        'tedious-gm-mcp.listCreaturesByCriteria',
         params
       );
 
@@ -803,7 +803,7 @@ export class CompendiumTools {
     this.logger.info('Listing compendium packs', { type });
 
     try {
-      const packs = await this.foundryClient.query('ninjos-foundry-mcp.getAvailablePacks');
+      const packs = await this.foundryClient.query('tedious-gm-mcp.getAvailablePacks');
 
       // Filter by type if specified
       const filteredPacks = type ? packs.filter((pack: any) => pack.type === type) : packs;

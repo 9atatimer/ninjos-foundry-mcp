@@ -98,7 +98,7 @@ export class DiceRollTools {
       }
 
       const response = await this.foundryClient.query(
-        'ninjos-foundry-mcp.request-player-rolls',
+        'tedious-gm-mcp.request-player-rolls',
         params
       );
 

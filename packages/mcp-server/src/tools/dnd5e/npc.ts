@@ -556,7 +556,7 @@ export class DnD5eNpcTools {
         );
       }
 
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.createNpcActor', parsed);
+      const result = await this.foundryClient.query('tedious-gm-mcp.createNpcActor', parsed);
 
       this.logger.info('NPC created successfully', {
         actorId: result.actor?.id,

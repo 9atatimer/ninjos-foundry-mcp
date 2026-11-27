@@ -1,10 +1,10 @@
-// Constants for Ninjo's Foundry MCP Module
+// Constants for Tedious GM MCP Module
 
 /**
  * Module constants
  */
-export const MODULE_ID = 'ninjos-foundry-mcp';
-export const MODULE_TITLE = "Ninjo's Foundry MCP";
+export const MODULE_ID = 'tedious-gm-mcp';
+export const MODULE_TITLE = "Tedious GM MCP";
 
 /**
  * Socket event names

@@ -75,7 +75,7 @@ export class FoundryClient {
   }
 
   ping(): Promise<any> {
-    return this.query('ninjos-foundry-mcp.ping');
+    return this.query('tedious-gm-mcp.ping');
   }
 
   getConnectionInfo(): any {

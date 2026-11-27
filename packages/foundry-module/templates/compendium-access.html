@@ -7,8 +7,8 @@
 }}
 <form class="eci-settings mcp-menu mcp-compendium-access">
   <section class="eci-block">
-    <h2 class="eci-title">{{localize "ninjos-foundry-mcp.compendiumAccess.title"}}</h2>
-    <p class="eci-note">{{localize "ninjos-foundry-mcp.compendiumAccess.intro"}}</p>
+    <h2 class="eci-title">{{localize "tedious-gm-mcp.compendiumAccess.title"}}</h2>
+    <p class="eci-note">{{localize "tedious-gm-mcp.compendiumAccess.intro"}}</p>
   </section>
 
   <hr class="eci-divider" />
@@ -17,8 +17,8 @@
     <label class="eci-check mcp-all-row">
       <input type="checkbox" name="__allowAllUnlocked" {{#if allowAllUnlocked}}checked{{/if}} />
       <span>
-        <strong>{{localize "ninjos-foundry-mcp.compendiumAccess.allowAll"}}</strong>
-        {{localize "ninjos-foundry-mcp.compendiumAccess.allowAllHint"}}
+        <strong>{{localize "tedious-gm-mcp.compendiumAccess.allowAll"}}</strong>
+        {{localize "tedious-gm-mcp.compendiumAccess.allowAllHint"}}
       </span>
     </label>
   </section>
@@ -26,7 +26,7 @@
   <hr class="eci-divider" />
 
   <section class="eci-block mcp-pack-list {{#if allowAllUnlocked}}mcp-dimmed{{/if}}">
-    <h3 class="eci-subtitle">{{localize "ninjos-foundry-mcp.compendiumAccess.listTitle"}}</h3>
+    <h3 class="eci-subtitle">{{localize "tedious-gm-mcp.compendiumAccess.listTitle"}}</h3>
 
     {{#each groups}}
     <div class="mcp-group">
@@ -38,11 +38,11 @@
           <span class="mcp-pack-name">{{this.label}}</span>
           <span class="mcp-pack-meta">
             {{this.type}} · {{this.entries}}
-            {{localize "ninjos-foundry-mcp.compendiumAccess.entries"}}
+            {{localize "tedious-gm-mcp.compendiumAccess.entries"}}
             {{#if this.locked}}
             ·
             <span class="mcp-tag-locked"
-              >{{localize "ninjos-foundry-mcp.compendiumAccess.locked"}}</span
+              >{{localize "tedious-gm-mcp.compendiumAccess.locked"}}</span
             >
             {{/if}}
           </span>
@@ -56,7 +56,7 @@
 
   <div class="form-footer">
     <button type="submit" class="eci-btn primary">
-      <i class="fas fa-save" aria-hidden="true"></i> {{localize "ninjos-foundry-mcp.common.save"}}
+      <i class="fas fa-save" aria-hidden="true"></i> {{localize "tedious-gm-mcp.common.save"}}
     </button>
   </div>
 </form>

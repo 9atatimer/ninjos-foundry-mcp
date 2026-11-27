@@ -105,7 +105,7 @@ const rawConfig = {
   },
   toolResponseMaxChars: parseInt(process.env.TOOL_RESPONSE_MAX_CHARS || '20000', 10),
   server: {
-    name: process.env.SERVER_NAME || 'ninjos-foundry-mcp',
+    name: process.env.SERVER_NAME || 'tedious-gm-mcp',
     // NINJO: This was hardwired to 1.0.0 and answered the MCP handshake that
     // way while the package stood at 14.2608.1. Anyone reporting a problem
     // would have named a version that never existed.

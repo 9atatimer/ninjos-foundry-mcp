@@ -338,7 +338,7 @@ function installFoundryModule() {
 
   log(`✅ Foundry VTT detected at ${foundryPath}`);
 
-  const modulePath = path.join(foundryPath, 'ninjos-foundry-mcp');
+  const modulePath = path.join(foundryPath, 'tedious-gm-mcp');
   if (fs.existsSync(path.join(modulePath, 'module.json'))) {
     log('✅ Module already installed\n');
     return true;

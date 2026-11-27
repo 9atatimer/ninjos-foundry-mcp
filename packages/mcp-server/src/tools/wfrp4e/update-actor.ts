@@ -177,7 +177,7 @@ export class WFRP4eUpdateActorTools {
 
     this.logger.info('Updating WFRP4e actor', { actor });
     try {
-      return await this.foundryClient.query('ninjos-foundry-mcp.updateWfrp4eActor', {
+      return await this.foundryClient.query('tedious-gm-mcp.updateWfrp4eActor', {
         actor,
         characteristics,
         wounds,

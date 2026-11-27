@@ -83,7 +83,7 @@ So a rebuild is picked up without recopying anything:
 
 ```
 ln -sfn "$(pwd)/packages/foundry-module" \
-  ~/Library/"Application Support"/FoundryVTT/Data/modules/ninjos-foundry-mcp
+  ~/Library/"Application Support"/FoundryVTT/Data/modules/tedious-gm-mcp
 ```
 
 Confirm the target exists in Foundry's own Configuration screen if you
@@ -160,7 +160,7 @@ reload between them:
 
 ```js
 const cfg = foundry.utils.deepClone(game.settings.get('core', 'moduleConfiguration'));
-cfg['ninjos-foundry-mcp'] = true;
+cfg['tedious-gm-mcp'] = true;
 await game.settings.set('core', 'moduleConfiguration', cfg);
 location.reload();
 ```
@@ -168,9 +168,9 @@ location.reload();
 Then set the connection settings and reload once more:
 
 ```js
-await game.settings.set('ninjos-foundry-mcp', 'serverHost', 'localhost');
-await game.settings.set('ninjos-foundry-mcp', 'serverPort', 31415);
-await game.settings.set('ninjos-foundry-mcp', 'connectionType', 'websocket');
+await game.settings.set('tedious-gm-mcp', 'serverHost', 'localhost');
+await game.settings.set('tedious-gm-mcp', 'serverPort', 31415);
+await game.settings.set('tedious-gm-mcp', 'connectionType', 'websocket');
 location.reload();
 ```
 
@@ -207,7 +207,7 @@ about five attempts and will not retry on its own.
 **Queries registered.** Should equal `pruefen`'s count of 114:
 
 ```js
-Object.keys(CONFIG.queries).filter(k => k.startsWith('ninjos-foundry-mcp.')).length;
+Object.keys(CONFIG.queries).filter(k => k.startsWith('tedious-gm-mcp.')).length;
 ```
 
 **Sockets.**
@@ -229,7 +229,7 @@ node scripts/e2e-smoke.mjs
 Healthy output:
 
 ```
-serverInfo: {"name":"ninjos-foundry-mcp","version":"14.2609.3"}
+serverInfo: {"name":"tedious-gm-mcp","version":"14.2609.3"}
 tools exposed: 79
 get-world-info -> {"id":"test-world","title":"Test World",
                    "system":{"id":"dnd5e","version":"5.3.0"},
@@ -341,7 +341,7 @@ ln -sfn "$(pwd)/backup-<date>/forge-library" \
 Scene backgrounds and token art then resolve as `forge-library/...`.
 
 **Launch, join, enable the bridge.** As above in this document: launch the
-world, join as the GM, enable `ninjos-foundry-mcp`, set `connectionType` to
+world, join as the GM, enable `tedious-gm-mcp`, set `connectionType` to
 `websocket`, reload, and confirm the indicator reads connected.
 
 **Verify.** `node scripts/e2e-smoke.mjs` should report the restored world's id

@@ -29,7 +29,7 @@ interface CosmereExtractionResult {
 export class CosmereRpgIndexBuilder implements IndexBuilder {
   private moduleId: string;
 
-  constructor(moduleId: string = 'ninjos-foundry-mcp') {
+  constructor(moduleId: string = 'tedious-gm-mcp') {
     this.moduleId = moduleId;
   }
 

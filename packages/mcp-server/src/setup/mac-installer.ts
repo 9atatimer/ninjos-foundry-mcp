@@ -158,7 +158,7 @@ export class MacInstaller {
   }
 
   /**
-   * Install Ninjo's Foundry MCP module
+   * Install Tedious GM MCP module
    */
   async installFoundryModule(): Promise<{ success: boolean; message: string }> {
     this.updateProgress({
@@ -177,7 +177,7 @@ export class MacInstaller {
       };
     }
 
-    const moduleDestPath = path.join(foundryModulesPath, 'ninjos-foundry-mcp');
+    const moduleDestPath = path.join(foundryModulesPath, 'tedious-gm-mcp');
 
     // Check if module already exists
     if (fs.existsSync(path.join(moduleDestPath, 'module.json'))) {
@@ -192,7 +192,7 @@ export class MacInstaller {
       this.updateProgress({
         stage: 'installing_foundry_module',
         progress: 50,
-        message: "Installing Ninjo's Foundry MCP module...",
+        message: "Installing Tedious GM MCP module...",
       });
 
       // Find the bundled module (should be in Resources)

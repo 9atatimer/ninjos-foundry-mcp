@@ -274,7 +274,7 @@ export class SocketBridge {
         this.handleProgressUpdate(message.data);
       }
     } catch (error) {
-      console.error(`[ninjos-foundry-mcp] ERROR in handleMessage:`, error);
+      console.error(`[tedious-gm-mcp] ERROR in handleMessage:`, error);
       this.log(`Error handling message: ${error}`);
     }
   }
@@ -315,7 +315,7 @@ export class SocketBridge {
 
       this.log(`Progress: ${message}`);
     } catch (error) {
-      console.error(`[ninjos-foundry-mcp] Error handling progress update:`, error);
+      console.error(`[tedious-gm-mcp] Error handling progress update:`, error);
     }
   }
 
@@ -324,7 +324,7 @@ export class SocketBridge {
       this.log(`Handling MCP query: ${data.method}`);
 
       // Check if the query handler exists in CONFIG.queries
-      const queryKey = data.method; // Method already includes full path like 'ninjos-foundry-mcp.listActors'
+      const queryKey = data.method; // Method already includes full path like 'tedious-gm-mcp.listActors'
       const handler = CONFIG.queries[queryKey];
 
       if (!handler || typeof handler !== 'function') {
@@ -349,41 +349,41 @@ export class SocketBridge {
 
   private async handleJobCompleted(data: any): Promise<void> {
     try {
-      console.log(`[ninjos-foundry-mcp] Map generation completed, creating scene...`);
-      console.log(`[ninjos-foundry-mcp] Job completion data:`, data);
+      console.log(`[tedious-gm-mcp] Map generation completed, creating scene...`);
+      console.log(`[tedious-gm-mcp] Job completion data:`, data);
 
       // Handle mapgen-style data structure
       if (!data.result) {
-        console.error(`[ninjos-foundry-mcp] ERROR: No scene result data provided`);
+        console.error(`[tedious-gm-mcp] ERROR: No scene result data provided`);
         throw new Error('No scene result data provided');
       }
 
       if (!data.image_path) {
-        console.error(`[ninjos-foundry-mcp] ERROR: No image path provided for scene creation`);
+        console.error(`[tedious-gm-mcp] ERROR: No image path provided for scene creation`);
         throw new Error('No image path provided for scene creation');
       }
 
       // Use the complete scene data from backend (like mapgen does)
       const sceneData = data.result;
 
-      console.log(`[ninjos-foundry-mcp] Scene data to create:`, sceneData);
-      console.log(`[ninjos-foundry-mcp] Scene name: "${sceneData.name}"`);
+      console.log(`[tedious-gm-mcp] Scene data to create:`, sceneData);
+      console.log(`[tedious-gm-mcp] Scene name: "${sceneData.name}"`);
 
       // Ensure "AI Generated Maps" folder exists and get its ID
-      console.log(`[ninjos-foundry-mcp] Ensuring AI Generated Maps folder exists...`);
+      console.log(`[tedious-gm-mcp] Ensuring AI Generated Maps folder exists...`);
       const folderId = await this.ensureAIMapsFolderExists();
-      console.log(`[ninjos-foundry-mcp] Folder ID:`, folderId);
+      console.log(`[tedious-gm-mcp] Folder ID:`, folderId);
 
       // Add folder to scene data
       if (folderId) {
         sceneData.folder = folderId;
-        console.log(`[ninjos-foundry-mcp] Added folder ID to scene data`);
+        console.log(`[tedious-gm-mcp] Added folder ID to scene data`);
       }
 
       // Create the scene using the complete payload from backend
-      console.log(`[ninjos-foundry-mcp] Attempting to create scene...`);
+      console.log(`[tedious-gm-mcp] Attempting to create scene...`);
       const scene = await (globalThis as any).Scene.create(sceneData);
-      console.log(`[ninjos-foundry-mcp] Scene created successfully:`, scene);
+      console.log(`[tedious-gm-mcp] Scene created successfully:`, scene);
 
       // Never activates: that would pull every player onto the new map (#3).
       await finalizeGeneratedScene(scene, sceneData);

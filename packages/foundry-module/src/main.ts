@@ -17,7 +17,7 @@ import { melde } from './meldungen.js';
 // Connection control now handled through settings menu
 
 /**
- * Main Ninjo's Foundry MCP Module Class
+ * Main Tedious GM MCP Module Class
  */
 class FoundryMCPBridge {
   private settings: ModuleSettings;
@@ -49,7 +49,7 @@ class FoundryMCPBridge {
    */
   async initialize(): Promise<void> {
     try {
-      console.log(`[${MODULE_ID}] Initializing Ninjo's Foundry MCP...`);
+      console.log(`[${MODULE_ID}] Initializing Tedious GM MCP...`);
 
       // Register module settings
       this.settings.registerSettings();
@@ -76,7 +76,7 @@ class FoundryMCPBridge {
       console.log(`[${MODULE_ID}] Module initialized successfully`);
     } catch (error) {
       console.error(`[${MODULE_ID}] Failed to initialize:`, error);
-      ui.notifications.error("Failed to initialize Ninjo's Foundry MCP");
+      ui.notifications.error("Failed to initialize Tedious GM MCP");
       throw error;
     }
   }
@@ -269,7 +269,7 @@ class FoundryMCPBridge {
 
           if (!lastShown || new Date(lastShown).getTime() < thirtySecondsAgo) {
             ui.notifications?.warn(
-              'MCP Server not found. Install it from https://github.com/Niclasp1501/ninjos-foundry-mcp'
+              'MCP Server not found. Install it from https://github.com/9atatimer/ninjos-foundry-mcp'
             );
 
             // Remember when we showed this notification
@@ -557,7 +557,7 @@ Hooks.once('ready', async () => {
 
     // Register socket listener for roll state management (after game.user is available)
 
-    game.socket?.on('module.ninjos-foundry-mcp', async data => {
+    game.socket?.on('module.tedious-gm-mcp', async data => {
       try {
         // Handle ChatMessage update requests (GM only)
         if (data.type === 'requestMessageUpdate' && data.buttonId && data.messageId) {

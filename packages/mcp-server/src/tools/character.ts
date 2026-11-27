@@ -297,7 +297,7 @@ export class CharacterTools {
     this.logger.info('Getting character information', { identifier });
 
     try {
-      const characterData = await this.foundryClient.query('ninjos-foundry-mcp.getCharacterInfo', {
+      const characterData = await this.foundryClient.query('tedious-gm-mcp.getCharacterInfo', {
         characterName: identifier,
       });
 
@@ -328,7 +328,7 @@ export class CharacterTools {
 
     try {
       // First get the character
-      const characterData = await this.foundryClient.query('ninjos-foundry-mcp.getCharacterInfo', {
+      const characterData = await this.foundryClient.query('tedious-gm-mcp.getCharacterInfo', {
         characterName: characterIdentifier,
       });
 
@@ -439,7 +439,7 @@ export class CharacterTools {
     this.logger.info('Listing characters', { type });
 
     try {
-      const actors = await this.foundryClient.query('ninjos-foundry-mcp.listActors', { type });
+      const actors = await this.foundryClient.query('tedious-gm-mcp.listActors', { type });
 
       this.logger.debug('Successfully retrieved character list', { count: actors.length });
 
@@ -485,7 +485,7 @@ export class CharacterTools {
     });
 
     try {
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.useItem', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.useItem', {
         actorIdentifier,
         itemIdentifier,
         targets,
@@ -533,7 +533,7 @@ export class CharacterTools {
     });
 
     try {
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.addActorItems', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.addActorItems', {
         actorIdentifier,
         items,
       });
@@ -573,7 +573,7 @@ export class CharacterTools {
     });
 
     try {
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.updateWorldItems', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.updateWorldItems', {
         updates,
       });
 
@@ -604,7 +604,7 @@ export class CharacterTools {
     });
 
     try {
-      const items = await this.foundryClient.query('ninjos-foundry-mcp.listWorldItems', {
+      const items = await this.foundryClient.query('tedious-gm-mcp.listWorldItems', {
         ...(type !== undefined ? { type } : {}),
         ...(folder !== undefined ? { folder } : {}),
         ...(nameFilter !== undefined ? { nameFilter } : {}),
@@ -648,7 +648,7 @@ export class CharacterTools {
     });
 
     try {
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.createWorldItems', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.createWorldItems', {
         items,
         folder,
       });
@@ -719,7 +719,7 @@ export class CharacterTools {
     });
 
     try {
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.removeActorItems', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.removeActorItems', {
         actorIdentifier,
         ...(itemIds !== undefined ? { itemIds } : {}),
         ...(itemNames !== undefined ? { itemNames } : {}),
@@ -742,7 +742,7 @@ export class CharacterTools {
 
   private async handleDescribeSystemSchema(): Promise<any> {
     try {
-      return await this.foundryClient.query('ninjos-foundry-mcp.getSystemSchema', {});
+      return await this.foundryClient.query('tedious-gm-mcp.getSystemSchema', {});
     } catch (error) {
       throw new Error(
         `Failed to get system schema: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -770,7 +770,7 @@ export class CharacterTools {
     });
 
     try {
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.searchCharacterItems', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.searchCharacterItems', {
         characterIdentifier,
         query,
         type,

@@ -37,7 +37,7 @@ const MODUL = {
    * `fang-app-window` fuer das Hauptfenster und `fang-dialog` fuer die
    * Dialoge. Es genuegt, wenn **eine** davon am Fenster haengt.
    */
-  marke: ['ninjos-foundry-mcp'],
+  marke: ['tedious-gm-mcp'],
 
   /**
    * Teile, die selbst scrollen — zusaetzlich zu `.window-content`.

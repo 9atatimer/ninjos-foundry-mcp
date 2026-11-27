@@ -495,7 +495,7 @@ export class DnD5eAddFeatureTool {
       }
 
       const result = await this.foundryClient.query(
-        'ninjos-foundry-mcp.addPassiveFeatureToActor',
+        'tedious-gm-mcp.addPassiveFeatureToActor',
         parsed
       );
 
@@ -582,7 +582,7 @@ export class DnD5eAddFeatureTool {
       }
 
       const result = await this.foundryClient.query(
-        'ninjos-foundry-mcp.addSaveFeatureToActor',
+        'tedious-gm-mcp.addSaveFeatureToActor',
         parsed
       );
 
@@ -712,7 +712,7 @@ export class DnD5eAddFeatureTool {
         );
       }
 
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.addAttackToActor', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.addAttackToActor', {
         ...parsed,
         effectiveAbility,
       });
@@ -847,7 +847,7 @@ export class DnD5eAddFeatureTool {
         );
       }
 
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.addAttackWithSaveToActor', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.addAttackWithSaveToActor', {
         ...parsed,
         effectiveAbility,
       });
@@ -948,7 +948,7 @@ export class DnD5eAddFeatureTool {
         );
       }
 
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.addAuraToActor', parsed);
+      const result = await this.foundryClient.query('tedious-gm-mcp.addAuraToActor', parsed);
 
       this.logger.info('Aura feature added successfully', {
         actorId: result.actor?.id,
@@ -1032,7 +1032,7 @@ export class DnD5eAddFeatureTool {
         );
       }
 
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.setActorSpellcasting', {
+      const result = await this.foundryClient.query('tedious-gm-mcp.setActorSpellcasting', {
         ...parsed,
         effectiveAbility,
       });
@@ -1103,7 +1103,7 @@ export class DnD5eAddFeatureTool {
         );
       }
 
-      const result = await this.foundryClient.query('ninjos-foundry-mcp.addSpellsToActor', parsed);
+      const result = await this.foundryClient.query('tedious-gm-mcp.addSpellsToActor', parsed);
 
       this.logger.info('Spells import complete', {
         actorId: result.actor?.id,

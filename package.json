@@ -1,5 +1,5 @@
 {
-  "name": "ninjos-foundry-mcp",
+  "name": "tedious-gm-mcp",
   "version": "14.2609.5",
   "description": "Bedient Foundry VTT über das Model Context Protocol",
   "private": true,
@@ -56,11 +56,11 @@
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
   },
-  "author": "Niclas Pflug (Ninjo)",
+  "author": "tedious",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Niclasp1501/ninjos-foundry-mcp.git"
+    "url": "https://github.com/9atatimer/ninjos-foundry-mcp.git"
   },
   "keywords": [
     "foundry-vtt",

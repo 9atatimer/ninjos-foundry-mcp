@@ -1,4 +1,4 @@
-# Agent instructions -- ninjos-foundry-mcp
+# Agent instructions -- tedious-gm-mcp
 
 What an agent must know before it can work safely in this repo. Global
 agent instructions load alongside this file; where they overlap, this file
@@ -20,15 +20,20 @@ The transport layer (`foundry-connector.ts`, `webrtc-peer.ts`,
 Foundry domain code -- system adapters, tools, `data-access.ts` -- is
 about 32,500. Rewrite the former; never the latter.
 
-This repo is a fork of `Niclasp1501/ninjos-foundry-mcp-legacy` (the repo
-was renamed when upstream moved on). Keep the MIT LICENSE and Adam
-Dooley's copyright intact.
+The module is `tedious-gm-mcp` ("Tedious GM MCP", author `tedious`). It
+began as a fork of `Niclasp1501/ninjos-foundry-mcp-legacy`, which is
+archived, and takes no upstream changes. Keep the MIT LICENSE and its
+Adam Dooley and Niclas Pflug copyright lines intact. `NINJO:` comments in
+the source mark code that came from that upstream; leave them.
 
-Upstream's successor, `Niclasp1501/ninjos-foundry-mcp` (14.2609.4 and
-later), is a rewrite under a proprietary licence that forbids
-redistribution and copying its code into another project. Never merge,
-cherry-pick or port code from it into this fork; only the MIT legacy
-repo (remote `legacy`, push disabled) is a source of upstream changes.
+Never take code from `Niclasp1501/ninjos-foundry-mcp` (14.2609.4 and
+later): it is a rewrite under a proprietary licence that forbids
+redistribution and copying its code into another project.
+
+`packages/mcp-server/src/identity.test.ts` fails if anything shipped uses
+the old id `ninjos-foundry-mcp`, carries Ninjo's logo, or sends a user to
+Ninjo's site or repositories. The GitHub repo is still named
+`ninjos-foundry-mcp`, so its URLs keep that name until the repo is renamed.
 
 ## The contract nothing compiles
 
@@ -44,6 +49,9 @@ agree. Both must pass before a commit.
 Old spellings stay registered as aliases on purpose (see the comments in
 `packages/foundry-module/src/queries.ts`). Do not tidy them away -- they
 are what lets a server and a module from different releases keep working.
+They cover only the part of a name after the module id: a server from
+before the rename to `tedious-gm-mcp` cannot talk to a module from after
+it, or the reverse.
 
 **There is no runtime version handshake.** The halves do not refuse each
 other on a version mismatch; no such gate exists in either half. Version
@@ -88,7 +96,7 @@ Symlink the built module in so rebuilds are picked up without recopying:
 
 ```
 ln -sfn "$(pwd)/packages/foundry-module" \
-  "$HOME/Library/Application Support/FoundryVTT/Data/modules/ninjos-foundry-mcp"
+  "$HOME/Library/Application Support/FoundryVTT/Data/modules/tedious-gm-mcp"
 ```
 
 Driving it from a browser without clicking through the UI:

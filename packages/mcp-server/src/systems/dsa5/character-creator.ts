@@ -173,7 +173,7 @@ export class DSA5CharacterCreator {
     try {
       // First, get the full archetype data
       const archetypeData = await this.foundryClient.query(
-        'ninjos-foundry-mcp.getCompendiumDocumentFull',
+        'tedious-gm-mcp.getCompendiumDocumentFull',
         {
           packId: archetypePackId,
           documentId: archetypeId,
@@ -189,7 +189,7 @@ export class DSA5CharacterCreator {
 
       // Create the character actor in Foundry
       const result = await this.foundryClient.query(
-        'ninjos-foundry-mcp.createActorFromCompendium',
+        'tedious-gm-mcp.createActorFromCompendium',
         {
           packId: archetypePackId,
           itemId: archetypeId,
@@ -237,7 +237,7 @@ export class DSA5CharacterCreator {
 
     try {
       // Get all available packs or specific pack
-      const packs = await this.foundryClient.query('ninjos-foundry-mcp.getAvailablePacks');
+      const packs = await this.foundryClient.query('tedious-gm-mcp.getAvailablePacks');
 
       // Filter for DSA5 character packs
       const characterPacks = packs.filter(
@@ -253,7 +253,7 @@ export class DSA5CharacterCreator {
           // Foundry only puts into the index what is requested here. Without the two
           // system fields the filters below return nothing, even though the archetypes
           // are there.
-          const packIndex = await this.foundryClient.query('ninjos-foundry-mcp.getPackIndex', {
+          const packIndex = await this.foundryClient.query('tedious-gm-mcp.getPackIndex', {
             packId: pack.id,
             fields: ['system.details.species.value', 'system.details.career.value'],
           });

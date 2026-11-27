@@ -30,7 +30,7 @@ const LONG_QUERIES: Record<string, number> = {
 const DEFAULT_TIMEOUT = Number(process.env.FOUNDRY_QUERY_TIMEOUT || 30000);
 
 function timeoutFor(method: string): number {
-  // The name arrives as "ninjos-foundry-mcp.exportToCompendium"
+  // The name arrives as "tedious-gm-mcp.exportToCompendium"
   const short = method.includes('.') ? method.slice(method.lastIndexOf('.') + 1) : method;
   return LONG_QUERIES[short] ?? DEFAULT_TIMEOUT;
 }

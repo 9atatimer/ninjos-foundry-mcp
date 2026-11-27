@@ -250,7 +250,7 @@ export class QueryHandlers {
     //
     // Everything in CONFIG.queries is also reachable through Foundry's user
     // queries: any user with the QUERY_USER permission, which players hold by
-    // default, can call game.users.activeGM.query("ninjos-foundry-mcp.<name>")
+    // default, can call game.users.activeGM.query("tedious-gm-mcp.<name>")
     // from the browser console, and Foundry runs the handler on the GM's client.
     // Each handler's GM check asks whether the *local* user is a GM, which on
     // that client is always true, so a player could delete actors or rewrite
