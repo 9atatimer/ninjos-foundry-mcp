@@ -131,8 +131,11 @@ Two consequences when working on this repo:
 
 ## Ports
 
-- `31414` backend control channel -- loopback, unauthenticated,
-  line-delimited JSON.
+- `31414` backend control channel -- unauthenticated, line-delimited
+  JSON. Binds `127.0.0.1`, or `FOUNDRY_MCP_CONTROL_HOST` when set; any
+  other host exposes tool calls to whoever can reach it. It refuses a
+  connection whose first line looks like HTTP, but the check can be
+  bypassed (#26).
 - `31415` bridge WebSocket -- binds loopback (`127.0.0.1` and `::1`),
   and every interface only when `FOUNDRY_REMOTE_MODE=true`.
 - `31416` WebRTC signaling -- the same binding.

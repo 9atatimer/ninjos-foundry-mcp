@@ -72,7 +72,8 @@ The merge of `Niclasp1501/ninjos-foundry-mcp-legacy` at `5e63007`
 - The bridge upgrade and the signaling offer both check `Origin`; the
   `Access-Control-Allow-Origin: *` is gone.
 - The control channel on 31414 refuses input that looks like an HTTP
-  request, which closes the cross-protocol POST.
+  request. It vets only the first read, so a POST with a long enough URL
+  still gets through (#26).
 
 What is still open, and why this task stays:
 

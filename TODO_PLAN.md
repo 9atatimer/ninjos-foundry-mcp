@@ -100,9 +100,9 @@ it is in `.claude/skills/foundry-battlemap/`.
 - **task-018** -- a wrapper-spawned backend has map generation off. Small,
   and it bites on every backend restart.
 
-Deliberately not in Now: task-003 (no container yet), task-005, task-006
-(large, no deadline), task-007 (latent). The legacy merge closed task-002,
-task-004, task-008 and task-009; task-005 went from 47 advisories to 40
+Deliberately not in Now: task-005, task-006 (large, no deadline). The
+legacy merge closed task-002, task-003, task-004, task-007, task-008 and
+task-009; task-005 went from 47 advisories to 40
 (6 critical) as of 2026-11-27. task-016 and task-019
 wait on the map-generation design decision (task-020).
 
@@ -160,14 +160,13 @@ not.
 about: wip
 
 The backend exits after the last wrapper disconnects, counting wrappers only
-and ignoring a still-bridged module. The module is built as if the bridge were
-permanent: bounded retries, then a manual click. Ordinary use of Claude Desktop
-triggers the collision.
+and ignoring a still-bridged module. Since the legacy merge the module retries
+forever (backoff capped at 30 s), so the collision now costs a reconnect
+delay rather than a manual click.
 
-Unsettled because task-004 as filed may be too narrow. Candidates: unbounded
-backoff on the module side; the backend declining to exit while a module is
-bridged; or an explicit lifecycle contract making one side authoritative. It is
-a contract between the halves, so it wants a design record, not a constant.
+Still unsettled: the module retrying is one side of the contract, not a
+contract. The backend still exits under a bridged module, and nothing makes
+either side authoritative. That wants a design record, not a constant.
 
 Triage 2026-09-13: kept as wip. New evidence narrows it rather than settling
 it. On WebRTC the module does not merely give up; it keeps claiming
