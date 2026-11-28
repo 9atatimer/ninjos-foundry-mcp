@@ -110,6 +110,17 @@ wait on the map-generation design decision (task-020).
 
 Wanted next, not yet scheduled:
 
+- **task-024, task-026 to task-032** -- eight bugs found by auditing Adam
+  Dooley's upstream fixes against this code (2026-11-27; #33, #35-#41).
+  task-024 first: `use-item` with targets calls an API that Foundry 13 and 14
+  do not have, so the commonest combat action fails. The audit's other commits
+  were features this project does not want or upstream housekeeping, and were
+  dropped.
+
+Windows is not a supported platform until someone asks for it: Windows-only
+work is not planned (#34, #43 closed), and the `build-nsis` CI job fails on
+the current runner image.
+
 - **task-021** -- Docling as an MCP tool, so campaign PDFs and Word files can
   become Foundry journal and compendium entries instead of being retyped.
   Needs a tech-radar row before anything is installed.
