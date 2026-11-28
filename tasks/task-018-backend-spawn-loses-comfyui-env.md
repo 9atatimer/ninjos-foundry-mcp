@@ -2,7 +2,7 @@
 id: task-018
 kind: bug
 title: Wrapper-spawned backend starts with map generation off
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/6
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/6
 created: 2026-09-13
 ---
 

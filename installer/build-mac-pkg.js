@@ -460,7 +460,7 @@ const conclusionHTML = `<!DOCTYPE html>
 <li>Launch Foundry VTT and enable "Tedious GM MCP" in Module Management</li>
 <li>Start chatting with Claude about your Foundry world!</li>
 </ol>
-<p>Documentation: <a href="https://github.com/9atatimer/ninjos-foundry-mcp">github.com/9atatimer/ninjos-foundry-mcp</a></p>
+<p>Documentation: <a href="https://github.com/9atatimer/tedious-gm-mcp">github.com/9atatimer/tedious-gm-mcp</a></p>
 </body>
 </html>
 `;

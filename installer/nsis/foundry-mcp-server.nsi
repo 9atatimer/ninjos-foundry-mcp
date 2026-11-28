@@ -219,7 +219,7 @@ FunctionEnd
 ;--------------------------------
 ; Helper Functions
 Function OpenGitHub
-  ExecShell "open" "https://github.com/9atatimer/ninjos-foundry-mcp"
+  ExecShell "open" "https://github.com/9atatimer/tedious-gm-mcp"
 FunctionEnd
 
 Function DownloadComfyUIModels

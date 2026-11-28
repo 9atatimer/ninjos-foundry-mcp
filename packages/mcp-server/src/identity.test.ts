@@ -23,7 +23,12 @@ const SHIPPED = [
   'shared/src',
   'installer',
 ];
-const TEXT = /\.(ts|js|mjs|json|html|hbs|css|nsi|txt|sh|plist|xml)$/;
+// Every file under SHIPPED is read, whatever its extension: installers ship
+// extensionless scripts, .tool, .ps1 and .bat files too. Only binaries (a NUL
+// byte in the first 8 KB) are skipped.
+function isText(path: string): boolean {
+  return !readFileSync(path).subarray(0, 8192).includes(0);
+}
 
 function files(path: string): string[] {
   const abs = join(ROOT, path);
@@ -36,7 +41,7 @@ function files(path: string): string[] {
 
 function offenders(pattern: RegExp): string[] {
   return SHIPPED.flatMap(files)
-    .filter(f => TEXT.test(f) && !f.endsWith('identity.test.ts'))
+    .filter(f => !f.endsWith('identity.test.ts') && isText(f))
     .flatMap(f =>
       readFileSync(f, 'utf8')
         .split('\n')
@@ -68,8 +73,8 @@ describe('module identity', () => {
     expect(offenders(/ninjo\.png/)).toEqual([]);
   });
 
-  it('uses the old module id nowhere it ships, except in repository URLs', () => {
-    expect(offenders(/(?<!9atatimer\/)ninjos-foundry-mcp/)).toEqual([]);
+  it('uses the old module id and repository name nowhere it ships', () => {
+    expect(offenders(/ninjos-foundry-mcp/)).toEqual([]);
   });
 
   // Source comments may still credit where code came from (MIT attribution);
@@ -81,11 +86,11 @@ describe('module identity', () => {
 
   // The install guides are not shipped, but users paste their URLs: a manifest
   // link to the upstream repository installs someone else's module.
-  it('the install guides link to this repository, not upstream', () => {
-    const hits = ['README.md', 'INSTALLATION.md'].flatMap(path =>
+  it('the install guides name this repository, never the old or upstream one', () => {
+    const hits = ['README.md', 'INSTALLATION.md', 'docs/DEV-ENVIRONMENT.md'].flatMap(path =>
       readFileSync(join(ROOT, path), 'utf8')
         .split('\n')
-        .map((line, i) => (/Niclasp1501\/ninjos-foundry-mcp(?!-legacy)/.test(line) ? `${path}:${i + 1}` : null))
+        .map((line, i) => (/ninjos-foundry-mcp(?!-legacy)/.test(line) ? `${path}:${i + 1}` : null))
         .filter((x): x is string => x !== null)
     );
     expect(hits).toEqual([]);

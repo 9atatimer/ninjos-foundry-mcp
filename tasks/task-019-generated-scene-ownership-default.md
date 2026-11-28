@@ -2,7 +2,7 @@
 id: task-019
 kind: bug
 title: Generated scenes send a dead 'permission' key; decide the ownership default
-issue: https://github.com/9atatimer/ninjos-foundry-mcp/issues/7
+issue: https://github.com/9atatimer/tedious-gm-mcp/issues/7
 created: 2026-09-13
 ---
 

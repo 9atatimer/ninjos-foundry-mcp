@@ -30,10 +30,12 @@ Never take code from `Niclasp1501/ninjos-foundry-mcp` (14.2609.4 and
 later): it is a rewrite under a proprietary licence that forbids
 redistribution and copying its code into another project.
 
-`packages/mcp-server/src/identity.test.ts` fails if anything shipped uses
-the old id `ninjos-foundry-mcp`, carries Ninjo's logo, or sends a user to
-Ninjo's site or repositories. The GitHub repo is still named
-`ninjos-foundry-mcp`, so its URLs keep that name until the repo is renamed.
+The GitHub repo is `9atatimer/tedious-gm-mcp`; it was
+`9atatimer/ninjos-foundry-mcp`, and GitHub redirects the old URLs.
+`packages/mcp-server/src/identity.test.ts` fails if anything shipped, or
+the README, INSTALLATION or DEV-ENVIRONMENT guide, names the old id or
+repo, carries Ninjo's logo, or sends a user to Ninjo's site or
+repositories.
 
 ## The contract nothing compiles
 

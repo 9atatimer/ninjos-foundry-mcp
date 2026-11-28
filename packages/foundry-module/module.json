@@ -14,11 +14,11 @@
       "url": "https://github.com/9atatimer"
     }
   ],
-  "url": "https://github.com/9atatimer/ninjos-foundry-mcp",
-  "bugs": "https://github.com/9atatimer/ninjos-foundry-mcp/issues",
-  "changelog": "https://github.com/9atatimer/ninjos-foundry-mcp/blob/main/CHANGELOG.md",
-  "readme": "https://github.com/9atatimer/ninjos-foundry-mcp/blob/main/README.md",
-  "license": "https://github.com/9atatimer/ninjos-foundry-mcp/blob/main/LICENSE",
+  "url": "https://github.com/9atatimer/tedious-gm-mcp",
+  "bugs": "https://github.com/9atatimer/tedious-gm-mcp/issues",
+  "changelog": "https://github.com/9atatimer/tedious-gm-mcp/blob/main/CHANGELOG.md",
+  "readme": "https://github.com/9atatimer/tedious-gm-mcp/blob/main/README.md",
+  "license": "https://github.com/9atatimer/tedious-gm-mcp/blob/main/LICENSE",
   "esmodules": ["dist/main.js"],
   "styles": [
     "styles/ninjo-marke.css",
@@ -39,8 +39,8 @@
     }
   ],
   "socket": true,
-  "manifest": "https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest/download/module.json",
-  "download": "https://github.com/9atatimer/ninjos-foundry-mcp/releases/latest/download/module.zip",
+  "manifest": "https://github.com/9atatimer/tedious-gm-mcp/releases/latest/download/module.json",
+  "download": "https://github.com/9atatimer/tedious-gm-mcp/releases/latest/download/module.zip",
   "protected": false,
   "coreTranslation": false,
   "library": false,
