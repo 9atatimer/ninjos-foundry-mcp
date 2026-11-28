@@ -98,5 +98,8 @@ describe('module identity', () => {
 
   it('no longer watches an upstream repository', () => {
     expect(existsSync(join(ROOT, '.github/workflows/ursprung-beobachten.yml'))).toBe(false);
+    expect(existsSync(join(ROOT, 'scripts/ursprung-pruefen.mjs'))).toBe(false);
+    const scripts = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).scripts ?? {};
+    expect(Object.keys(scripts).filter(k => /ursprung/.test(k))).toEqual([]);
   });
 });
